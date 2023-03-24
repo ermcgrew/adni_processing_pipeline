@@ -1,6 +1,6 @@
 import csv
 # import processing
-from processing import T1
+from processing import T1, T1PetReg, AmyloidPET, TauPET
 
 
 def reformat_dates(date):
@@ -16,6 +16,8 @@ def reformat_dates(date):
     year="20" + MDYlist[2]
     return year + "-" + month + "-" + day
 
+
+# csvlist=['MRI.csv','amy.csv','tau.csv']
 
 with open("../MRI3TLIST_testdata.csv") as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
@@ -38,13 +40,14 @@ with open("../MRI3TLIST_testdata.csv") as csv_file:
             ##dicom location is saved in t1 class to add to final spreadsheet
             ##do we need to create the intermediate spreadsheets with nifti paths if we're not using db anymore?
 
-            print(subject, mridate)
+            # print(subject, mridate)
             t1_to_process=T1(subject,mridate)
             print(f"Now processing: {t1_to_process.T1_nifti}")
             t1_to_process.ants_thick()
-            t1_to_process.extract_brain()
             t1_to_process.wb_seg()
-            t1_to_process.wb_seg_QC()
-            t1_to_process.ashst1()
-            t1_to_process.ashst2('purple')
+            t1_to_process.t1_ashs()
+            t1_to_process.t2_ashs('purple')
+            t1_to_process.t1_flair_reg()
+            t1_to_process.wmh()
+
     

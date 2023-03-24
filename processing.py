@@ -1,3 +1,4 @@
+import os
 
 # global var
 adni_data_dir = "/project/wolk_2/ADNI2018/dataset/"
@@ -17,26 +18,28 @@ class T1:
         self.T1_wb_seg_QC = f"{self.filepath}{self.date_id_prefix}_wbseg.qa.png"
         self.T2_nifti = f"{self.filepath}{self.date_id_prefix}_T2w.nii.gz"
         self.flair = f"{self.filepath}{self.date_id_prefix}_flair.nii.gz"
+        self.T1_flair = f"{self.filepath}{self.date_id_prefix}_T1w_trim_to_flair.mat"
 
     def ants_thick(self):
-        print(f"Use FTDC's ANTS gear code")
-
-    def extract_brain(self):
-        print(f"os.system(f'bsub < brainx_phil.sh {self.T1_trim}')")
-        print(f"record job ID, action >> to log")
+        print(f"Use FTDC's ANTS gear code")        
     
     def wb_seg(self):
+        print(f"os.system(f'bsub < brainx_phil.sh {self.T1_trim}')")
         print(f"bsub < wbseg script")
-
-    def wb_seg_QC(self):
-        print(f"call QC script: simplesegqa.sh {self.T1_trim} {self.T1_wb_seg} wholebrainlabels_itksnaplabelfile.txt {self.T1_wb_seg_QC}")        
+        print(f"bsub < simplesegqa.sh {self.T1_trim} {self.T1_wb_seg} wholebrainlabels_itksnaplabelfile.txt {self.T1_wb_seg_QC}")        
     
-    def ashst1(self):
+    def t1_ashs(self):
         print('ASHST1')
     
-    def ashst2(self, atlas):
+    def t2_ashs(self, atlas):
         print(f"If not {self.filepath}sfsegnibtend/final/${self.id}_right_lfseg_corr_nogray.nii.gz")
         print(f"bsub < ashs_and_cleanup.sh {atlas} {self.T1_trim} {self.T2_nifti}")
+
+    def t1_flair_reg(self):
+        print(f"bsub < flirt {self.T1_trim} {self.flair}")
+
+    def wmh(self):
+        print(f"collect files to send to lambda-picsl {self.flair}")
 
 
 class AmyloidPET:
@@ -88,9 +91,7 @@ class T1PetReg:
 # print(T1processing.T1_extract_brain)
 # T1processing.extract_brain()
 # T1processing.wb_seg_QC()
-
 # Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
-
 # testreg = T1PetReg('amyloid',T1processing, Amyloidprocessing)
 # print(f"Now doing {testreg.pet_type} PET")
 # testreg.pet_registration()
