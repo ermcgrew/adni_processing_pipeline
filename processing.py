@@ -1,3 +1,4 @@
+
 # global var
 adni_data_dir = "/project/wolk_2/ADNI2018/dataset/"
 
@@ -17,6 +18,8 @@ class T1:
         self.T2_nifti = f"{self.filepath}{self.date_id_prefix}_T2w.nii.gz"
         self.flair = f"{self.filepath}{self.date_id_prefix}_flair.nii.gz"
 
+    def ants_thick(self):
+        print(f"Use FTDC's ANTS gear code")
 
     def extract_brain(self):
         print(f"os.system(f'bsub < brainx_phil.sh {self.T1_trim}')")
@@ -27,12 +30,9 @@ class T1:
 
     def wb_seg_QC(self):
         print(f"call QC script: simplesegqa.sh {self.T1_trim} {self.T1_wb_seg} wholebrainlabels_itksnaplabelfile.txt {self.T1_wb_seg_QC}")        
-
-    def ants_thick(self):
-        print(f"Use FTDC's ANTS gear code")
     
     def ashst1(self):
-        print('')
+        print('ASHST1')
     
     def ashst2(self, atlas):
         print(f"If not {self.filepath}sfsegnibtend/final/${self.id}_right_lfseg_corr_nogray.nii.gz")
@@ -79,15 +79,18 @@ class T1PetReg:
         print(f"Run: simpleregqa.sh {self.T1_trim}")
 
 
-T1processing=T1('035_S_6788','2020-03-27')
-print(T1processing.T1_nifti)
-print(T1processing.T1_trim)
-print(T1processing.T1_extract_brain)
-T1processing.extract_brain()
-T1processing.wb_seg_QC()
 
-Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
 
-testreg = T1PetReg('amyloid',T1processing, Amyloidprocessing)
-print(f"Now doing {testreg.pet_type} PET")
-testreg.pet_registration()
+
+# T1processing=T1('035_S_6788','2020-03-27')
+# print(T1processing.T1_nifti)
+# print(T1processing.T1_trim)
+# print(T1processing.T1_extract_brain)
+# T1processing.extract_brain()
+# T1processing.wb_seg_QC()
+
+# Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
+
+# testreg = T1PetReg('amyloid',T1processing, Amyloidprocessing)
+# print(f"Now doing {testreg.pet_type} PET")
+# testreg.pet_registration()
