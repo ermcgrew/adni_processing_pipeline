@@ -1,7 +1,11 @@
+import logging
 import os
 
-# global var
-adni_data_dir = "/project/wolk_2/ADNI2018/dataset/"
+
+
+# adni_data_dir = "/project/wolk_2/ADNI2018/dataset/"
+# for testing
+adni_data_dir = "/project/wolk_2/ADNI2018/scripts/pipeline_test_data/"
 
 class T1:
     def __init__(self, subject, mridate):
@@ -24,9 +28,10 @@ class T1:
         print(f"Use FTDC's ANTS gear code")        
     
     def wb_seg(self):
-        print(f"os.system(f'bsub < brainx_phil.sh {self.T1_trim}')")
-        print(f"bsub < wbseg script")
-        print(f"bsub < simplesegqa.sh {self.T1_trim} {self.T1_wb_seg} wholebrainlabels_itksnaplabelfile.txt {self.T1_wb_seg_QC}")        
+        logging.info(f"Running whole brain segmentation and extraction on {self.T1_trim}")
+        os.system(f'bsub -o {self.filepath} ./analysis_modules/brain_extract.sh {self.T1_trim}')
+        # print(f"bsub < wbseg script")
+        # print(f"bsub < simplesegqa.sh {self.T1_trim} {self.T1_wb_seg} wholebrainlabels_itksnaplabelfile.txt {self.T1_wb_seg_QC}")        
     
     def t1_ashs(self):
         print('ASHST1')
@@ -83,13 +88,14 @@ class T1PetReg:
 
 
 
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 
-# T1processing=T1('035_S_6788','2020-03-27')
+T1processing=T1('141_S_6779','2020-10-27')
 # print(T1processing.T1_nifti)
 # print(T1processing.T1_trim)
 # print(T1processing.T1_extract_brain)
-# T1processing.extract_brain()
+T1processing.wb_seg()
 # T1processing.wb_seg_QC()
 # Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
 # testreg = T1PetReg('amyloid',T1processing, Amyloidprocessing)

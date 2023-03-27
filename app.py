@@ -1,5 +1,5 @@
 import csv
-# import processing
+import logging
 from processing import T1, T1PetReg, AmyloidPET, TauPET
 
 
@@ -42,7 +42,7 @@ with open("../MRI3TLIST_testdata.csv") as csv_file:
 
             # print(subject, mridate)
             t1_to_process=T1(subject,mridate)
-            print(f"Now processing: {t1_to_process.T1_nifti}")
+            logging.info(f"Now processing: {t1_to_process.T1_nifti}")
             t1_to_process.ants_thick()
             t1_to_process.wb_seg()
             t1_to_process.t1_ashs()
@@ -50,4 +50,5 @@ with open("../MRI3TLIST_testdata.csv") as csv_file:
             t1_to_process.t1_flair_reg()
             t1_to_process.wmh()
 
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
     
