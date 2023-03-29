@@ -1,14 +1,12 @@
 import logging
 import os
-# from app import file_exists
-
 
 
 # adni_data_dir = "/project/wolk_2/ADNI2018/dataset/"
 # for testing
 adni_data_dir = "/project/wolk_2/ADNI2018/scripts/pipeline_test_data/"
 
-class T1:
+class MRI:
     def __init__(self, subject, mridate):
         self.id = subject
         self.mridate = mridate
@@ -30,22 +28,32 @@ class T1:
     
     def wb_seg(self):
         logging.info(f"Running whole brain extraction on {self.T1_trim}")
-        os.system(f'bsub -o {self.filepath} ./wrapper_scripts/brain_extract.sh {self.T1_trim}')
+        # os.system(f'bsub -o {self.filepath} ./wrapper_scripts/brain_extract.sh {self.T1_trim}')
         logging.info(f"Running whole brain segmentation on {self.T1_trim}")
-        print(f"bsub < wbseg script")
-        ("")
-        logging.info(f"Generating QC files for whole brain segmentation on {self.T1_trim}")
-        print(f"bsub simplesegqa.sh {self.T1_trim} {self.T1_wb_seg} wholebrainlabels_itksnaplabelfile.txt {self.T1_wb_seg_QC}")        
+        # os.system(f"bsub -o {self.filepath} -M 12G -q bsc_long \
+        #       /home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh \
+        #       {self.filepath} \
+        #       {self.filepath}{self.date_id_prefix}_wholebrainseg \
+        #       {self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain \
+        #       /home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly 1")
+        if os.path.isfile(self.T1_wb_seg_QC):
+            logging.info(f"Whole brain segmentation file already generated for {self.T1_trim}")
+        else:
+            logging.info(f"Generating QC files for whole brain segmentation on {self.T1_trim}")
+            # os.system(f"bsub -o {self.filepath} /project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh \
+            #       {self.T1_trim} {self.T1_wb_seg} \
+            #       /project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt  \
+            #       {self.T1_wb_seg_QC}")        
     
     def t1_ashs(self):
         print('ASHST1')
     
     def t2_ashs(self, atlas):
         print(f"If not {self.filepath}sfsegnibtend/final/${self.id}_right_lfseg_corr_nogray.nii.gz")
-        print(f"bsub < ashs_and_cleanup.sh {atlas} {self.T1_trim} {self.T2_nifti}")
+        print(f"bsub ashs_and_cleanup.sh {atlas} {self.T1_trim} {self.T2_nifti}")
 
     def t1_flair_reg(self):
-        print(f"bsub < flirt {self.T1_trim} {self.flair}")
+        print(f"bsub flirt {self.T1_trim} {self.flair}")
 
     def wmh(self):
         print(f"collect files to send to lambda-picsl {self.flair}")
@@ -95,13 +103,12 @@ class T1PetReg:
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 
-T1processing=T1('141_S_6779','2020-10-27')
-# print(T1processing.T1_nifti)
-print(T1processing.T1_trim)
-# print(T1processing.T1_extract_brain)
-# T1processing.wb_seg()
-# T1processing.wb_seg_QC()
+MRIprocessing=MRI('141_S_6779','2020-10-27')
+# print(MRIprocessing.T1_nifti)
+print(MRIprocessing.T1_trim)
+# print(MRIprocessing.T1_extract_brain)
+MRIprocessing.wb_seg()
 # Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
-# testreg = T1PetReg('amyloid',T1processing, Amyloidprocessing)
+# testreg = T1PetReg('amyloid',MRIprocessing, Amyloidprocessing)
 # print(f"Now doing {testreg.pet_type} PET")
 # testreg.pet_registration()
