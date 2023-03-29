@@ -1,7 +1,7 @@
 import csv
 import logging
 import os
-from processing import T1, T1PetReg, AmyloidPET, TauPET
+from processing import MRI, T1PetReg, AmyloidPET, TauPET
 
 
 def reformat_dates(date):
@@ -47,22 +47,22 @@ def main():
                 ##do we need to create the intermediate spreadsheets with nifti paths if we're not using db anymore?
 
                 # print(subject, mridate)
-                t1_to_process=T1(subject,mridate)
-                logging.info(f"Now processing: {t1_to_process.T1_nifti}")
+                mri_to_process = MRI(subject,mridate)
+                logging.info(f"Now processing: {mri_to_process.T1_nifti}")
 
-                t1_to_process.ants_thick()
+                mri_to_process.ants_thick()
 
-                if file_exists(t1_to_process.T1_extract_brain):
-                    logging.info(f"Whole Brain Segmentation already done for {t1_to_process.T1_nifti}")
+                if file_exists(mri_to_process.T1_extract_brain):
+                    logging.info(f"Whole Brain Segmentation already done for {mri_to_process.T1_nifti}")
                 else:
-                    if file_exists(t1_to_process.T1_trim):
-                        t1_to_process.wb_seg()
+                    if file_exists(mri_to_process.T1_trim):
+                        mri_to_process.wb_seg()
                     else:
-                        logging.info(f"No T1 trim file for {t1_to_process.T1_nifti}, cannot run whole brain segmentation")
-                t1_to_process.t1_ashs()
-                t1_to_process.t2_ashs('purple')
-                t1_to_process.t1_flair_reg()
-                t1_to_process.wmh()
+                        logging.info(f"No T1 trim file for {mri_to_process.T1_nifti}, cannot run whole brain segmentation")
+                mri_to_process.t1_ashs()
+                mri_to_process.t2_ashs('purple')
+                mri_to_process.t1_flair_reg()
+                mri_to_process.wmh()
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 # csvlist=['MRI.csv','amy.csv','tau.csv']
