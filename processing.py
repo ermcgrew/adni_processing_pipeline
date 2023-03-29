@@ -1,5 +1,6 @@
 import logging
 import os
+# from app import file_exists
 
 
 
@@ -19,7 +20,7 @@ class T1:
         self.T1_trim = f"{self.filepath}{self.date_id_prefix}_T1w_trim.nii.gz"
         self.T1_extract_brain = f"{self.filepath}{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
         self.T1_wb_seg= f"{self.filepath}{self.date_id_prefix}_wholebrainseg/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
-        self.T1_wb_seg_QC = f"{self.filepath}{self.date_id_prefix}_wbseg.qa.png"
+        self.T1_wb_seg_QC = f"{self.filepath}{self.date_id_prefix}_wbseg_qa.png"
         self.T2_nifti = f"{self.filepath}{self.date_id_prefix}_T2w.nii.gz"
         self.flair = f"{self.filepath}{self.date_id_prefix}_flair.nii.gz"
         self.T1_flair = f"{self.filepath}{self.date_id_prefix}_T1w_trim_to_flair.mat"
@@ -28,10 +29,13 @@ class T1:
         print(f"Use FTDC's ANTS gear code")        
     
     def wb_seg(self):
-        logging.info(f"Running whole brain segmentation and extraction on {self.T1_trim}")
-        os.system(f'bsub -o {self.filepath} ./analysis_modules/brain_extract.sh {self.T1_trim}')
-        # print(f"bsub < wbseg script")
-        # print(f"bsub < simplesegqa.sh {self.T1_trim} {self.T1_wb_seg} wholebrainlabels_itksnaplabelfile.txt {self.T1_wb_seg_QC}")        
+        logging.info(f"Running whole brain extraction on {self.T1_trim}")
+        os.system(f'bsub -o {self.filepath} ./wrapper_scripts/brain_extract.sh {self.T1_trim}')
+        logging.info(f"Running whole brain segmentation on {self.T1_trim}")
+        print(f"bsub < wbseg script")
+        ("")
+        logging.info(f"Generating QC files for whole brain segmentation on {self.T1_trim}")
+        print(f"bsub simplesegqa.sh {self.T1_trim} {self.T1_wb_seg} wholebrainlabels_itksnaplabelfile.txt {self.T1_wb_seg_QC}")        
     
     def t1_ashs(self):
         print('ASHST1')
@@ -93,9 +97,9 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 T1processing=T1('141_S_6779','2020-10-27')
 # print(T1processing.T1_nifti)
-# print(T1processing.T1_trim)
+print(T1processing.T1_trim)
 # print(T1processing.T1_extract_brain)
-T1processing.wb_seg()
+# T1processing.wb_seg()
 # T1processing.wb_seg_QC()
 # Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
 # testreg = T1PetReg('amyloid',T1processing, Amyloidprocessing)

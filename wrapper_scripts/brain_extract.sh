@@ -6,7 +6,7 @@
 FILE=$1
 TEMPLATE_DIR=/project/hippogang_1/srdas/keep/pennTemplate
 export ANTSPATH=/project/wolk_1/ADNI_longitudinal-Templates/ants/
-# Without this line, get bsub output: Script requires ANTSPATH to be defined at /project/hippogang_1/srdas/homebin/altAntsBrainExtraction/brainExtractionRegistration.pl line 93.
+# need to export this var for the t1BrainExtraction.sh script to run
 
 /project/hippogang_1/srdas/homebin/altAntsBrainExtraction/t1BrainExtraction.sh \
    -a $FILE \
