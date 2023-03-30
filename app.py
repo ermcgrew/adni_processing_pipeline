@@ -18,10 +18,7 @@ def reformat_dates(date):
     return year + "-" + month + "-" + day
 
 
-def file_exists(filepath):
-    return os.path.isfile(filepath) 
-    # works for files and symlinks
-    # to check for directories too, use os.path.exists
+
 
 
 def main():
@@ -51,14 +48,7 @@ def main():
                 logging.info(f"Now processing: {mri_to_process.T1_nifti}")
 
                 mri_to_process.ants_thick()
-
-                if file_exists(mri_to_process.T1_extract_brain):
-                    logging.info(f"Whole Brain Segmentation already done for {mri_to_process.T1_nifti}")
-                else:
-                    if file_exists(mri_to_process.T1_trim):
-                        mri_to_process.wb_seg()
-                    else:
-                        logging.info(f"No T1 trim file for {mri_to_process.T1_nifti}, cannot run whole brain segmentation")
+                mri_to_process.wb_seg()
                 mri_to_process.t1_ashs()
                 mri_to_process.t2_ashs('purple')
                 mri_to_process.t1_flair_reg()
