@@ -18,9 +18,6 @@ def reformat_dates(date):
     return year + "-" + month + "-" + day
 
 
-
-
-
 def main():
     with open("../MRI3TLIST_testdata.csv") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -45,10 +42,11 @@ def main():
 
                 # print(subject, mridate)
                 mri_to_process = MRI(subject,mridate)
-                logging.info(f"Now processing: {mri_to_process.T1_nifti}")
+                logging.info(f"{mri_to_process.id}:{mri_to_process.mridate}: Now processing")
 
                 mri_to_process.ants_thick()
                 mri_to_process.wb_seg()
+                mri_to_process.t1_super_res()
                 mri_to_process.t1_ashs()
                 mri_to_process.t2_ashs('purple')
                 mri_to_process.t1_flair_reg()

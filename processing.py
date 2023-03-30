@@ -5,6 +5,7 @@ import os
 # adni_data_dir = "/project/wolk_2/ADNI2018/dataset/"
 # for testing
 adni_data_dir = "/project/wolk_2/ADNI2018/scripts/pipeline_test_data/"
+
 def file_exists(filepath):
     return os.path.isfile(filepath) 
     # works for files and symlinks
@@ -24,6 +25,7 @@ class MRI:
         self.T1_extract_brain = f"{self.filepath}{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
         self.T1_wb_seg= f"{self.filepath}{self.date_id_prefix}_wholebrainseg/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
         self.T1_wb_seg_QC = f"{self.filepath}{self.date_id_prefix}_wbseg_qa.png"
+        self.T1_SR = f"{self.filepath}{self.date_id_prefix}_T1w_trim_denoised_SR.nii.gz"
         self.T2_nifti = f"{self.filepath}{self.date_id_prefix}_T2w.nii.gz"
         self.flair = f"{self.filepath}{self.date_id_prefix}_flair.nii.gz"
         self.T1_flair = f"{self.filepath}{self.date_id_prefix}_T1w_trim_to_flair.mat"
@@ -37,9 +39,9 @@ class MRI:
             return
         else:
             if file_exists(self.T1_trim):
-                logging.info(f"Running whole brain extraction on {self.T1_trim}")
+                logging.info(f"{self.id}:{self.mridate}: Running whole brain extraction")
                 # os.system(f'bsub -o {self.filepath} ./wrapper_scripts/brain_extract.sh {self.T1_trim}')
-                logging.info(f"Running whole brain segmentation on {self.T1_trim}")
+                logging.info(f"{self.id}:{self.mridate}: Running whole brain segmentation")
                 # os.system(f"bsub -o {self.filepath} -M 12G -q bsc_long \
                 #       /home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh \
                 #       {self.filepath} \
@@ -47,19 +49,31 @@ class MRI:
                 #       {self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain \
                 #       /home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly 1")
                 if os.path.isfile(self.T1_wb_seg_QC):
-                    logging.info(f"Whole brain segmentation QC file already generated for {self.T1_trim}")
+                    logging.info(f"{self.id}:{self.mridate}: Whole brain segmentation QC file already generated")
                     return
                 else:
-                    logging.info(f"Generating QC files for whole brain segmentation on {self.T1_trim}")
+                    logging.info(f"{self.id}:{self.mridate}: Generating QC files for whole brain segmentation")
                     # os.system(f"bsub -o {self.filepath} /project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh \
                     #       {self.T1_trim} {self.T1_wb_seg} \
                     #       /project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt  \
                     #       {self.T1_wb_seg_QC}")        
             else:
-                logging.info(f"No T1 trim file for {self.T1_nifti}, cannot run whole brain segmentation")
+                logging.info(f"{self.id}:{self.mridate}: No T1 trim file, cannot run whole brain segmentation")
                 return
     
-    
+    def t1_super_res(self):
+        if file_exists(self.T1_SR):
+            logging.info(f"{self.id}:{self.mridate}: Super Resolution already created")
+            return
+        else:
+            if file_exists(self.T1_trim):
+                logging.info(f"{self.id}:{self.mridate}: Running super resolution")
+                os.system(f"bsub -o {self.filepath} -M 4G -n 1 ./wrapper_scripts/super_resolution.sh \
+                          {self.filepath} {self.T1_trim} {self.T1_SR}")
+            else:
+                logging.info(f"{self.id}:{self.mridate}: No T1 trim file, cannot run super resolution")
+                return
+
     def t1_ashs(self):
         print('ASHST1')
     
@@ -114,15 +128,18 @@ class T1PetReg:
         print(f"Run: simpleregqa.sh {self.T1_trim}")
 
 
-
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
-
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
 MRIprocessing=MRI('141_S_6779','2020-10-27')
+
 # print(MRIprocessing.T1_nifti)
-print(MRIprocessing.T1_trim)
+# print(MRIprocessing.T1_trim)
 # print(MRIprocessing.T1_extract_brain)
-MRIprocessing.wb_seg()
+print(MRIprocessing.T1_SR)
+
+# MRIprocessing.wb_seg()
+MRIprocessing.t1_super_res()
+
 # Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
 # testreg = T1PetReg('amyloid',MRIprocessing, Amyloidprocessing)
 # print(f"Now doing {testreg.pet_type} PET")
