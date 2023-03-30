@@ -5,6 +5,11 @@ import os
 # adni_data_dir = "/project/wolk_2/ADNI2018/dataset/"
 # for testing
 adni_data_dir = "/project/wolk_2/ADNI2018/scripts/pipeline_test_data/"
+def file_exists(filepath):
+    return os.path.isfile(filepath) 
+    # works for files and symlinks
+    # to check for directories too, use os.path.exists
+
 
 class MRI:
     def __init__(self, subject, mridate):
@@ -27,23 +32,33 @@ class MRI:
         print(f"Use FTDC's ANTS gear code")        
     
     def wb_seg(self):
-        logging.info(f"Running whole brain extraction on {self.T1_trim}")
-        # os.system(f'bsub -o {self.filepath} ./wrapper_scripts/brain_extract.sh {self.T1_trim}')
-        logging.info(f"Running whole brain segmentation on {self.T1_trim}")
-        # os.system(f"bsub -o {self.filepath} -M 12G -q bsc_long \
-        #       /home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh \
-        #       {self.filepath} \
-        #       {self.filepath}{self.date_id_prefix}_wholebrainseg \
-        #       {self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain \
-        #       /home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly 1")
-        if os.path.isfile(self.T1_wb_seg_QC):
-            logging.info(f"Whole brain segmentation file already generated for {self.T1_trim}")
+        if file_exists(self.T1_wb_seg):
+            logging.info(f"Whole Brain Segmentation already done for {self.T1_nifti}")
+            return
         else:
-            logging.info(f"Generating QC files for whole brain segmentation on {self.T1_trim}")
-            # os.system(f"bsub -o {self.filepath} /project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh \
-            #       {self.T1_trim} {self.T1_wb_seg} \
-            #       /project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt  \
-            #       {self.T1_wb_seg_QC}")        
+            if file_exists(self.T1_trim):
+                logging.info(f"Running whole brain extraction on {self.T1_trim}")
+                # os.system(f'bsub -o {self.filepath} ./wrapper_scripts/brain_extract.sh {self.T1_trim}')
+                logging.info(f"Running whole brain segmentation on {self.T1_trim}")
+                # os.system(f"bsub -o {self.filepath} -M 12G -q bsc_long \
+                #       /home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh \
+                #       {self.filepath} \
+                #       {self.filepath}{self.date_id_prefix}_wholebrainseg \
+                #       {self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain \
+                #       /home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly 1")
+                if os.path.isfile(self.T1_wb_seg_QC):
+                    logging.info(f"Whole brain segmentation QC file already generated for {self.T1_trim}")
+                    return
+                else:
+                    logging.info(f"Generating QC files for whole brain segmentation on {self.T1_trim}")
+                    # os.system(f"bsub -o {self.filepath} /project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh \
+                    #       {self.T1_trim} {self.T1_wb_seg} \
+                    #       /project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt  \
+                    #       {self.T1_wb_seg_QC}")        
+            else:
+                logging.info(f"No T1 trim file for {self.T1_nifti}, cannot run whole brain segmentation")
+                return
+    
     
     def t1_ashs(self):
         print('ASHST1')
