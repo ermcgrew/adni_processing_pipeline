@@ -11,23 +11,23 @@ SRPATH=/home/lxie/pkg/PatchSuperResolution/build_release
 
 $SRPATH/NLMDenoise \
     -i $T1TRIM \
-    -o $TMPDIR/T1w_trim_denoised.nii.gz
+    -o $output_directory/T1w_trim_denoised.nii.gz
 
 orient_code=$(c3d $T1TRIM -info | cut -d ';' -f 5 | cut -d ' ' -f 5)
 if [[ $orient_code == "Oblique," ]]; then
     orient_code=$(c3d $T1TRIM -info | cut -d ';' -f 5 | cut -d ' ' -f 8)
 fi
 
-c3d $TMPDIR/T1w_trim_denoised.nii.gz \
+c3d $output_directory/T1w_trim_denoised.nii.gz \
     -swapdim RPI \
-    -o $TMPDIR/T1w_trim_denoised.nii.gz
+    -o $output_directory/T1w_trim_denoised.nii.gz
 
 $SRPATH/NLMUpsample \
-    -i $TMPDIR/T1w_trim_denoised.nii.gz \
-    -o $TMPDIR/T1w_trim_denoised_SR.nii.gz \
+    -i $output_directory/T1w_trim_denoised.nii.gz \
+    -o $output_directory/T1w_trim_denoised_SR.nii.gz \
     -lf 2 1 2
 
-c3d $TMPDIR/T1w_trim_denoised_SR.nii.gz\
+c3d $output_directory/T1w_trim_denoised_SR.nii.gz\
     -swapdim $orient_code \
     -clip 0 inf \
     -type short \
