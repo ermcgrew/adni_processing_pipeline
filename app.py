@@ -52,6 +52,8 @@ def main():
                 mri_to_process.t1_flair_reg()
                 mri_to_process.wmh()
 
+                ##clean up extra files--function in app.py after running all analysis
+
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 # csvlist=['MRI.csv','amy.csv','tau.csv']
     
