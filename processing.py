@@ -5,6 +5,8 @@ ashs_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
 ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
 long_scripts = "/home/lxie/ADNI2018/scripts"
 icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
+sides = ["left", "right"]
+
 # adni_data_dir = "/project/wolk_2/ADNI2018/dataset/"
 # for testing
 adni_data_dir = "/project/wolk_2/ADNI2018/scripts/pipeline_test_data/"
@@ -31,9 +33,13 @@ class MRI:
         self.T1_wb_seg_QC = f"{self.filepath}{self.date_id_prefix}_wbseg_qa.png"
         
         self.T1_SR = f"{self.filepath}{self.date_id_prefix}_T1w_trim_denoised_SR.nii.gz"
+        
         self.T1_ashs_qc_left = f"{self.filepath}ASHST1/qa/qa_seg_bootstrap_heur_left_qa.png"
         self.T1_ashs_qc_right = f"{self.filepath}ASHST1/qa/qa_seg_bootstrap_heur_right_qa.png"
-
+        # self.T1_ashs_seg_left = f"{self.filepath}ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
+        # self.T1_ashs_seg_right = f"{self.filepath}ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
+        self.T1_ashs_thick_left = f"{self.filepath}ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_left_thickness.csv"
+        self.T1_ashs_thick_right = f"{self.filepath}ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_right_thickness.csv"
         self.T1_ashs_icv_qc_left = f"{self.filepath}ASHSICV/qa/qa_seg_multiatlas_corr_nogray_left_qa.png"
         self.T1_ashs_icv_qc_right = f"{self.filepath}ASHSICV/qa/qa_seg_multiatlas_corr_nogray_right_qa.png"
 
@@ -123,6 +129,23 @@ class MRI:
                 logging.info(f"{self.id}:{self.mridate}: No T1 trim file, cannot run ASHSICV")
                 return
 
+    def t1_ashs_template_thickness(self):
+        for side in sides:
+            if side == "left":
+                ashs_thick = self.T1_ashs_thick_left
+                ashs_seg = self.T1_ashs_seg_left
+            elif side == "right":
+                ashs_thick = self.T1_ashs_thick_right
+                ashs_seg = self. T1_ashs_seg_right
+
+            if file_exists(ashs_thick):
+                logging.info(f"{self.id}:{self.mridate}: Multi Template Thickness {side} already run")
+            else:
+                if file_exists(ashs_seg):
+                    logging.info(f"{self.id}:{self.mridate}: Running Multi Template Thickness {side}")
+
+                else:
+                    logging.info(f"{self.id}:{self.mridate}: No ASHS segmentation file, cannot run Multi Template Thickness {side}")
 
     def t2_ashs(self, atlas):
         print(f"If not {self.filepath}sfsegnibtend/final/${self.id}_right_lfseg_corr_nogray.nii.gz")
@@ -182,11 +205,13 @@ MRIprocessing=MRI('141_S_6779','2020-10-27')
 # print(MRIprocessing.T1_nifti)
 # print(MRIprocessing.T1_trim)
 # print(MRIprocessing.T1_extract_brain)
-print(MRIprocessing.T1_SR)
+# print(MRIprocessing.T1_SR)
+print(MRIprocessing.T1_ashs_seg_left)
 
 # MRIprocessing.wb_seg()
 # MRIprocessing.t1_super_res()
-MRIprocessing.t1_ashs()
+# MRIprocessing.t1_ashs()
+MRIprocessing.t1_ashs_template_thickness()
 
 # Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
 # testreg = T1PetReg('amyloid',MRIprocessing, Amyloidprocessing)
