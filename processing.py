@@ -36,8 +36,8 @@ class MRI:
         
         self.T1_ashs_qc_left = f"{self.filepath}ASHST1/qa/qa_seg_bootstrap_heur_left_qa.png"
         self.T1_ashs_qc_right = f"{self.filepath}ASHST1/qa/qa_seg_bootstrap_heur_right_qa.png"
-        # self.T1_ashs_seg_left = f"{self.filepath}ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
-        # self.T1_ashs_seg_right = f"{self.filepath}ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
+        self.T1_ashs_seg_left = f"{self.filepath}ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
+        self.T1_ashs_seg_right = f"{self.filepath}ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
         self.T1_ashs_thick_left = f"{self.filepath}ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_left_thickness.csv"
         self.T1_ashs_thick_right = f"{self.filepath}ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_right_thickness.csv"
         self.T1_ashs_icv_qc_left = f"{self.filepath}ASHSICV/qa/qa_seg_multiatlas_corr_nogray_left_qa.png"
@@ -129,7 +129,7 @@ class MRI:
                 logging.info(f"{self.id}:{self.mridate}: No T1 trim file, cannot run ASHSICV")
                 return
 
-    def t1_ashs_template_thickness(self):
+    def t1_ashs_multitemplate_thickness(self):
         for side in sides:
             if side == "left":
                 ashs_thick = self.T1_ashs_thick_left
@@ -143,7 +143,9 @@ class MRI:
             else:
                 if file_exists(ashs_seg):
                     logging.info(f"{self.id}:{self.mridate}: Running Multi Template Thickness {side}")
-
+                    os.system(f"bsub -o {self.filepath} -M 12G -n 1 \
+                              ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
+                              {side} {ashs_seg} {self.filepath}ASHST1_MTLCORTEX_MSTTHK")    
                 else:
                     logging.info(f"{self.id}:{self.mridate}: No ASHS segmentation file, cannot run Multi Template Thickness {side}")
 
@@ -211,7 +213,7 @@ print(MRIprocessing.T1_ashs_seg_left)
 # MRIprocessing.wb_seg()
 # MRIprocessing.t1_super_res()
 # MRIprocessing.t1_ashs()
-MRIprocessing.t1_ashs_template_thickness()
+MRIprocessing.t1_ashs_multitemplate_thickness()
 
 # Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
 # testreg = T1PetReg('amyloid',MRIprocessing, Amyloidprocessing)
