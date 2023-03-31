@@ -5,6 +5,9 @@ import os
 # adni_data_dir = "/project/wolk_2/ADNI2018/dataset/"
 # for testing
 adni_data_dir = "/project/wolk_2/ADNI2018/scripts/pipeline_test_data/"
+ashs_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
+ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
+long_scripts = "/home/lxie/ADNI2018/scripts"
 
 def file_exists(filepath):
     return os.path.isfile(filepath) 
@@ -22,11 +25,17 @@ class MRI:
         
         self.T1_nifti = f"{self.filepath}{self.date_id_prefix}_T1w.nii.gz"
         self.T1_trim = f"{self.filepath}{self.date_id_prefix}_T1w_trim.nii.gz"
+        
         self.T1_extract_brain = f"{self.filepath}{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
         self.T1_wb_seg= f"{self.filepath}{self.date_id_prefix}_wholebrainseg/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
         self.T1_wb_seg_QC = f"{self.filepath}{self.date_id_prefix}_wbseg_qa.png"
+        
         self.T1_SR = f"{self.filepath}{self.date_id_prefix}_T1w_trim_denoised_SR.nii.gz"
+        self.T1_left_ashs_qc = f"{self.filepath}ASHST1/qa/qa_seg_bootstrap_heur_left_qa.png"
+        self.T1_right_ashs_qc = f"{self.filepath}ASHST1/qa/qa_seg_bootstrap_heur_right_qa.png"
+
         self.T2_nifti = f"{self.filepath}{self.date_id_prefix}_T2w.nii.gz"
+        
         self.flair = f"{self.filepath}{self.date_id_prefix}_flair.nii.gz"
         self.T1_flair = f"{self.filepath}{self.date_id_prefix}_T1w_trim_to_flair.mat"
 
@@ -68,14 +77,30 @@ class MRI:
         else:
             if file_exists(self.T1_trim):
                 logging.info(f"{self.id}:{self.mridate}: Running super resolution")
-                os.system(f"bsub -o {self.filepath} -M 4G -n 1 ./wrapper_scripts/super_resolution.sh \
-                          {self.filepath} {self.T1_trim} {self.T1_SR}")
+                # os.system(f"bsub -o {self.filepath} -M 4G -n 1 ./wrapper_scripts/super_resolution.sh \
+                #           {self.filepath} {self.T1_trim} {self.T1_SR}")
             else:
                 logging.info(f"{self.id}:{self.mridate}: No T1 trim file, cannot run super resolution")
                 return
 
     def t1_ashs(self):
-        print('ASHST1')
+        if file_exists(self.T1_left_ashs_qc) and file_exists(self.T1_right_ashs_qc):
+            logging.info(f"{self.id}:{self.mridate}: ASHST1 already run")
+            return
+        else:
+            if file_exists(self.T1_trim) and file_exists(self.T1_SR):
+                logging.info(f"{self.id}:{self.mridate}: Running ASHST1")
+                os.system(f"mkdir {self.filepath}ASHST1")
+                os.system(f"export ASHS_ROOT=/project/hippogang_2/longxie/pkg/ashs/ashs-fast")
+                os.system(f"{ashs_root}/bin/ashs_main.sh \
+                    -a {ashs_atlas} -d -T -I {self.id} -g {self.T1_trim} -f {self.T1_SR} \
+                    -l -s 1-7 \
+                    -z {long_scripts}/ashs-fast-z.sh \
+                    -m {long_scripts}/identity.mat -M \
+                    -w {self.filepath}ASHST1")
+            else:
+                logging.info(f"{self.id}:{self.mridate}: No T1 trim file or no T1_denoised_SR file, cannot run ASHST1")
+                return
     
     def t2_ashs(self, atlas):
         print(f"If not {self.filepath}sfsegnibtend/final/${self.id}_right_lfseg_corr_nogray.nii.gz")
@@ -138,7 +163,8 @@ MRIprocessing=MRI('141_S_6779','2020-10-27')
 print(MRIprocessing.T1_SR)
 
 # MRIprocessing.wb_seg()
-MRIprocessing.t1_super_res()
+# MRIprocessing.t1_super_res()
+MRIprocessing.t1_ashs()
 
 # Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
 # testreg = T1PetReg('amyloid',MRIprocessing, Amyloidprocessing)
