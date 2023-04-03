@@ -44,6 +44,8 @@ class MRI:
         self.T1_ashs_icv_qc_right = f"{self.filepath}ASHSICV/qa/qa_seg_multiatlas_corr_nogray_right_qa.png"
 
         self.T2_nifti = f"{self.filepath}{self.date_id_prefix}_T2w.nii.gz"
+        self.T2_ashs_seg_left = f"{self.filepath}sfsegnibtend/final/${self.id}_left_lfseg_corr_nogray.nii.gz"
+        self.T2_ashs_seg_right = f"{self.filepath}sfsegnibtend/final/${self.id}_right_lfseg_corr_nogray.nii.gz"
         
         self.flair = f"{self.filepath}{self.date_id_prefix}_flair.nii.gz"
         self.T1_flair = f"{self.filepath}{self.date_id_prefix}_T1w_trim_to_flair.mat"
@@ -93,7 +95,7 @@ class MRI:
                 return
 
     def t1_ashs(self):
-        if file_exists(self.T1_ashs_qc_left) and file_exists(self.T1_ashs_qc_right):
+        if file_exists(self.T1_ashs_qc_left) or file_exists(self.T1_ashs_qc_right):
             logging.info(f"{self.id}:{self.mridate}: ASHST1 already run")
             return
         else:
@@ -111,7 +113,7 @@ class MRI:
                 return
     
     def t1_ashs_icv(self):
-        if file_exists(self.T1_ashs_icv_qc_left) and file_exists(self.T1_ashs_icv_qc_right):
+        if file_exists(self.T1_ashs_icv_qc_left) or file_exists(self.T1_ashs_icv_qc_right):
             logging.info(f"{self.id}:{self.mridate}: ASHSICV already run")
             return
         else:
@@ -136,22 +138,31 @@ class MRI:
                 ashs_seg = self.T1_ashs_seg_left
             elif side == "right":
                 ashs_thick = self.T1_ashs_thick_right
-                ashs_seg = self. T1_ashs_seg_right
+                ashs_seg = self.T1_ashs_seg_right
 
             if file_exists(ashs_thick):
                 logging.info(f"{self.id}:{self.mridate}: Multi Template Thickness {side} already run")
             else:
                 if file_exists(ashs_seg):
                     logging.info(f"{self.id}:{self.mridate}: Running Multi Template Thickness {side}")
-                    os.system(f"bsub -o {self.filepath} -M 12G -n 1 \
-                              ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
-                              {side} {ashs_seg} {self.filepath}ASHST1_MTLCORTEX_MSTTHK")    
+                    # os.system(f"bsub -o {self.filepath} -M 12G -n 1 \
+                    #           ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
+                    #           {side} {ashs_seg} {self.filepath}ASHST1_MTLCORTEX_MSTTHK")    
                 else:
                     logging.info(f"{self.id}:{self.mridate}: No ASHS segmentation file, cannot run Multi Template Thickness {side}")
 
     def t2_ashs(self, atlas):
-        print(f"If not {self.filepath}sfsegnibtend/final/${self.id}_right_lfseg_corr_nogray.nii.gz")
-        print(f"bsub ashs_and_cleanup.sh {atlas} {self.T1_trim} {self.T2_nifti}")
+        if file_exists(self.T2_ashs_seg_left) or file_exists(self.T2_ashs_seg_right):
+            logging.info(f"{self.id}:{self.mridate}: T2 ASHS already run")
+            return
+        else:
+            if file_exists(self.T2_nifti):
+                logging.info(f"{self.id}:{self.mridate}: Running T2 ASHS")
+                print(f"bsub {atlas} {self.T1_trim} {self.T2_nifti}")
+            else:
+                logging.info(f"{self.id}:{self.mridate}: No T2 nifti, cannot run T2 ASHS.")
+                return
+
 
     def t1_flair_reg(self):
         print(f"bsub flirt {self.T1_trim} {self.flair}")
