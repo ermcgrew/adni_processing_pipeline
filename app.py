@@ -1,4 +1,5 @@
 import csv
+import datetime
 import logging
 import os
 from processing import MRI, T1PetReg, AmyloidPET, TauPET
@@ -48,9 +49,12 @@ def main():
                 mri_to_process.wb_seg()
                 mri_to_process.t1_super_res()
                 mri_to_process.t1_ashs()
+                mri_to_process.t1_ashs_icv()
+                mri_to_process.t1_ashs_multitemplate_thickness()
                 mri_to_process.t2_ashs()
                 mri_to_process.t1_flair_reg()
-                mri_to_process.wmh()
+                
+                mri_to_process.wmh_prep()
 
                 ##clean up extra files--function in app.py after running all analysis
 
