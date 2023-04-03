@@ -48,7 +48,7 @@ def main():
                 mri_to_process.wb_seg()
                 mri_to_process.t1_super_res()
                 mri_to_process.t1_ashs()
-                mri_to_process.t2_ashs('purple')
+                mri_to_process.t2_ashs()
                 mri_to_process.t1_flair_reg()
                 mri_to_process.wmh()
 
