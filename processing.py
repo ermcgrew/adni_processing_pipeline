@@ -1,10 +1,11 @@
 import logging
 import os
 
-ashs_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
+ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
 ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
 long_scripts = "/home/lxie/ADNI2018/scripts"
 icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
+ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
 sides = ["left", "right"]
 
 # adni_data_dir = "/project/wolk_2/ADNI2018/dataset/"
@@ -34,10 +35,11 @@ class MRI:
         
         self.T1_SR = f"{self.filepath}{self.date_id_prefix}_T1w_trim_denoised_SR.nii.gz"
         
-        self.T1_ashs_qc_left = f"{self.filepath}ASHST1/qa/qa_seg_bootstrap_heur_left_qa.png"
-        self.T1_ashs_qc_right = f"{self.filepath}ASHST1/qa/qa_seg_bootstrap_heur_right_qa.png"
+        
         self.T1_ashs_seg_left = f"{self.filepath}ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
         self.T1_ashs_seg_right = f"{self.filepath}ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
+        self.T1_ashs_qc_left = f"{self.filepath}ASHST1/qa/qa_seg_bootstrap_heur_left_qa.png"
+        self.T1_ashs_qc_right = f"{self.filepath}ASHST1/qa/qa_seg_bootstrap_heur_right_qa.png"
         self.T1_ashs_thick_left = f"{self.filepath}ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_left_thickness.csv"
         self.T1_ashs_thick_right = f"{self.filepath}ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_right_thickness.csv"
         self.T1_ashs_icv_qc_left = f"{self.filepath}ASHSICV/qa/qa_seg_multiatlas_corr_nogray_left_qa.png"
@@ -46,7 +48,10 @@ class MRI:
         self.T2_nifti = f"{self.filepath}{self.date_id_prefix}_T2w.nii.gz"
         self.T2_ashs_seg_left = f"{self.filepath}sfsegnibtend/final/${self.id}_left_lfseg_corr_nogray.nii.gz"
         self.T2_ashs_seg_right = f"{self.filepath}sfsegnibtend/final/${self.id}_right_lfseg_corr_nogray.nii.gz"
-        
+        self.T2_ashs_qc_left = f"{self.filepath}sfsegnibtend/"
+        self.T2_ashs_qc_right = f"{self.filepath}sfsegnibtend/"
+
+
         self.flair = f"{self.filepath}{self.date_id_prefix}_flair.nii.gz"
         self.T1_flair = f"{self.filepath}{self.date_id_prefix}_T1w_trim_to_flair.mat"
 
@@ -103,7 +108,7 @@ class MRI:
                 logging.info(f"{self.id}:{self.mridate}: Running ASHST1")
                 # os.system(f"mkdir {self.filepath}ASHST1")
                 # os.system(f"{ashs_root}/bin/ashs_main.sh \
-                #     -a {ashs_atlas} -d -T -I {self.id} -g {self.T1_trim} -f {self.T1_SR} \
+                #     -a {ashs_t1_atlas} -d -T -I {self.id} -g {self.T1_trim} -f {self.T1_SR} \
                 #     -l -s 1-7 \
                 #     -z {long_scripts}/ashs-fast-z.sh \
                 #     -m {long_scripts}/identity.mat -M \
@@ -151,14 +156,19 @@ class MRI:
                 else:
                     logging.info(f"{self.id}:{self.mridate}: No ASHS segmentation file, cannot run Multi Template Thickness {side}")
 
-    def t2_ashs(self, atlas):
+    def t2_ashs(self):
         if file_exists(self.T2_ashs_seg_left) or file_exists(self.T2_ashs_seg_right):
             logging.info(f"{self.id}:{self.mridate}: T2 ASHS already run")
             return
         else:
             if file_exists(self.T2_nifti):
                 logging.info(f"{self.id}:{self.mridate}: Running T2 ASHS")
-                print(f"bsub {atlas} {self.T1_trim} {self.T2_nifti}")
+                #export ashs_root in shell first
+                #export ASHS_ROOT=/project/hippogang_2/longxie/pkg/ashs/ashs-fast
+                os.system(f"mkdir {self.filepath}sfsegnibtend")
+                os.system(f"{ashs_root}/bin/ashs_main.sh \
+                      -a {ashs_t2_atlas} -g {self.T1_trim} -f {self.T2_nifti} \
+                      -d -T -I {self.id} -w {self.filepath}sfsegnibtend")
             else:
                 logging.info(f"{self.id}:{self.mridate}: No T2 nifti, cannot run T2 ASHS.")
                 return
@@ -224,7 +234,10 @@ print(MRIprocessing.T1_ashs_seg_left)
 # MRIprocessing.wb_seg()
 # MRIprocessing.t1_super_res()
 # MRIprocessing.t1_ashs()
-MRIprocessing.t1_ashs_multitemplate_thickness()
+# MRIprocessing.t1_ashs_multitemplate_thickness()
+MRIprocessing.t2_ashs()
+
+
 
 # Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
 # testreg = T1PetReg('amyloid',MRIprocessing, Amyloidprocessing)
