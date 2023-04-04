@@ -78,6 +78,7 @@ class MRI:
                 #       {self.filepath}{self.date_id_prefix}_wholebrainseg \
                 #       {self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain \
                 #       /home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly 1")
+                ###need to wait for wbseg file to be generated before running this piece:
                 if os.path.isfile(self.T1_wb_seg_QC):
                     logging.info(f"{self.id}:{self.mridate}: Whole brain segmentation QC file already generated")
                     return
@@ -231,7 +232,7 @@ class T1PetReg:
         self.mridate = T1.mridate
         self.T1_trim = T1.T1_trim
         self.pet_type = pet_type
-        
+
         if self.pet_type == 'amyloid':
             self.petdate = PET.amydate
             self.pet_nifti = PET.amy_nifti
@@ -253,30 +254,22 @@ class T1PetReg:
         else:
             if file_exists(self.T1_trim) and file_exists(self.pet_nifti):
                 logging.info(f"{self.id}:{self.mridate}:{self.petdate}: Running {self.pet_type} PET-T1 Registration")
-                print(f"coreg_pet.sh {self.T1_trim} {self.pet_nifti}")
-                print(f'bsub -o "{self.filepath}/{self.reg_prefix}.log \
-                      /project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh ')
-
-                # $ID 
-                # $T1trim 
-                # $TAU 
-                # $MRIDATE 
-                # $ROOT/$ID/$TAUDATE
-
-
-
-
-
-                if file_exists(self.reg_qc):
-                    logging.info(f"{self.id}:{self.mridate}:{self.petdate}: {self.pet_type} PET-T1 Registration QC file already generated")
-                    return
-                else:
-                    logging.info(f"{self.id}:{self.mridate}:{self.petdate}: Generating QC files for {self.pet_type} PET-T1 Registration")
-                    print(f"simpleregqa.sh {self.T1_trim} {self.reg_nifti}")
+                os.system(f"bsub -o {self.filepath}/{self.reg_prefix}.log \
+                      /project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh \
+                      {self.id} {self.T1_trim} {self.pet_nifti} {self.mridate} {self.filepath}")
+                ###need to wait for self_reg_nifti to be generated before running this:
+                # if file_exists(self.reg_qc):
+                #     logging.info(f"{self.id}:{self.mridate}:{self.petdate}: {self.pet_type} PET-T1 Registration QC file already generated")
+                #     return
+                # else:
+                #     logging.info(f"{self.id}:{self.mridate}:{self.petdate}: Generating QC files for {self.pet_type} PET-T1 Registration")
+                #     print(f"bsub -o {self.filepath}/tauregqa_{self.reg_prefix}.log \
+                #           /project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh \
+                #           {self.T1_trim} {self.reg_nifti} {self.reg_qc}")
             else:
                 logging.info(f"{self.id}:{self.mridate}:{self.petdate}: No T1 trim nifti or no PET nifti, cannot run {self.pet_type} PET-T1 Registration")
                 return
-
+ 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
