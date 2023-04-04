@@ -243,7 +243,6 @@ class T1PetReg:
         self.filepath = f"{adni_data_dir}/{self.id}/{self.petdate}"
         self.reg_prefix = f"{self.petdate}_{self.id}_{self.pet_type}_to_{self.mridate}"
         self.reg_RAS = f"{self.filepath}/{self.reg_prefix}_T10GenericAffine_RAS.mat"
-                                                            # T10GenericAffine_RAS.mat
         self.reg_nifti = f"{self.filepath}/{self.reg_prefix}_T1.nii.gz"
         self.reg_qc = f"{self.filepath}/{self.reg_prefix}_T1_qa.png"
 
@@ -264,9 +263,9 @@ class T1PetReg:
                     return
                 else:
                     logging.info(f"{self.id}:{self.mridate}:{self.petdate}: Generating QC files for {self.pet_type}-T1 Registration")
-                    # os.system(f"bsub -o {self.filepath}/{self.reg_prefix}_{self.pet_type}regqa.log \
-                    #       /project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh \
-                    #       {self.T1_trim} {self.reg_nifti} {self.reg_qc}")
+                    os.system(f"bsub -o {self.filepath}/{self.reg_prefix}_{self.pet_type}regqa.log \
+                          /project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh \
+                          {self.T1_trim} {self.reg_nifti} {self.reg_qc}")
             else:
                 logging.info(f"{self.id}:{self.mridate}:{self.petdate}: No T1 trim nifti or no PET nifti, cannot run {self.pet_type}-T1 Registration")
                 return
