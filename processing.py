@@ -53,9 +53,8 @@ class MRI:
         self.T2_nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
         self.T2_ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/${self.id}_left_lfseg_corr_nogray.nii.gz"
         self.T2_ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/${self.id}_right_lfseg_corr_nogray.nii.gz"
-        self.T2_ashs_qc_left = f"{self.filepath}/sfsegnibtend/"
-        self.T2_ashs_qc_right = f"{self.filepath}/sfsegnibtend/"
-
+        self.T2_ashs_qc_left = f"{self.filepath}/sfsegnibtend/qa/"
+        self.T2_ashs_qc_right = f"{self.filepath}/sfsegnibtend/qa/"
 
         self.flair = f"{self.filepath}/{self.date_id_prefix}_flair.nii.gz"
         self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
@@ -180,7 +179,16 @@ class MRI:
                 return
 
     def t1_flair_reg(self):
-        print(f"bsub flirt {self.T1_trim} {self.flair}")
+        if file_exists(self.T1_flair):
+            logging.info(f"{self.id}:{self.mridate}: T1 to Flair registration already run.")
+            return
+        else: 
+            if file_exists(self.flair) and file_exists(self.T1_trim):               
+                logging.info(f"{self.id}:{self.mridate}: Running T1 to Flair registration")
+                # os.system(f"bsub -o {self.filepath} ./wrapper_scripts/t1_flair_reg.sh {self.T1_trim} {self.flair} {self.T1_flair}")
+            else:
+                logging.info(f"{self.id}:{self.mridate}: No flair nifti or no T1 trim nifti, cannot run T1 to Flair registration.")
+                return
 
     def wmh_prep(self):
         if file_exists(self.wmh):
@@ -193,7 +201,7 @@ class MRI:
                     os.system(f"mkdir {adni_analysis_dir}/{current_date}")
                 
                 logging.info(f"{self.id}:{self.mridate}: collecting files to send to lambda-picsl")
-                os.system(f"cp {self.flair} {adni_analysis_dir}/{current_date}/{self.mridate}_{self.id}_flair_0000.nii.gz")
+                # os.system(f"cp {self.flair} {adni_analysis_dir}/{current_date}/{self.mridate}_{self.id}_flair_0000.nii.gz")
             else:
                 logging.info(f"{self.id}:{self.mridate}: No flair nifti, cannot run WMH analysis.")
                 return
@@ -241,9 +249,6 @@ class T1PetReg:
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
-
-
-
 MRIprocessing=MRI('141_S_6779','2020-10-27')
 
 # print(MRIprocessing.T1_nifti)
@@ -258,7 +263,7 @@ MRIprocessing=MRI('141_S_6779','2020-10-27')
 # MRIprocessing.t1_ashs_multitemplate_thickness()
 # MRIprocessing.t2_ashs()
 # MRIprocessing.t1_flair_reg()
-MRIprocessing.wmh_prep()
+# MRIprocessing.wmh_prep()
 
 
 # Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
