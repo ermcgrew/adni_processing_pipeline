@@ -211,26 +211,27 @@ class AmyloidPET:
     def __init__(self, subject, amydate):
         self.id = subject
         self.amydate = amydate
-        self.filepath=f"/project/wolk_2/ADNI2018/dataset/{self.id}/{self.amydate}/"
+        self.filepath=f"{adni_data_dir}/{self.id}/{self.amydate}"
         self.date_id_prefix = f"{self.amydate}_{self.id}"
-        self.amy_nifti = f"{self.filepath}{self.date_id_prefix}_amypet.nii.gz"        
+        self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet.nii.gz"        
 
 
 class TauPET:
     def __init__(self, subject, taudate):
         self.id = subject
         self.taudate = taudate
-        self.filepath = f"/project/wolk_2/ADNI2018/dataset/{self.id}/{self.taudate}/"
+        self.filepath = f"{adni_data_dir}/{self.id}/{self.taudate}"
         self.date_id_prefix = f"{self.taudate}_{self.id}"
-        self.tau_nifti = f"{self.filepath}{self.date_id_prefix}_taupet.nii.gz"
+        self.tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet.nii.gz"
         
 
 class T1PetReg:
     def __init__(self, pet_type, T1, PET):
-        self.subject = T1.id
+        self.id = T1.id
         self.mridate = T1.mridate
         self.T1_trim = T1.T1_trim
         self.pet_type = pet_type
+        
         if self.pet_type == 'amyloid':
             self.petdate = PET.amydate
             self.pet_nifti = PET.amy_nifti
@@ -238,13 +239,43 @@ class T1PetReg:
             self.petdate = PET.taudate
             self.pet_nifti = PET.tau_nifti
 
+        self.filepath = f"{adni_data_dir}/{self.id}/{self.petdate}"
+        self.reg_prefix = f"{self.petdate}_{self.id}_{self.pet_type}_to_{self.mridate}"
+        self.reg_RAS = f"{self.filepath}/{self.reg_prefix}_T10GenericAffine_RAS.mat"
+        self.reg_nifti = f"{self.filepath}/{self.reg_prefix}_T1.nii.gz"
+        self.reg_qc = f"{self.filepath}/{self.reg_prefix}_T1_qa.png"
+
+
     def pet_registration(self):
-        registration_filepath = f"{adni_data_dir}{self.subject}/{self.petdate}/{self.petdate}_{self.subject}_{self.pet_type}_to_{self.mridate}"
-        print(f"If not {registration_filepath}_T10GenericAffine_RAS.mat")
-        print(f"Run: coreg_pet.sh {self.T1_trim} {self.pet_nifti}")
-        print("time to create QC files")
-        print(f"if not {registration_filepath}_T1_qa.png")
-        print(f"Run: simpleregqa.sh {self.T1_trim}")
+        if file_exists(self.reg_RAS):
+            logging.info(f"{self.id}:{self.mridate}:{self.petdate}: {self.pet_type} PET-T1 Registration already run.")
+            return
+        else:
+            if file_exists(self.T1_trim) and file_exists(self.pet_nifti):
+                logging.info(f"{self.id}:{self.mridate}:{self.petdate}: Running {self.pet_type} PET-T1 Registration")
+                print(f"coreg_pet.sh {self.T1_trim} {self.pet_nifti}")
+                print(f'bsub -o "{self.filepath}/{self.reg_prefix}.log \
+                      /project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh ')
+
+                # $ID 
+                # $T1trim 
+                # $TAU 
+                # $MRIDATE 
+                # $ROOT/$ID/$TAUDATE
+
+
+
+
+
+                if file_exists(self.reg_qc):
+                    logging.info(f"{self.id}:{self.mridate}:{self.petdate}: {self.pet_type} PET-T1 Registration QC file already generated")
+                    return
+                else:
+                    logging.info(f"{self.id}:{self.mridate}:{self.petdate}: Generating QC files for {self.pet_type} PET-T1 Registration")
+                    print(f"simpleregqa.sh {self.T1_trim} {self.reg_nifti}")
+            else:
+                logging.info(f"{self.id}:{self.mridate}:{self.petdate}: No T1 trim nifti or no PET nifti, cannot run {self.pet_type} PET-T1 Registration")
+                return
 
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -265,8 +296,6 @@ MRIprocessing=MRI('141_S_6779','2020-10-27')
 # MRIprocessing.t1_flair_reg()
 # MRIprocessing.wmh_prep()
 
-
-# Amyloidprocessing = AmyloidPET("035_S_6788","2019-06-13")
-# testreg = T1PetReg('amyloid',MRIprocessing, Amyloidprocessing)
-# print(f"Now doing {testreg.pet_type} PET")
-# testreg.pet_registration()
+Amyloidprocessing = AmyloidPET("141_S_6779","2020-11-11")
+testreg = T1PetReg('amyloid', MRIprocessing, Amyloidprocessing)
+testreg.pet_registration()
