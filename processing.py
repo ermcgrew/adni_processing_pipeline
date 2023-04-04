@@ -233,41 +233,42 @@ class T1PetReg:
         self.T1_trim = T1.T1_trim
         self.pet_type = pet_type
 
-        if self.pet_type == 'amyloid':
+        if self.pet_type == "amypet":
             self.petdate = PET.amydate
             self.pet_nifti = PET.amy_nifti
-        elif self.pet_type == "tau":
+        elif self.pet_type == "taupet":
             self.petdate = PET.taudate
             self.pet_nifti = PET.tau_nifti
 
         self.filepath = f"{adni_data_dir}/{self.id}/{self.petdate}"
         self.reg_prefix = f"{self.petdate}_{self.id}_{self.pet_type}_to_{self.mridate}"
         self.reg_RAS = f"{self.filepath}/{self.reg_prefix}_T10GenericAffine_RAS.mat"
+                                                            # T10GenericAffine_RAS.mat
         self.reg_nifti = f"{self.filepath}/{self.reg_prefix}_T1.nii.gz"
         self.reg_qc = f"{self.filepath}/{self.reg_prefix}_T1_qa.png"
 
 
     def pet_registration(self):
         if file_exists(self.reg_RAS):
-            logging.info(f"{self.id}:{self.mridate}:{self.petdate}: {self.pet_type} PET-T1 Registration already run.")
+            logging.info(f"{self.id}:{self.mridate}:{self.petdate}: {self.pet_type}-T1 Registration already run.")
             return
         else:
             if file_exists(self.T1_trim) and file_exists(self.pet_nifti):
-                logging.info(f"{self.id}:{self.mridate}:{self.petdate}: Running {self.pet_type} PET-T1 Registration")
-                os.system(f"bsub -o {self.filepath}/{self.reg_prefix}.log \
-                      /project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh \
-                      {self.id} {self.T1_trim} {self.pet_nifti} {self.mridate} {self.filepath}")
+                logging.info(f"{self.id}:{self.mridate}:{self.petdate}: Running {self.pet_type}-T1 Registration")
+                # os.system(f"bsub -o {self.filepath}/{self.reg_prefix}.log \
+                #       /project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh \
+                #       {self.id} {self.T1_trim} {self.pet_nifti} {self.mridate} {self.filepath}")
                 ###need to wait for self_reg_nifti to be generated before running this:
-                # if file_exists(self.reg_qc):
-                #     logging.info(f"{self.id}:{self.mridate}:{self.petdate}: {self.pet_type} PET-T1 Registration QC file already generated")
-                #     return
-                # else:
-                #     logging.info(f"{self.id}:{self.mridate}:{self.petdate}: Generating QC files for {self.pet_type} PET-T1 Registration")
-                #     print(f"bsub -o {self.filepath}/tauregqa_{self.reg_prefix}.log \
-                #           /project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh \
-                #           {self.T1_trim} {self.reg_nifti} {self.reg_qc}")
+                if file_exists(self.reg_qc):
+                    logging.info(f"{self.id}:{self.mridate}:{self.petdate}: {self.pet_type}-T1 Registration QC file already generated")
+                    return
+                else:
+                    logging.info(f"{self.id}:{self.mridate}:{self.petdate}: Generating QC files for {self.pet_type}-T1 Registration")
+                    # os.system(f"bsub -o {self.filepath}/{self.reg_prefix}_{self.pet_type}regqa.log \
+                    #       /project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh \
+                    #       {self.T1_trim} {self.reg_nifti} {self.reg_qc}")
             else:
-                logging.info(f"{self.id}:{self.mridate}:{self.petdate}: No T1 trim nifti or no PET nifti, cannot run {self.pet_type} PET-T1 Registration")
+                logging.info(f"{self.id}:{self.mridate}:{self.petdate}: No T1 trim nifti or no PET nifti, cannot run {self.pet_type}-T1 Registration")
                 return
  
 
@@ -290,5 +291,6 @@ MRIprocessing=MRI('141_S_6779','2020-10-27')
 # MRIprocessing.wmh_prep()
 
 Amyloidprocessing = AmyloidPET("141_S_6779","2020-11-11")
-testreg = T1PetReg('amyloid', MRIprocessing, Amyloidprocessing)
+testreg = T1PetReg('amypet', MRIprocessing, Amyloidprocessing)
+print(testreg.reg_RAS)
 testreg.pet_registration()
