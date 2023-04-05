@@ -8,5 +8,3 @@ module load python3
 
 echo running python scripts
 python app.py
-
-

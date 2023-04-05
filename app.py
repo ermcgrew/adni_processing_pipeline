@@ -45,16 +45,20 @@ def main():
                 mri_to_process = MRI(subject,mridate)
                 logging.info(f"{mri_to_process.id}:{mri_to_process.mridate}: Now processing")
 
-                mri_to_process.ants_thick()
-                mri_to_process.wb_seg()
-                mri_to_process.t1_super_res()
-                mri_to_process.t1_ashs()
-                mri_to_process.t1_ashs_icv()
-                mri_to_process.t1_ashs_multitemplate_thickness()
-                mri_to_process.t2_ashs()
-                mri_to_process.t1_flair_reg()
-                
+                ants_job_name = mri_to_process.ants_thick()
+                mri_to_process.wb_seg(ants_job_name)
+
+                #T1 ASHS
+                superres_job_name = mri_to_process.t1_super_res(ants_job_name)
+                t1ashs_job_name = mri_to_process.t1_ashs(superres_job_name)
+                mri_to_process.t1_ashs_multitemplate_thickness(t1ashs_job_name)
+                mri_to_process.t1_ashs_icv(ants_job_name)
+
+                mri_to_process.t2_ashs(ants_job_name)
+                mri_to_process.t1_flair_reg(ants_job_name)
                 mri_to_process.wmh_prep()
+
+
 
                 ##clean up extra files--function in app.py after running all analysis
 
