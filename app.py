@@ -2,7 +2,7 @@ import csv
 import datetime
 import logging
 import os
-from processing import MRI, T1PetReg, AmyloidPET, TauPET
+from processing import MRI, AmyloidPET, TauPET, T1PetReg
 
 
 def reformat_dates(date):
@@ -45,21 +45,21 @@ def main():
                 mri_to_process = MRI(subject,mridate)
                 logging.info(f"{mri_to_process.id}:{mri_to_process.mridate}: Now processing")
 
-                ants_job_name = mri_to_process.ants_thick()
-                mri_to_process.wb_seg(ants_job_name)
+                ants_job_name = mri_to_process.do_ants()
 
-                #T1 ASHS
-                superres_job_name = mri_to_process.t1_super_res(ants_job_name)
-                t1ashs_job_name = mri_to_process.t1_ashs(superres_job_name)
-                mri_to_process.t1_ashs_multitemplate_thickness(t1ashs_job_name)
-                mri_to_process.t1_ashs_icv(ants_job_name)
+                mri_to_process.do_t1icv(ants_job_name)
+                mri_to_process.do_t2ashs(ants_job_name)
 
-                mri_to_process.t2_ashs(ants_job_name)
-                mri_to_process.t1_flair_reg(ants_job_name)
-                mri_to_process.wmh_prep()
+                wbseg_job_name = mri_to_process.do_wbseg(ants_job_name)
+                mri_to_process.do_wbsegqc(wbseg_job_name)
 
+                t1flair_job_name = mri_to_process.do_t1flair(ants_job_name)
+                mri_to_process.do_wmh_prep(t1flair_job_name)
 
-
+                superres_job_name = mri_to_process.do_superres(ants_job_name)
+                t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name)
+                mri_to_process.do_t1mtthk(t1ashs_job_name)
+             
                 ##clean up extra files--function in app.py after running all analysis
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
