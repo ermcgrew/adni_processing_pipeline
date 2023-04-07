@@ -3,6 +3,7 @@ import logging
 import os
 
 #Filepaths cluster locations called in processing functions
+ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
 wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
 wbsegqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
 ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
@@ -105,13 +106,12 @@ class MRI:
         this_job_name=f"ants_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process('ants', self.id, self.mridate, input_files=[self.t1nifti], output_files=[self.t1trim]):
-            print(f"Use FTDC's ANTS gear code with {submit_options}")
+            # os.system(f"bsub {submit_options} {ants_script} {self.t1nifti} {self.filepath}")
             return this_job_name
 
     def do_brainx(self, parent_job_name = ""):
         this_job_name=f"brainx_{self.date_id_prefix}"
         submit_options =  set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        print(submit_options)
         if ready_to_process('brainx',self.id,self.mridate, input_files=[self.t1trim], output_files = [self.brainx]):
             # os.system(f'bsub {submit_options} ./wrapper_scripts/brain_extract.sh {self.t1trim}')
             return this_job_name
