@@ -106,37 +106,38 @@ class MRI:
         this_job_name=f"ants_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         # if ready_to_process('ants', self.id, self.mridate, input_files=[self.t1nifti], output_files=[self.t1trim]):
-        os.system(f"bsub {submit_options} {ants_script} {self.t1nifti} {self.filepath}")
+        os.system(f"bsub {submit_options} {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
+        # print(f"bsub {submit_options} {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
         return this_job_name
 
     def do_brainx(self, parent_job_name = ""):
         this_job_name=f"brainx_{self.date_id_prefix}"
         submit_options =  set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        if ready_to_process('brainx',self.id,self.mridate, input_files=[self.t1trim], output_files = [self.brainx]):
-            os.system(f'bsub {submit_options} ./wrapper_scripts/brain_extract.sh {self.t1trim}')
-            return this_job_name
+        # if ready_to_process('brainx',self.id,self.mridate, input_files=[self.t1trim], output_files = [self.brainx]):
+        os.system(f'bsub {submit_options} ./wrapper_scripts/brain_extract.sh {self.t1trim}')
+        return this_job_name
 
     def do_wbseg(self, parent_job_name = ""):
         this_job_name=f"wbseg_{self.date_id_prefix}"
         submit_options =  set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        if ready_to_process('wbseg', self.id, self.mridate, input_files=[self.brainx], output_files = [self.wbseg]):
-            os.system(f"bsub {submit_options} -M 12G -q bsc_long \
-                  {wbseg_script} \
-                  {self.filepath} \
-                  {self.filepath}{self.date_id_prefix}_wholebrainseg \
-                  {self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain \
-                  /home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly 1")
-            return this_job_name          
+        # if ready_to_process('wbseg', self.id, self.mridate, input_files=[self.brainx], output_files = [self.wbseg]):
+        os.system(f"bsub {submit_options} -M 12G -q bsc_long \
+                {wbseg_script} \
+                {self.filepath} \
+                {self.filepath}{self.date_id_prefix}_wholebrainseg \
+                {self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain \
+                /home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly 1")
+        return this_job_name          
      
     def do_wbsegqc(self, parent_job_name = ""):
         this_job_name=f"wbsegqc_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        if ready_to_process('wbsegqc', self.id, self.mridate, input_files=[self.t1trim,self.wbseg], output_files = [self.wbsegqc]):
-            os.system(f"bsub {submit_options} {wbsegqc_script} \
-              {self.t1trim} {self.wbseg} \
-              /project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt  \
-              {self.wbsegqc}")
-            return         
+        # if ready_to_process('wbsegqc', self.id, self.mridate, input_files=[self.t1trim,self.wbseg], output_files = [self.wbsegqc]):
+        os.system(f"bsub {submit_options} {wbsegqc_script} \
+            {self.t1trim} {self.wbseg} \
+            /project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt  \
+            {self.wbsegqc}")
+        return         
 
     def do_superres(self, parent_job_name = ""):
         this_job_name=f"superres_{self.date_id_prefix}"
@@ -300,15 +301,16 @@ ants_job_name = mri_to_process.do_ants()
 # mri_to_process.do_t1icv(ants_job_name)
 # mri_to_process.do_t2ashs(ants_job_name)
 
-# wbseg_job_name = mri_to_process.do_wbseg(ants_job_name)
-# mri_to_process.do_wbsegqc(wbseg_job_name)
+brainx_job_name = mri_to_process.do_brainx(ants_job_name)
+wbseg_job_name = mri_to_process.do_wbseg(brainx_job_name)
+mri_to_process.do_wbsegqc(wbseg_job_name)
 
 # t1flair_job_name = mri_to_process.do_t1flair(ants_job_name)
 # mri_to_process.do_wmh_prep(t1flair_job_name)
 
-superres_job_name = mri_to_process.do_superres(ants_job_name)
-t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name)
-mri_to_process.do_t1mtthk(t1ashs_job_name)
+# superres_job_name = mri_to_process.do_superres(ants_job_name)
+# t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name)
+# mri_to_process.do_t1mtthk(t1ashs_job_name)
 
 
 # Amyloidprocessing = AmyloidPET("141_S_6779","2020-11-11")

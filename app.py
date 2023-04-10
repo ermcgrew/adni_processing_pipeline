@@ -62,6 +62,15 @@ def main():
              
                 ##clean up extra files--function in app.py after running all analysis
 
+                ##how to id mri-pet date pairings
+                ##do mri-tau reg
+                ##do mri-amy reg
+                ##once reg done 
+                # do stats.sh
+                # print(f"{mri_to_process.id}, {mri_to_process.mridate}, {mri_to_process.}")
+
+                
+
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 # csvlist=['MRI.csv','amy.csv','tau.csv']
     
