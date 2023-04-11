@@ -106,7 +106,7 @@ class MRI:
         this_job_name=f"ants_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         # if ready_to_process('ants', self.id, self.mridate, input_files=[self.t1nifti], output_files=[self.t1trim]):
-        os.system(f"bsub {submit_options} {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
+        os.system(f"bsub {submit_options} -n 2 {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
         # print(f"bsub {submit_options} {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
         return this_job_name
 
