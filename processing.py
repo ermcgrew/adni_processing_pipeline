@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import time
 
 #Filepaths cluster locations called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
@@ -65,6 +66,7 @@ class MRI:
         self.date_id_prefix = f"{self.mridate}_{self.id}"
         
         self.t1nifti = f"{self.filepath}/{self.date_id_prefix}_T1w.nii.gz"
+        self.t1trimpre = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
         self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trim.nii.gz"
         
         self.brainx = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
@@ -107,7 +109,16 @@ class MRI:
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         # if ready_to_process('ants', self.id, self.mridate, input_files=[self.t1nifti], output_files=[self.t1trim]):
         os.system(f"bsub {submit_options} -n 2 {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
-        # print(f"bsub {submit_options} {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
+        while not os.path.exists(self.t1trimpre):
+            time.sleep(10)
+            print('waiting 10')
+            #not enough time, file isn't all the way created
+            ##use file size measure
+
+        if os.path.exists(self.t1trimpre):
+            print("out of the while loop")
+            os.system(f"cp {self.t1trimpre} {self.t1trim}")
+        ##make sure to reset thickness folder before re-running tests
         return this_job_name
 
     def do_brainx(self, parent_job_name = ""):
@@ -301,9 +312,9 @@ ants_job_name = mri_to_process.do_ants()
 # mri_to_process.do_t1icv(ants_job_name)
 # mri_to_process.do_t2ashs(ants_job_name)
 
-brainx_job_name = mri_to_process.do_brainx(ants_job_name)
-wbseg_job_name = mri_to_process.do_wbseg(brainx_job_name)
-mri_to_process.do_wbsegqc(wbseg_job_name)
+# brainx_job_name = mri_to_process.do_brainx(ants_job_name)
+# wbseg_job_name = mri_to_process.do_wbseg(brainx_job_name)
+# mri_to_process.do_wbsegqc(wbseg_job_name)
 
 # t1flair_job_name = mri_to_process.do_t1flair(ants_job_name)
 # mri_to_process.do_wmh_prep(t1flair_job_name)
