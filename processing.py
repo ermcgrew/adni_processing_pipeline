@@ -3,7 +3,7 @@ import logging
 import os
 import time
 
-#Filepaths cluster locations called in processing functions
+#Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
 wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
 wbsegqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
@@ -33,7 +33,6 @@ current_date = datetime.datetime.now().strftime("%Y_%m_%d")
 def ready_to_process(processing_step, id, date, input_files = [], output_files = [], parent_job = ""):
     #output files all "OR" comparisons, as long as 1 is true, output is present
     if [file for file in output_files if os.path.exists(file)]:
-        # print(f"Output files: {output_files}")
         logging.info(f"{id}:{date}: {processing_step} already run.")
         return False
     else:
@@ -89,6 +88,7 @@ class MRI:
         self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
         self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trim.nii.gz"
         
+        self.brainx_thickness_dir = f"{self.filepath}/thickness/{self.id}.nii.gz"
         self.brainx = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
         self.wbseg= f"{self.filepath}/{self.date_id_prefix}_wholebrainseg/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
         self.wbsegqc = f"{self.filepath}/{self.date_id_prefix}_wbseg_qa.png"
@@ -129,7 +129,7 @@ class MRI:
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process('ants', self.id, self.mridate, input_files=[self.t1nifti], output_files=[self.t1trim]):
             os.system(f"bsub {submit_options} -n 2 {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
-        ##make sure to reset thickness folder before re-running tests
+            os.system(f"bsub {self.bsub_output} -w 'done({this_job_name})' cp {self.brainx_thickness_dir} {self.brainx}")
         # T1 trim file created in about 30 seconds, wait for it, 
         # then copy it to main folder so other processing steps can start using it while the rest of ants is still running.
         wait_for_file(self.t1trim_thickness_dir)
@@ -341,5 +341,5 @@ mri_to_process=MRI('141_S_6779','2020-10-27')
 # Amyloidprocessing = AmyloidPET("033_S_7088","2022-07-27")
 
 # mri_amy_reg = T1PetReg('amypet', mri_to_process, Amyloidprocessing)
-# mri_amy_reg_job_name=mri_amy_reg.do_pet_reg(ants_job_name)
+# mri_amy_reg_job_name=mri_amy_reg.do_pet_reg()
 # mri_amy_reg.do_pet_reg_qc(mri_amy_reg_job_name)
