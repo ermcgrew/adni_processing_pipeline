@@ -221,7 +221,7 @@ class MRI:
                 -z {long_scripts}/ashs-fast-z.sh \
                 -m {long_scripts}/identity.mat -M \
                 -B \
-                -w {self.filepath}")
+                -w {self.filepath}/ASHSICV")
             return   
 
     def do_t2ashs(self, parent_job_name = ""):
@@ -251,6 +251,55 @@ class MRI:
                 os.system(f"mkdir {adni_analysis_dir}/{current_date}")
             os.system(f"bsub {submit_options} cp {self.flair} {adni_analysis_dir}/{current_date}/{self.mridate}_{self.id}_flair_0000.nii.gz")
             return
+
+    def cleanup_processing_files(self):
+        pass
+        #ASHS T1
+        #       rm -rf $ASHST1DIR/affine_t1_to_template \
+        # $ASHST1DIR/ants_t1_to_temp \
+        # $ASHST1DIR/bootstrap \
+        # $ASHST1DIR/dump \
+        # $ASHST1DIR/multiatlas \
+        # $ASHST1DIR/mprage* \
+        # $ASHST1DIR/tse.nii.gz \
+        # $ASHST1DIR/tse_raw.nii.gz \
+        # $ASHST1DIR/tse_to_chunktemp*.nii.gz
+
+        #ASHS ICV
+        #       rm -rf $ASHSICVDIR/affine_t1_to_template \
+        # $ASHSICVDIR/ants_t1_to_temp \
+        # $ASHSICVDIR/bootstrap \
+        # $ASHSICVDIR/dump \
+        # $ASHSICVDIR/multiatlas \
+        # $ASHSICVDIR/mprage* \
+        # $ASHSICVDIR/tse.nii.gz \
+        # $ASHSICVDIR/tse_raw.nii.gz \
+        # $ASHSICVDIR/tse_to_chunktemp*.nii.gz \
+        # $ASHSICVDIR/flirt_t2_to_t1 \
+        # $ASHSICVDIR/tse_native_chunk*.nii.gz 
+
+    # cleanup MST multi-template thickness
+    # SUBJMSTTHKDIR=$SUBJALLDIR/$PREFIX/ASHST1_MTLCORTEX_MSTTHK
+    # SUBJMSTDATADIR=$SUBJMSTTHKDIR/data
+    # SUBJMSTREGATLASDIR=$SUBJMSTTHKDIR/RegToAtlases
+    # SUBJMSTVTREGDIR=$SUBJMSTTHKDIR/RegToInitTemp
+    # SUBJMSTUTREGDIR=$SUBJMSTTHKDIR/RegToUT
+    # if [[ -d $SUBJMSTDATADIR || -d $SUBJMSTREGATLASDIR || -d $SUBJMSTVTREGDIR || -d $SUBJMSTUTREGDIR ]]; then
+    #   echo "    Removing intermediate files in the MST folder for $rid $PREFIX"
+    #   echo "Clean up space: Removing intermediate files in the MST folder for $rid $PREFIX" >> $LOGFILE
+    #   #rm -rf $SUBJMSTDATADIR $SUBJMSTREGATLASDIR $SUBJMSTVTREGDIR $SUBJMSTUTREGDIR
+    # fi
+
+       # clean up step 1: convert the T1 SR image to short datatype
+    # if [[ -f $FUT1SRIMG ]]; then
+    #   datatype=$(c3d $FUT1SRIMG -info-full | grep datatype \
+    #                  | cut -d = -f 2 | cut -d " " -f 2)
+    #   if [[ $datatype -gt 8 ]]; then
+    #     echo "    Changing T1 SR datatype for $rid $PREFIX"
+    #     echo "Clean up space: Changing T1 SR datatype for $rid $PREFIX" >> $LOGFILE
+    #     c3d $FUT1SRIMG -type short -o $FUT1SRIMG
+    #   fi
+    # fi
 
 
 class AmyloidPET:
@@ -350,3 +399,11 @@ mri_to_process.do_wbsegqc(wbseg_job_name)
 # mri_amy_reg = T1PetReg('amypet', mri_to_process, Amyloidprocessing)
 # mri_amy_reg_job_name=mri_amy_reg.do_pet_reg()
 # mri_amy_reg.do_pet_reg_qc(mri_amy_reg_job_name)
+
+
+
+#ICV files not in ICV folder, in main folder--fixed
+#ICV QC names?
+#check that t1-flair ran correctly, it was really quick
+#dump.vtk in this folder--from which step?
+#segmentations won't open?
