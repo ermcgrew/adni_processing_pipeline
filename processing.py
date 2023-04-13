@@ -88,7 +88,7 @@ class MRI:
         self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
         self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trim.nii.gz"
         
-        self.brainx_thickness_dir = f"{self.filepath}/thickness/{self.id}.nii.gz"
+        self.brainx_thickness_dir = f"{self.filepath}/thickness/{self.id}ExtractedBrain0N4.nii.gz"
         self.brainx = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
         self.wbseg= f"{self.filepath}/{self.date_id_prefix}_wholebrainseg/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
         self.wbsegqc = f"{self.filepath}/{self.date_id_prefix}_wbseg_qa.png"
@@ -146,7 +146,8 @@ class MRI:
     def do_wbseg(self, parent_job_name = ""):
         this_job_name=f"wbseg_{self.date_id_prefix}"
         submit_options =  set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        if ready_to_process('wbseg', self.id, self.mridate, input_files=[self.brainx], output_files = [self.wbseg], parent_job = parent_job_name):
+        if ready_to_process('wbseg', self.id, self.mridate, input_files=[self.brainx], 
+                            output_files = [self.wbseg], parent_job = parent_job_name):
             os.system(f"bsub {submit_options} -M 12G -q bsc_long \
                     {wbseg_script} \
                     {self.filepath} \
@@ -158,7 +159,8 @@ class MRI:
     def do_wbsegqc(self, parent_job_name = ""):
         this_job_name=f"wbsegqc_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        if ready_to_process('wbsegqc', self.id, self.mridate, input_files=[self.t1trim,self.wbseg], output_files = [self.wbsegqc], parent_job = parent_job_name):
+        if ready_to_process('wbsegqc', self.id, self.mridate, input_files=[self.t1trim,self.wbseg], 
+                            output_files = [self.wbsegqc], parent_job = parent_job_name):
             os.system(f"bsub {submit_options} {wbsegqc_script} \
                 {self.t1trim} {self.wbseg} \
                 /project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt  \
@@ -176,7 +178,8 @@ class MRI:
     def do_t1ashs(self, parent_job_name = ""):
         this_job_name=f"t1ashs_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        if ready_to_process("t1ashs", self.id, self.mridate, input_files=[self.t1trim, self.superres], output_files=[self.t1ashs_qc_left, self.t1ashs_qc_right], parent_job = parent_job_name):
+        if ready_to_process("t1ashs", self.id, self.mridate, input_files=[self.t1trim, self.superres], 
+                            output_files=[self.t1ashs_qc_left, self.t1ashs_qc_right], parent_job = parent_job_name):
             os.system(f"mkdir {self.filepath}/ASHST1")
             os.system(f"bsub {submit_options} \
                     {ashs_script} \
@@ -199,7 +202,8 @@ class MRI:
                 this_job_name=f"t1mtthk_right_{self.date_id_prefix}"
             
             submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-            if ready_to_process(f"t1mtthk_{side}", self.id, self.mridate, input_files=[ashs_seg], output_files=[ashs_thick], parent_job = parent_job_name):
+            if ready_to_process(f"t1mtthk_{side}", self.id, self.mridate, input_files=[ashs_seg], output_files=[ashs_thick], 
+                                parent_job = parent_job_name):
                 os.system(f"bsub {submit_options} -M 12G -n 1 \
                             ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
                             {side} {ashs_seg} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
@@ -321,21 +325,22 @@ class T1PetReg:
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
 #Test runs
-mri_to_process=MRI('141_S_6779','2020-10-27')
+# mri_to_process=MRI('141_S_6779','2020-10-27')
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
+mri_to_process = MRI("114_S_6917", "2021-04-16") #full test
 
-# ants_job_name = mri_to_process.do_ants()
-# mri_to_process.do_t1icv()
-# mri_to_process.do_t2ashs()
-# mri_to_process.do_t1flair()
-# mri_to_process.do_wmh_prep()
+ants_job_name = mri_to_process.do_ants()
+mri_to_process.do_t1icv()
+mri_to_process.do_t2ashs()
+mri_to_process.do_t1flair()
+mri_to_process.do_wmh_prep()
 
-# superres_job_name = mri_to_process.do_superres()
-# t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name)
-# mri_to_process.do_t1mtthk(t1ashs_job_name)
+superres_job_name = mri_to_process.do_superres()
+t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name)
+mri_to_process.do_t1mtthk(t1ashs_job_name)
 
-# wbseg_job_name = mri_to_process.do_wbseg(ants_job_name)
-# mri_to_process.do_wbsegqc(wbseg_job_name)
+wbseg_job_name = mri_to_process.do_wbseg(ants_job_name)
+mri_to_process.do_wbsegqc(wbseg_job_name)
 
 
 
