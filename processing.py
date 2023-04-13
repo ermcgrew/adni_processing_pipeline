@@ -56,6 +56,21 @@ def set_submit_options(this_job_name, output_dir, parent_job_name):
     return f"{jobname} {output} {wait}"
 
 
+def wait_for_file(file):
+    while not os.path.exists(file):
+        time.sleep(10)
+        print(f"waiting for file {file} to be created")
+
+    if os.path.exists(file):
+        while os.stat(file).st_size <= 10000:
+            time.sleep(1)
+            print(f"waiting for file {file} to download")
+        print(f"file {file} downloaded")
+        return
+    else:
+        return 
+
+
 class MRI:
     #strings for MRI filepaths and functions for MRI processing
     def __init__(self, subject, mridate):
@@ -66,7 +81,7 @@ class MRI:
         self.date_id_prefix = f"{self.mridate}_{self.id}"
         
         self.t1nifti = f"{self.filepath}/{self.date_id_prefix}_T1w.nii.gz"
-        self.t1trimpre = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
+        self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
         self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trim.nii.gz"
         
         self.brainx = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
@@ -109,16 +124,11 @@ class MRI:
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         # if ready_to_process('ants', self.id, self.mridate, input_files=[self.t1nifti], output_files=[self.t1trim]):
         os.system(f"bsub {submit_options} -n 2 {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
-        while not os.path.exists(self.t1trimpre):
-            time.sleep(10)
-            print('waiting 10')
-            #not enough time, file isn't all the way created
-            ##use file size measure
-
-        if os.path.exists(self.t1trimpre):
-            print("out of the while loop")
-            os.system(f"cp {self.t1trimpre} {self.t1trim}")
         ##make sure to reset thickness folder before re-running tests
+        # T1 trim file created in about 30 seconds, wait for creation, 
+        # then copy it to main folder so other processing steps can start while ants is still running.
+        wait_for_file(self.t1trim_thickness_dir)
+        os.system(f"cp {self.t1trim_thickness_dir} {self.t1trim}")
         return this_job_name
 
     def do_brainx(self, parent_job_name = ""):
