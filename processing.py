@@ -110,8 +110,8 @@ class MRI:
         self.t1icv_qc_right = f"{self.filepath}/ASHSICV/qa/qa_seg_multiatlas_corr_nogray_right_qa.png"
 
         self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
-        self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/${self.id}_left_lfseg_corr_nogray.nii.gz"
-        self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/${self.id}_right_lfseg_corr_nogray.nii.gz"
+        self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
+        self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final{self.id}_right_lfseg_corr_nogray.nii.gz"
         self.t2ashs_qc_left = f"{self.filepath}/sfsegnibtend/qa/"
         self.t2ashs_qc_right = f"{self.filepath}/sfsegnibtend/qa/"
 
@@ -212,7 +212,7 @@ class MRI:
             os.system(f"mkdir {self.filepath}/ASHSICV")
             os.system(f"bsub {submit_options} \
                  {ashs_script} \
-                -a $ICVATLAS -d -T -I {self.id} -g {self.t1trim} -f {self.t1trim} \
+                -a {icv_atlas} -d -T -I {self.id} -g {self.t1trim} -f {self.t1trim} \
                 -l -s 1-7 \
                 -z {long_scripts}/ashs-fast-z.sh \
                 -m {long_scripts}/identity.mat -M \
@@ -315,13 +315,15 @@ class T1PetReg:
                   {self.t1trim} {self.reg_nifti} {self.reg_qc}")
             return
 
-
+#Log file
+# logging.basicConfig(filename={adni_analysis_dir}/{current_date}, filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
+#for testing:
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
-##make logging go to a file for final version
 
-
+#Test runs
 mri_to_process=MRI('141_S_6779','2020-10-27')
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
+
 # ants_job_name = mri_to_process.do_ants()
 # mri_to_process.do_t1icv()
 # mri_to_process.do_t2ashs()
