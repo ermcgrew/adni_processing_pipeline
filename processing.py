@@ -6,12 +6,14 @@ import time
 #Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
 wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
-wbsegqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
+segqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
+wblabel_file = "/project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt"
 ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
 ##before running ASHS code in testing, run in shell:
     # export ASHS_ROOT=/project/hippogang_2/longxie/pkg/ashs/ashs-fast
 ashs_script = f"{ashs_root}/bin/ashs_main.sh"
 ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
+ashs_t1_label_file = "/home/lxie/ASHS_T1/ASHSexp/exp201/atlas/final/snap/snaplabels.txt"
 long_scripts = "/home/lxie/ADNI2018/scripts"
 icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
 ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
@@ -98,14 +100,11 @@ class MRI:
         self.t1ashs_seg_left = f"{self.filepath}/ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
         self.t1ashs_seg_right = f"{self.filepath}/ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
         self.t1ashs_qc_left = f"{self.filepath}/ASHST1/qa/qa_seg_bootstrap_heur_left_qa.png"
-        self.t1ashs_qc_right = f"{self.filepath}/ASHST1/qa/qa_seg_bootstrap_heur_right_qa.png"
-    
-        #t1ashs producing these names as of 4/5/2023:
-        # self.t1ashs_qc_left = f"{self.filepath}/ASHST1/qa/final_left.png"
-        # self.t1ashs_qc_right = f"{self.filepath}/ASHST1/qa/final_right.png"    
+        self.t1ashs_qc_right = f"{self.filepath}/ASHST1/qa/qa_seg_bootstrap_heur_right_qa.png" 
 
         self.t1mtthk_left = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_left_thickness.csv"
         self.t1mtthk_right = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_right_thickness.csv"
+        
         self.t1icv_qc_left = f"{self.filepath}/ASHSICV/qa/qa_seg_multiatlas_corr_nogray_left_qa.png"
         self.t1icv_qc_right = f"{self.filepath}/ASHSICV/qa/qa_seg_multiatlas_corr_nogray_right_qa.png"
 
@@ -151,7 +150,7 @@ class MRI:
             os.system(f"bsub {submit_options} -M 12G -q bsc_long \
                     {wbseg_script} \
                     {self.filepath} \
-                    {self.filepath}{self.date_id_prefix}_wholebrainseg \
+                    {self.filepath}/{self.date_id_prefix}_wholebrainseg \
                     {self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain \
                     /home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly 1")
         return this_job_name          
@@ -161,10 +160,8 @@ class MRI:
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process('wbsegqc', self.id, self.mridate, input_files=[self.t1trim,self.wbseg], 
                             output_files = [self.wbsegqc], parent_job = parent_job_name):
-            os.system(f"bsub {submit_options} {wbsegqc_script} \
-                {self.t1trim} {self.wbseg} \
-                /project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt  \
-                {self.wbsegqc}")
+            os.system(f"bsub {submit_options} {segqc_script} \
+                {self.t1trim} {self.wbseg} {wblabel_file} {self.wbsegqc}")
         return         
 
     def do_superres(self, parent_job_name = ""):
@@ -234,6 +231,15 @@ class MRI:
                   -d -T -I {self.id} -w {self.filepath}/sfsegnibtend")
             return
 
+    def do_ashs_qc(self, parent_job_name = ""):
+        os.system(f"{segqc_script} {self.t1trim} {self.t1ashs_seg_left} {ashs_t1_label_file} {self.t1ashs_qc_left}")
+        return
+    # for ASHS T1, ASHST2, ASHSICV 
+    #find label files for t1, icv (if different?)
+        # do for heur, no gray, usegray
+            # do for left, right
+                # segqc_script t1_trim/t1_nifti segmentation_nifti labelfile outputname
+
     def do_t1flair(self, parent_job_name = ""):
         this_job_name=f"t1flair_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
@@ -264,6 +270,13 @@ class MRI:
         # $ASHST1DIR/tse.nii.gz \
         # $ASHST1DIR/tse_raw.nii.gz \
         # $ASHST1DIR/tse_to_chunktemp*.nii.gz
+
+    # ASHS T2
+#     rm -rf $WDIR/*
+# # rm -rf $TMPWDIR/multiatlas $TMPWDIR/bootstrap $TMPWDIR/*raw.nii.gz
+# rm -rf $TMPWDIR/*raw.nii.gz
+# cp -r $TMPWDIR/* $WDIR
+# rm -rf $TMPWDIR
 
         #ASHS ICV
         #       rm -rf $ASHSICVDIR/affine_t1_to_template \
@@ -378,20 +391,21 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 mri_to_process = MRI("114_S_6917", "2021-04-16") #full test
 
-ants_job_name = mri_to_process.do_ants()
-mri_to_process.do_t1icv()
-mri_to_process.do_t2ashs()
-mri_to_process.do_t1flair()
-mri_to_process.do_wmh_prep()
+# ants_job_name = mri_to_process.do_ants() #19851608, 19851609 for moving; worked
+# mri_to_process.do_t1icv() #19851611; fixed variable & folder; QC file names? 
+# mri_to_process.do_t2ashs() #19851612; 
+# mri_to_process.do_t1flair() #19851613;
+# mri_to_process.do_wmh_prep() #19851614; worked
 
-superres_job_name = mri_to_process.do_superres()
-t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name)
-mri_to_process.do_t1mtthk(t1ashs_job_name)
+# superres_job_name = mri_to_process.do_superres() #19851615; worked
+# t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) #19851616
+# mri_to_process.do_t1mtthk(t1ashs_job_name) #19851617
 
-wbseg_job_name = mri_to_process.do_wbseg(ants_job_name)
-mri_to_process.do_wbsegqc(wbseg_job_name)
+# wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) #19851618; fixed folder
+# mri_to_process.do_wbsegqc(wbseg_job_name) #19851619
 
-
+#dump.vtk, core. in this folder--from which step?
+mri_to_process.do_ashs_qc()
 
 # Amyloidprocessing = AmyloidPET("141_S_6779","2020-11-11")
 # Amyloidprocessing = AmyloidPET("033_S_7088","2022-07-27")
@@ -399,11 +413,3 @@ mri_to_process.do_wbsegqc(wbseg_job_name)
 # mri_amy_reg = T1PetReg('amypet', mri_to_process, Amyloidprocessing)
 # mri_amy_reg_job_name=mri_amy_reg.do_pet_reg()
 # mri_amy_reg.do_pet_reg_qc(mri_amy_reg_job_name)
-
-
-
-#ICV files not in ICV folder, in main folder--fixed
-#ICV QC names?
-#check that t1-flair ran correctly, it was really quick
-#dump.vtk in this folder--from which step?
-#segmentations won't open?
