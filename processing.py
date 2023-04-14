@@ -232,13 +232,13 @@ class MRI:
             return
 
     def do_ashs_qc(self, parent_job_name = ""):
-        os.system(f"{segqc_script} {self.t1trim} {self.t1ashs_seg_left} {ashs_t1_label_file} {self.t1ashs_qc_left}")
-        return
-    # for ASHS T1, ASHST2, ASHSICV 
-    #find label files for t1, icv (if different?)
-        # do for heur, no gray, usegray
+        # for ASHS T1, ASHST2, ASHSICV, WBSEG
+        # need label files for t2, icv (if different than t1?)
+        # do for heur, no gray, usegray --all or just the useful one (which is ... no gray or heur?)
             # do for left, right
-                # segqc_script t1_trim/t1_nifti segmentation_nifti labelfile outputname
+                # segqc_script t1_trim/t1_SR/t2_nifti(?) segmentation_nifti labelfile qcoutputname
+                os.system(f"{segqc_script} {self.t1trim} {self.t1ashs_seg_left} {ashs_t1_label_file} {self.t1ashs_qc_left}")
+                return
 
     def do_t1flair(self, parent_job_name = ""):
         this_job_name=f"t1flair_{self.date_id_prefix}"
@@ -261,7 +261,7 @@ class MRI:
     def cleanup_processing_files(self):
         pass
         #ASHS T1
-        #       rm -rf $ASHST1DIR/affine_t1_to_template \
+        # rm -rf $ASHST1DIR/affine_t1_to_template \
         # $ASHST1DIR/ants_t1_to_temp \
         # $ASHST1DIR/bootstrap \
         # $ASHST1DIR/dump \
@@ -271,15 +271,15 @@ class MRI:
         # $ASHST1DIR/tse_raw.nii.gz \
         # $ASHST1DIR/tse_to_chunktemp*.nii.gz
 
-    # ASHS T2
-#     rm -rf $WDIR/*
-# # rm -rf $TMPWDIR/multiatlas $TMPWDIR/bootstrap $TMPWDIR/*raw.nii.gz
-# rm -rf $TMPWDIR/*raw.nii.gz
-# cp -r $TMPWDIR/* $WDIR
-# rm -rf $TMPWDIR
+        # ASHS T2
+        # rm -rf $WDIR/*
+        # # rm -rf $TMPWDIR/multiatlas $TMPWDIR/bootstrap $TMPWDIR/*raw.nii.gz
+        # rm -rf $TMPWDIR/*raw.nii.gz
+        # cp -r $TMPWDIR/* $WDIR
+        # rm -rf $TMPWDIR
 
         #ASHS ICV
-        #       rm -rf $ASHSICVDIR/affine_t1_to_template \
+        # rm -rf $ASHSICVDIR/affine_t1_to_template \
         # $ASHSICVDIR/ants_t1_to_temp \
         # $ASHSICVDIR/bootstrap \
         # $ASHSICVDIR/dump \
@@ -291,28 +291,28 @@ class MRI:
         # $ASHSICVDIR/flirt_t2_to_t1 \
         # $ASHSICVDIR/tse_native_chunk*.nii.gz 
 
-    # cleanup MST multi-template thickness
-    # SUBJMSTTHKDIR=$SUBJALLDIR/$PREFIX/ASHST1_MTLCORTEX_MSTTHK
-    # SUBJMSTDATADIR=$SUBJMSTTHKDIR/data
-    # SUBJMSTREGATLASDIR=$SUBJMSTTHKDIR/RegToAtlases
-    # SUBJMSTVTREGDIR=$SUBJMSTTHKDIR/RegToInitTemp
-    # SUBJMSTUTREGDIR=$SUBJMSTTHKDIR/RegToUT
-    # if [[ -d $SUBJMSTDATADIR || -d $SUBJMSTREGATLASDIR || -d $SUBJMSTVTREGDIR || -d $SUBJMSTUTREGDIR ]]; then
-    #   echo "    Removing intermediate files in the MST folder for $rid $PREFIX"
-    #   echo "Clean up space: Removing intermediate files in the MST folder for $rid $PREFIX" >> $LOGFILE
-    #   #rm -rf $SUBJMSTDATADIR $SUBJMSTREGATLASDIR $SUBJMSTVTREGDIR $SUBJMSTUTREGDIR
-    # fi
+        # cleanup MST multi-template thickness files
+        # SUBJMSTTHKDIR=$SUBJALLDIR/$PREFIX/ASHST1_MTLCORTEX_MSTTHK
+        # SUBJMSTDATADIR=$SUBJMSTTHKDIR/data
+        # SUBJMSTREGATLASDIR=$SUBJMSTTHKDIR/RegToAtlases
+        # SUBJMSTVTREGDIR=$SUBJMSTTHKDIR/RegToInitTemp
+        # SUBJMSTUTREGDIR=$SUBJMSTTHKDIR/RegToUT
+        # if [[ -d $SUBJMSTDATADIR || -d $SUBJMSTREGATLASDIR || -d $SUBJMSTVTREGDIR || -d $SUBJMSTUTREGDIR ]]; then
+        #   echo "    Removing intermediate files in the MST folder for $rid $PREFIX"
+        #   echo "Clean up space: Removing intermediate files in the MST folder for $rid $PREFIX" >> $LOGFILE
+        #   #rm -rf $SUBJMSTDATADIR $SUBJMSTREGATLASDIR $SUBJMSTVTREGDIR $SUBJMSTUTREGDIR
+        # fi
 
-       # clean up step 1: convert the T1 SR image to short datatype
-    # if [[ -f $FUT1SRIMG ]]; then
-    #   datatype=$(c3d $FUT1SRIMG -info-full | grep datatype \
-    #                  | cut -d = -f 2 | cut -d " " -f 2)
-    #   if [[ $datatype -gt 8 ]]; then
-    #     echo "    Changing T1 SR datatype for $rid $PREFIX"
-    #     echo "Clean up space: Changing T1 SR datatype for $rid $PREFIX" >> $LOGFILE
-    #     c3d $FUT1SRIMG -type short -o $FUT1SRIMG
-    #   fi
-    # fi
+        # convert the T1 SR image to short datatype
+        # if [[ -f $FUT1SRIMG ]]; then
+        #   datatype=$(c3d $FUT1SRIMG -info-full | grep datatype \
+        #                  | cut -d = -f 2 | cut -d " " -f 2)
+        #   if [[ $datatype -gt 8 ]]; then
+        #     echo "    Changing T1 SR datatype for $rid $PREFIX"
+        #     echo "Clean up space: Changing T1 SR datatype for $rid $PREFIX" >> $LOGFILE
+        #     c3d $FUT1SRIMG -type short -o $FUT1SRIMG
+        #   fi
+        # fi
 
 
 class AmyloidPET:
@@ -389,22 +389,21 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 #Test runs
 # mri_to_process=MRI('141_S_6779','2020-10-27')
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
-mri_to_process = MRI("114_S_6917", "2021-04-16") #full test
+mri_to_process = MRI("114_S_6917", "2021-04-16") 
 
-# ants_job_name = mri_to_process.do_ants() #19851608, 19851609 for moving; worked
-# mri_to_process.do_t1icv() #19851611; fixed variable & folder; QC file names? 
-# mri_to_process.do_t2ashs() #19851612; 
-# mri_to_process.do_t1flair() #19851613;
-# mri_to_process.do_wmh_prep() #19851614; worked
+# ants_job_name = mri_to_process.do_ants() 
+# mri_to_process.do_t1icv() 
+# mri_to_process.do_t2ashs() 
+# mri_to_process.do_t1flair() 
+# mri_to_process.do_wmh_prep() 
 
-# superres_job_name = mri_to_process.do_superres() #19851615; worked
-# t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) #19851616
-# mri_to_process.do_t1mtthk(t1ashs_job_name) #19851617
+# superres_job_name = mri_to_process.do_superres() 
+# t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
+# mri_to_process.do_t1mtthk(t1ashs_job_name) 
 
-# wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) #19851618; fixed folder
-# mri_to_process.do_wbsegqc(wbseg_job_name) #19851619
+# wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
+# mri_to_process.do_wbsegqc(wbseg_job_name) 
 
-#dump.vtk, core. in this folder--from which step?
 mri_to_process.do_ashs_qc()
 
 # Amyloidprocessing = AmyloidPET("141_S_6779","2020-11-11")
