@@ -13,7 +13,7 @@ ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
     # export ASHS_ROOT=/project/hippogang_2/longxie/pkg/ashs/ashs-fast
 ashs_script = f"{ashs_root}/bin/ashs_main.sh"
 ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
-ashs_t1_label_file = "/home/lxie/ASHS_T1/ASHSexp/exp201/atlas/final/snap/snaplabels.txt"
+# ashs_t1_label_file = "/home/lxie/ASHS_T1/ASHSexp/exp201/atlas/final/snap/snaplabels.txt"
 long_scripts = "/home/lxie/ADNI2018/scripts"
 icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
 ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
@@ -110,7 +110,7 @@ class MRI:
 
         self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
         self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
-        self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final{self.id}_right_lfseg_corr_nogray.nii.gz"
+        self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
         self.t2ashs_qc_left = f"{self.filepath}/sfsegnibtend/qa/"
         self.t2ashs_qc_right = f"{self.filepath}/sfsegnibtend/qa/"
 
@@ -231,15 +231,6 @@ class MRI:
                   -d -T -I {self.id} -w {self.filepath}/sfsegnibtend")
             return
 
-    def do_ashs_qc(self, parent_job_name = ""):
-        # for ASHS T1, ASHST2, ASHSICV, WBSEG
-        # need label files for t2, icv (if different than t1?)
-        # do for heur, no gray, usegray --all or just the useful one (which is ... no gray or heur?)
-            # do for left, right
-                # segqc_script t1_trim/t1_SR/t2_nifti(?) segmentation_nifti labelfile qcoutputname
-                os.system(f"{segqc_script} {self.t1trim} {self.t1ashs_seg_left} {ashs_t1_label_file} {self.t1ashs_qc_left}")
-                return
-
     def do_t1flair(self, parent_job_name = ""):
         this_job_name=f"t1flair_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
@@ -273,7 +264,7 @@ class MRI:
 
         # ASHS T2
         # rm -rf $WDIR/*
-        # # rm -rf $TMPWDIR/multiatlas $TMPWDIR/bootstrap $TMPWDIR/*raw.nii.gz
+        # rm -rf $TMPWDIR/multiatlas $TMPWDIR/bootstrap $TMPWDIR/*raw.nii.gz
         # rm -rf $TMPWDIR/*raw.nii.gz
         # cp -r $TMPWDIR/* $WDIR
         # rm -rf $TMPWDIR
