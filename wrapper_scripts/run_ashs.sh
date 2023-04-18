@@ -61,15 +61,4 @@ ICV only:
 -B (Do not perform the bootstrapping step, and use the output of the initial joint
                     label fusion (in multiatlas directory) as the final output.)
 
-
-example usage (ICV): 
-bash wrapper_scripts/run_ashs.sh \
-/project/hippogang_2/longxie/pkg/ashs/ashs-fast \
-/home/lxie/ASHS_atlases/ICVatlas_3TT1 \
-/project/wolk_2/ADNI2018/scripts/pipeline_test_data/114_S_6917/2021-04-16/2021-04-16_114_S_6917_T1w_trim.nii.gz \
-/project/wolk_2/ADNI2018/scripts/pipeline_test_data/114_S_6917/2021-04-16/2021-04-16_114_S_6917_T1w_trim.nii.gz \
-/project/wolk_2/ADNI2018/scripts/pipeline_test_data/114_S_6917/2021-04-16/ASHSICV \
-114_S_6917 \
-/home/lxie/ADNI2018/scripts/ashs-fast-z.sh \
-/home/lxie/ADNI2018/scripts/identity.mat 
 '

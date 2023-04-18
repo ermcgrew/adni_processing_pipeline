@@ -360,10 +360,10 @@ mri_to_process = MRI("114_S_6917", "2021-04-16")
 
 # ants_job_name = mri_to_process.do_ants() 
 mri_to_process.do_t1icv() 
-# mri_to_process.do_t2ashs() 
+mri_to_process.do_t2ashs() 
 # mri_to_process.do_t1flair() 
 # mri_to_process.do_wmh_prep() 
-
+mri_to_process.do_t1ashs()
 # superres_job_name = mri_to_process.do_superres() 
 # t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
 # mri_to_process.do_t1mtthk(t1ashs_job_name) 
