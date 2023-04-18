@@ -9,11 +9,9 @@ wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itk
 segqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
 wblabel_file = "/project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt"
 ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
-##before running ASHS code in testing, run in shell:
-    # export ASHS_ROOT=/project/hippogang_2/longxie/pkg/ashs/ashs-fast
-ashs_script = f"{ashs_root}/bin/ashs_main.sh"
+
+# ashs_script = f"{ashs_root}/bin/ashs_main.sh"
 ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
-# ashs_t1_label_file = "/home/lxie/ASHS_T1/ASHSexp/exp201/atlas/final/snap/snaplabels.txt"
 long_scripts = "/home/lxie/ADNI2018/scripts"
 icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
 ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
@@ -179,12 +177,8 @@ class MRI:
                             output_files=[self.t1ashs_qc_left, self.t1ashs_qc_right], parent_job = parent_job_name):
             os.system(f"mkdir {self.filepath}/ASHST1")
             os.system(f"bsub {submit_options} \
-                    {ashs_script} \
-                    -a {ashs_t1_atlas} -d -T -I {self.id} -g {self.t1trim} -f {self.superres} \
-                    -l -s 1-7 \
-                    -z {long_scripts}/ashs-fast-z.sh \
-                    -m {long_scripts}/identity.mat -M \
-                    -w {self.filepath}/ASHST1")
+                      ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres}\
+                      {self.filepath}/ASHST1 {self.id} {long_scripts}/ashs-fast-z.sh {long_scripts}/identity.mat")
         return(this_job_name)
     
     def do_t1mtthk(self, parent_job_name = ""):
@@ -210,15 +204,10 @@ class MRI:
         this_job_name=f"t1icv_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process("t1icv", self.id, self.mridate, input_files=[self.t1trim], output_files=[self.t1icv_qc_left, self.t1icv_qc_right]):
-            # os.system(f"mkdir {self.filepath}/ASHSICV")
-            print(f"bsub {submit_options} \
-                 {ashs_script} \
-                -a {icv_atlas} -d -T -I {self.id} -g {self.t1trim} -f {self.t1trim} \
-                -l -s 1-7 \
-                -z {long_scripts}/ashs-fast-z.sh \
-                -m {long_scripts}/identity.mat -M \
-                -B \
-                -w {self.filepath}/ASHSICV")
+            os.system(f"mkdir {self.filepath}/ASHSICV")
+            os.system(f"bsub {submit_options} \
+                  ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.t1trim}\
+                      {self.filepath}/ASHSICV {self.id} {long_scripts}/ashs-fast-z.sh {long_scripts}/identity.mat")
             return   
 
     def do_t2ashs(self, parent_job_name = ""):
@@ -226,9 +215,9 @@ class MRI:
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process("t2ashs", self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], output_files=[self.t2ashs_seg_left, self.t2ashs_seg_right]):
             os.system(f"mkdir {self.filepath}/sfsegnibtend")
-            os.system(f"bsub {submit_options} {ashs_script} \
-                  -a {ashs_t2_atlas} -g {self.t1trim} -f {self.t2nifti} \
-                  -d -T -I {self.id} -w {self.filepath}/sfsegnibtend")
+            os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs.sh \
+                      {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.t2nifti}\
+                      {self.filepath}/sfsegnibtend {self.id}")
             return
 
     def do_t1flair(self, parent_job_name = ""):
@@ -254,30 +243,17 @@ class MRI:
         #ASHS T1
         # rm -rf $ASHST1DIR/affine_t1_to_template \
         # $ASHST1DIR/ants_t1_to_temp \
-        # $ASHST1DIR/bootstrap \
         # $ASHST1DIR/dump \
-        # $ASHST1DIR/multiatlas \
         # $ASHST1DIR/mprage* \
         # $ASHST1DIR/tse.nii.gz \
-        # $ASHST1DIR/tse_raw.nii.gz \
         # $ASHST1DIR/tse_to_chunktemp*.nii.gz
-
-        # ASHS T2
-        # rm -rf $WDIR/*
-        # rm -rf $TMPWDIR/multiatlas $TMPWDIR/bootstrap $TMPWDIR/*raw.nii.gz
-        # rm -rf $TMPWDIR/*raw.nii.gz
-        # cp -r $TMPWDIR/* $WDIR
-        # rm -rf $TMPWDIR
 
         #ASHS ICV
         # rm -rf $ASHSICVDIR/affine_t1_to_template \
         # $ASHSICVDIR/ants_t1_to_temp \
-        # $ASHSICVDIR/bootstrap \
         # $ASHSICVDIR/dump \
-        # $ASHSICVDIR/multiatlas \
         # $ASHSICVDIR/mprage* \
         # $ASHSICVDIR/tse.nii.gz \
-        # $ASHSICVDIR/tse_raw.nii.gz \
         # $ASHSICVDIR/tse_to_chunktemp*.nii.gz \
         # $ASHSICVDIR/flirt_t2_to_t1 \
         # $ASHSICVDIR/tse_native_chunk*.nii.gz 
