@@ -210,8 +210,8 @@ class MRI:
         this_job_name=f"t1icv_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process("t1icv", self.id, self.mridate, input_files=[self.t1trim], output_files=[self.t1icv_qc_left, self.t1icv_qc_right]):
-            os.system(f"mkdir {self.filepath}/ASHSICV")
-            os.system(f"bsub {submit_options} \
+            # os.system(f"mkdir {self.filepath}/ASHSICV")
+            print(f"bsub {submit_options} \
                  {ashs_script} \
                 -a {icv_atlas} -d -T -I {self.id} -g {self.t1trim} -f {self.t1trim} \
                 -l -s 1-7 \
@@ -383,7 +383,7 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 mri_to_process = MRI("114_S_6917", "2021-04-16") 
 
 # ants_job_name = mri_to_process.do_ants() 
-# mri_to_process.do_t1icv() 
+mri_to_process.do_t1icv() 
 # mri_to_process.do_t2ashs() 
 # mri_to_process.do_t1flair() 
 # mri_to_process.do_wmh_prep() 
@@ -395,7 +395,6 @@ mri_to_process = MRI("114_S_6917", "2021-04-16")
 # wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
 # mri_to_process.do_wbsegqc(wbseg_job_name) 
 
-mri_to_process.do_ashs_qc()
 
 # Amyloidprocessing = AmyloidPET("141_S_6779","2020-11-11")
 # Amyloidprocessing = AmyloidPET("033_S_7088","2022-07-27")
