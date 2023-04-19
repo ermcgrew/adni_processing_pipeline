@@ -60,21 +60,17 @@ def set_submit_options(this_job_name, output_dir, parent_job_name):
 
 
 def wait_for_file(file):
-    print(f"waiting for file {file} to be created")
+    print(f"waiting for file {file} to be created.")
     while not os.path.exists(file):
-        print(f"Waiting another 5 seconds")
         time.sleep(5)
-
     if os.path.exists(file):
-        print(f"waiting for file {file} to download completely")
         while os.stat(file).st_size <= 10000:
             time.sleep(1)
-        print(f"file {file} downloaded")
         return
     else:
         return 
 
-
+#Class definitions
 class MRI:
     #strings for MRI filepaths and functions for MRI processing
     def __init__(self, subject, mridate):
@@ -134,12 +130,12 @@ class MRI:
         os.system(f"cp {self.t1trim_thickness_dir} {self.t1trim}")
         return this_job_name
 
-    def do_brainx(self, parent_job_name = ""):
-        this_job_name=f"brainx_{self.date_id_prefix}"
-        submit_options =  set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        # if ready_to_process('brainx',self.id,self.mridate, input_files=[self.t1trim], output_files = [self.brainx]):
-        os.system(f'bsub {submit_options} ./wrapper_scripts/brain_extract.sh {self.t1trim}')
-        return this_job_name
+    # def do_brainx(self, parent_job_name = ""):
+    #     this_job_name=f"brainx_{self.date_id_prefix}"
+    #     submit_options =  set_submit_options(this_job_name, self.bsub_output, parent_job_name)
+    #     # if ready_to_process('brainx',self.id,self.mridate, input_files=[self.t1trim], output_files = [self.brainx]):
+    #     os.system(f'bsub {submit_options} ./wrapper_scripts/brain_extract.sh {self.t1trim}')
+    #     return this_job_name
 
     def do_wbseg(self, parent_job_name = ""):
         this_job_name=f"wbseg_{self.date_id_prefix}"
@@ -199,8 +195,8 @@ class MRI:
                 os.system(f"bsub {submit_options} -M 12G -n 1 \
                             ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
                             {side} {ashs_seg} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
-            return
-
+        return
+            
     def do_t1icv(self, parent_job_name = ""):
         this_job_name=f"t1icv_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
@@ -238,32 +234,6 @@ class MRI:
                 os.system(f"mkdir {adni_analysis_dir}/{current_date}")
             os.system(f"bsub {submit_options} cp {self.flair} {adni_analysis_dir}/{current_date}/{self.mridate}_{self.id}_flair_0000.nii.gz")
             return
-
-    def cleanup_processing_files(self):
-        pass
-
-        # cleanup MST multi-template thickness files
-        # SUBJMSTTHKDIR=$SUBJALLDIR/$PREFIX/ASHST1_MTLCORTEX_MSTTHK
-        # SUBJMSTDATADIR=$SUBJMSTTHKDIR/data
-        # SUBJMSTREGATLASDIR=$SUBJMSTTHKDIR/RegToAtlases
-        # SUBJMSTVTREGDIR=$SUBJMSTTHKDIR/RegToInitTemp
-        # SUBJMSTUTREGDIR=$SUBJMSTTHKDIR/RegToUT
-        # if [[ -d $SUBJMSTDATADIR || -d $SUBJMSTREGATLASDIR || -d $SUBJMSTVTREGDIR || -d $SUBJMSTUTREGDIR ]]; then
-        #   echo "    Removing intermediate files in the MST folder for $rid $PREFIX"
-        #   echo "Clean up space: Removing intermediate files in the MST folder for $rid $PREFIX" >> $LOGFILE
-        #   #rm -rf $SUBJMSTDATADIR $SUBJMSTREGATLASDIR $SUBJMSTVTREGDIR $SUBJMSTUTREGDIR
-        # fi
-
-        # convert the T1 SR image to short datatype
-        # if [[ -f $FUT1SRIMG ]]; then
-        #   datatype=$(c3d $FUT1SRIMG -info-full | grep datatype \
-        #                  | cut -d = -f 2 | cut -d " " -f 2)
-        #   if [[ $datatype -gt 8 ]]; then
-        #     echo "    Changing T1 SR datatype for $rid $PREFIX"
-        #     echo "Clean up space: Changing T1 SR datatype for $rid $PREFIX" >> $LOGFILE
-        #     c3d $FUT1SRIMG -type short -o $FUT1SRIMG
-        #   fi
-        # fi
 
 
 class AmyloidPET:
@@ -360,12 +330,29 @@ class MRIPetReg:
 #for testing:
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
+
 # Test runs
 # mri_to_process=MRI('141_S_6779','2020-10-27')
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 mri_to_process = MRI("114_S_6917", "2021-04-16") 
 
-# ants_job_name = mri_to_process.do_ants() 
+# amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
+# amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
+tau_to_process = TauPET("114_S_6917", "2021-08-11")
+
+# mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
+mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
+
+wbseg_job_name = mri_to_process.do_wbseg() 
+mri_to_process.do_wbsegqc(wbseg_job_name)
+
+
+##MRI processing
+# ants_job_name = mri_to_process.do_ants()
+ 
+# wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
+# mri_to_process.do_wbsegqc(wbseg_job_name)
+
 # mri_to_process.do_t1icv() 
 # mri_to_process.do_t2ashs() 
 # mri_to_process.do_t1flair() 
@@ -375,21 +362,9 @@ mri_to_process = MRI("114_S_6917", "2021-04-16")
 # t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
 # mri_to_process.do_t1mtthk(t1ashs_job_name) 
 
-# wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
-# mri_to_process.do_wbsegqc(wbseg_job_name) 
 
-
-# amy_to_process = AmyloidPET("141_S_6779","2020-11-11")
-# amy_to_process = AmyloidPET("033_S_7088","2022-07-27")
-tau_to_process = TauPET("114_S_6917","2021-08-11")
-
-# mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
-mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
-
-t1_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
-mri_tau_reg_to_process.do_pet_reg_qc(t1_pet_reg_job)
-mri_tau_reg_to_process.do_t2_pet_reg(t1_pet_reg_job)
-
-
-
+##PET processing
+# t1_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
+# mri_tau_reg_to_process.do_pet_reg_qc(t1_pet_reg_job)
+# mri_tau_reg_to_process.do_t2_pet_reg(t1_pet_reg_job)
 
