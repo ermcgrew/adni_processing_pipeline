@@ -287,7 +287,7 @@ class TauPET:
         
 
 class MRIPetReg:
-    #strings for filepaths from MRI and PET class instances and function to do T1-PET registration
+    #strings for filepaths from MRI and PET class instances and function to do MRI-PET registrations and QC
     def __init__(self, pet_type, MRI, PET):
         self.id = MRI.id
         self.mridate = MRI.mridate
@@ -312,7 +312,6 @@ class MRIPetReg:
         self.t1_reg_qc = f"{self.filepath}/{self.reg_prefix}_T1_qa.png"
 
         self.t2_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T2.nii.gz"
-        self.t2_reg_qc = f"{self.filepath}/{self.reg_prefix}_T2_qa.png"
 
         self.log_output_dir = f"{self.filepath}/logs_{current_date}"
         if not os.path.exists(self.log_output_dir):
@@ -327,30 +326,33 @@ class MRIPetReg:
                             input_files = [self.t1trim, self.pet_nifti], \
                             output_files = [self.t1_reg_RAS]):
             os.system(f"bsub {submit_options} \
-                      {t1petreg_script} \
-                      {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
+                       {t1petreg_script} \
+                       {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
             return (this_job_name)         
         
 
     def do_t2_pet_reg(self, parent_job_name = ""):
         this_job_name=f"t2{self.processing_step}_{self.reg_prefix}"
-        submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
+        submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)        
         if ready_to_process(f"t2{self.processing_step}", self.id, f"{self.mridate}:{self.petdate}", \
                             input_files = [self.t2nifti, self.pet_nifti, self.t2ashs_flirt_reg, self.t1_reg_RAS], \
-                            output_files = [self.t2_reg_nifti]):
+                            output_files = [self.t2_reg_nifti], parent_job = parent_job_name):
             os.system(f"bsub {submit_options} ./wrapper_scripts/t2_pet_registration.sh {self.t2nifti} \
                   {self.pet_nifti} {self.t2_reg_nifti} {self.t2ashs_flirt_reg} {self.t1_reg_RAS}")
             return(this_job_name)
 
  
     def do_pet_reg_qc(self, parent_job_name = ""):
-        ##add t1/t2 selection--or not, there's only t1 qc done??
-        this_job_name=f"{self.processing_step}qc_{self.reg_prefix}"
+        processing_step = f"t1{self.processing_step}qc"
+        this_job_name=f"{processing_step}_{self.reg_prefix}" 
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        if ready_to_process(f"{self.processing_step}qc", self.id, f"{self.mridate}:{self.petdate}", input_files = [self.t1trim, self.reg_nifti], output_files = [self.reg_qc], parent_job = parent_job_name):
+        if ready_to_process(processing_step, self.id, f"{self.mridate}:{self.petdate}", 
+                            input_files = [self.t1trim, self.t1_reg_nifti], 
+                            output_files = [self.t1_reg_qc],
+                            parent_job = parent_job_name):
             os.system(f"bsub {submit_options} \
                   {t1petregqc_script} \
-                  {self.t1trim} {self.reg_nifti} {self.reg_qc}")
+                  {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
             return
 
 #Log file
@@ -358,10 +360,10 @@ class MRIPetReg:
 #for testing:
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
-#Test runs
-mri_to_process=MRI('141_S_6779','2020-10-27')
+# Test runs
+# mri_to_process=MRI('141_S_6779','2020-10-27')
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
-# mri_to_process = MRI("114_S_6917", "2021-04-16") 
+mri_to_process = MRI("114_S_6917", "2021-04-16") 
 
 # ants_job_name = mri_to_process.do_ants() 
 # mri_to_process.do_t1icv() 
@@ -377,11 +379,17 @@ mri_to_process=MRI('141_S_6779','2020-10-27')
 # mri_to_process.do_wbsegqc(wbseg_job_name) 
 
 
-amy_to_process = AmyloidPET("141_S_6779","2020-11-11")
+# amy_to_process = AmyloidPET("141_S_6779","2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088","2022-07-27")
+tau_to_process = TauPET("114_S_6917","2021-08-11")
 
-mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
-t1_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
-mri_amy_reg_to_process.do_t2_pet_reg(t1_pet_reg_job)
-mri_amy_reg_to_process.do_pet_reg_qc(t1_pet_reg_job)
+# mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
+mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
+
+t1_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
+mri_tau_reg_to_process.do_pet_reg_qc(t1_pet_reg_job)
+mri_tau_reg_to_process.do_t2_pet_reg(t1_pet_reg_job)
+
+
+
 
