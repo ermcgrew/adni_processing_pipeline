@@ -6,8 +6,9 @@ import time
 #Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
 wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
+wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly"
 segqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
-wblabel_file = "/project/hippogang_1/srdas/wd/TAUPET/longnew/wholebrainlabels_itksnaplabelfile.txt"
+wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
 ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
 
 # ashs_script = f"{ashs_root}/bin/ashs_main.sh"
@@ -147,7 +148,7 @@ class MRI:
                     {self.filepath} \
                     {self.filepath}/{self.date_id_prefix}_wholebrainseg \
                     {self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain \
-                    /home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly 1")
+                    {wbseg_atlas_dir} 1")
         return this_job_name          
      
     def do_wbsegqc(self, parent_job_name = ""):
@@ -326,41 +327,40 @@ class MRIPetReg:
             return
 
 #Log file
-# logging.basicConfig(filename={adni_analysis_dir}/{current_date}, filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
+logging.basicConfig(filename=f"{adni_analysis_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
 #for testing:
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
 
 # Test runs
 # mri_to_process=MRI('141_S_6779','2020-10-27')
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
-mri_to_process = MRI("114_S_6917", "2021-04-16") 
+# mri_to_process = MRI("114_S_6917", "2021-04-16") 
+# mri_to_process = MRI("137_S_6826", "2019-10-17")
+mri_to_process = MRI("099_S_6175", "2020-06-03")
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
-tau_to_process = TauPET("114_S_6917", "2021-08-11")
+# tau_to_process = TauPET("114_S_6917", "2021-08-11")
 
 # mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
-mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
-
-wbseg_job_name = mri_to_process.do_wbseg() 
-mri_to_process.do_wbsegqc(wbseg_job_name)
+# mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
 
 
 ##MRI processing
-# ants_job_name = mri_to_process.do_ants()
+ants_job_name = mri_to_process.do_ants()
  
-# wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
-# mri_to_process.do_wbsegqc(wbseg_job_name)
+wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
+mri_to_process.do_wbsegqc(wbseg_job_name)
 
-# mri_to_process.do_t1icv() 
-# mri_to_process.do_t2ashs() 
-# mri_to_process.do_t1flair() 
-# mri_to_process.do_wmh_prep() 
+mri_to_process.do_t1icv() 
+mri_to_process.do_t2ashs() 
+mri_to_process.do_t1flair() 
+mri_to_process.do_wmh_prep() 
 
-# superres_job_name = mri_to_process.do_superres() 
-# t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
-# mri_to_process.do_t1mtthk(t1ashs_job_name) 
+superres_job_name = mri_to_process.do_superres() 
+t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
+mri_to_process.do_t1mtthk(t1ashs_job_name) 
 
 
 ##PET processing
