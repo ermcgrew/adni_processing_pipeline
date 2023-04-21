@@ -364,15 +364,7 @@ c3d $tse -as A cleanup/${id}_${tp}_seg_left.nii.gz -interp NN -reslice-identity 
     -o cleanup/${id}_${tp}_seg_both.nii.gz
 fi
 
-# Make PET to T2 #shouldn't t2 reg be done as part of processing?? Or keep as only do if not already done?
-greedy -d 3 -rf $tse \
-  -rm $ROOT/$id/${tautp}/${tautp}_${id}_taupet.nii.gz $taupet \
-  -r $SDROOT/$id/$tp/${SFSEG}/flirt_t2_to_t1/flirt_t2_to_t1.mat \
-      $ROOT/$id/$tautp/${tautp}_${id}_taupet_to_${t1tp}_T10GenericAffine_RAS.mat
-# greedy -d 3 -rf $tse \
-#   -rm $ROOT/$id/${amytp}/${amytp}_${id}_amypet.nii.gz $amypet \
-#   -r $SDROOT/$id/$tp/${SFSEG}/flirt_t2_to_t1/flirt_t2_to_t1.mat \
-#       $ROOT/$id/$amytp/${amytp}_${id}_amypet_to_${t1tp}_T10GenericAffine_RAS.mat
+
 
 
 THICK=$(c3d cleanup/${id}_${tp}_seg_left.nii.gz -info-full | grep Spacing | sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" | awk '{print $3}')
