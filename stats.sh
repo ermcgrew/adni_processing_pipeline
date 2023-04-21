@@ -308,7 +308,8 @@ function collate_new_data ()
 SDROOT='/project/wolk_2/ADNI2018/scripts/pipeline_test_data'
 ROOT=/project/wolk_2/ADNI2018/dataset
 
-
+TMPDIR=$(mktemp -d)
+export TMPDIR
 # mkdir -p cleanup/dump
 # mkdir -p cleanup/png
 # mkdir -p cleanup/stats
@@ -331,30 +332,20 @@ tautp="2021-05-27"
 # line="${10}"
 
 statline="$id"
-
-segmpold=$SDROOT/$id/${id}_${t1tp}_wholebrainseg/${id}_${t1tp}_mprage_trim_brainx_ExtractedBrain/${id}_${t1tp}_mprage_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz
-if [ -f $segmpold ]; then
-  segmp=$segmpold
-else
-  segmp=$ROOT/$id/$t1tp/${t1tp}_${id}_wholebrainseg/${t1tp}_${id}_T1w_trim_brainx_ExtractedBrain/${t1tp}_${id}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz
-fi
-
+segmp=$ROOT/$id/$t1tp/${t1tp}_${id}_wholebrainseg/${t1tp}_${id}_T1w_trim_brainx_ExtractedBrain/${t1tp}_${id}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz
 thickmp=$ROOT/$id/${t1tp}/thickness/${id}CorticalThickness.nii.gz  #in python code
 taupet=$ROOT/$id/$tautp/${tautp}_${id}_taupet_to_${tp}_T2.nii.gz
 taupetmp=$ROOT/$id/$tautp/${tautp}_${id}_taupet_to_${t1tp}_T1.nii.gz #in python code
 amypet=$ROOT/$id/$amytp/${amytp}_${id}_amypet_to_${tp}_T2.nii.gz 
 amypetmp=$ROOT/$id/$amytp/${amytp}_${id}_amypet_to_${t1tp}_T1.nii.gz #in python code
-
 tse=$SDROOT/$id/$tp/sfsegnibtend/tse.nii.gz 
-
+T1trim=$SDROOT/$id/$tp/2021-05-05_126_S_6721_T1w_trim.nii.gz
+atlastype=$(getatlas $seg) 
 
 for side in left right; do
-  seg=$SDROOT/$id/$tp/sfsegnibtend/final/126_S_6721_${side}_lfseg_corr_nogray.nii.gz #in python code
-  atlastype=$(getatlas $seg) ##would atlastype change between sides? if not, move outside loop
-  if [ -z "$atlastype" ]; then atlastype=PHG; fi; ##is this likely to happen? why not put else echo PHG in function?
+  seg=$SDROOT/$id/$tp/sfsegnibtend/final/126_S_6721_${side}_lfseg_corr_nogray.nii.gz 
   if [ ! -f cleanup/${id}_${tp}_seg_${side}.nii.gz ]; then
-      cleanup_prc $seg \
-      cleanup/${id}_${tp}_seg_${side}.nii.gz $atlastype
+      cleanup_prc $seg cleanup/${id}_${tp}_seg_${side}.nii.gz $atlastype
   fi
 done
 
@@ -366,19 +357,25 @@ fi
 
 
 
-
 THICK=$(c3d cleanup/${id}_${tp}_seg_left.nii.gz -info-full | grep Spacing | sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" | awk '{print $3}')
+# cleanup/126_S_6721_2021-05-05_seg_left.nii.gz
 statline="$statline\t$THICK"
 
-# for side in left right; do
-    # Create fake images --MRI only version 
-#     c3d $T1trim -scale 0 -shift 1 -o $TMPDIR/faket1.nii.gz
-#     taupetmp=$TMPDIR/faket1.nii.gz
-#     amypetmp=$TMPDIR/faket1.nii.gz
-#     # thickmp=$TMPDIR/faket1.nii.gz
-#     c3d cleanup/${id}_${tp}_seg_${side}.nii.gz -scale 0 -shift 1 $TMPDIR/faket2.nii.gz
-#     taupet=$TMPDIR/faket2.nii.gz
-#     amypet=$TMPDIR/faket2.nii.gz
+
+# Create fake images --MRI only version 
+c3d $T1trim -scale 0 -shift 1 -o $TMPDIR/faket1.nii.gz
+taupetmp=$TMPDIR/faket1.nii.gz
+amypetmp=$TMPDIR/faket1.nii.gz
+
+for side in left right; do
+  c3d cleanup/${id}_${tp}_seg_${side}.nii.gz -scale 0 -shift 1 $TMPDIR/faket2.nii.gz
+  taupet=$TMPDIR/faket2.nii.gz
+  amypet=$TMPDIR/faket2.nii.gz
+
+  echo cleanup/${id}_${tp}_seg_${side}.nii.gz \
+  $segmp $taupet $taupetmp $amypet $amypetmp $atlastype \
+  cleanup/${id}_${tp}_seg_both.nii.gz $thickmp
+done
     
 # # statline="${statline}\t$(genstats cleanup/${id}_${tp}_seg_${side}.nii.gz \
 # #   $segmp $taupet $taupetmp $amypet $amypetmp $atlastype \

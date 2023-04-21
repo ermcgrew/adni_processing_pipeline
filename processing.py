@@ -337,7 +337,11 @@ logging.basicConfig(filename=f"{adni_analysis_dir}/{current_date}.log", filemode
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
-mri_to_process = MRI("099_S_6175", "2020-06-03")
+# mri_to_process = MRI("099_S_6175", "2020-06-03")
+mri_to_process = MRI("126_S_6721", "2021-05-05")
+print(mri_to_process.wbseg)
+
+
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
@@ -348,19 +352,19 @@ mri_to_process = MRI("099_S_6175", "2020-06-03")
 
 
 ##MRI processing
-ants_job_name = mri_to_process.do_ants()
+# ants_job_name = mri_to_process.do_ants()
  
-wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
-mri_to_process.do_wbsegqc(wbseg_job_name)
+# wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
+# mri_to_process.do_wbsegqc(wbseg_job_name)
 
-mri_to_process.do_t1icv() 
-mri_to_process.do_t2ashs() 
-mri_to_process.do_t1flair() 
-mri_to_process.do_wmh_prep() 
+# mri_to_process.do_t1icv() 
+# mri_to_process.do_t2ashs() 
+# mri_to_process.do_t1flair() 
+# mri_to_process.do_wmh_prep() 
 
-superres_job_name = mri_to_process.do_superres() 
-t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
-mri_to_process.do_t1mtthk(t1ashs_job_name) 
+# superres_job_name = mri_to_process.do_superres() 
+# t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
+# mri_to_process.do_t1mtthk(t1ashs_job_name) 
 
 
 ##PET processing
