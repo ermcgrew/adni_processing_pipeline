@@ -1,5 +1,22 @@
 #!/usr/bin/bash
-#adapted from cleanup_prc_.sh
+# adapted from cleanup_prc_taupet_adni_unified_flexible.sh
+
+# Usage:
+# ./stats.sh id wholebrainseg corticalthickness t1taureg t2taureg t1amyreg t2amyreg \
+# sfsegnibtend/tse.nii.gz t1trim t2ashs_left_seg mri_only_mode_boolean
+
+# 067_S_7094
+# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/2022-07-12_067_S_7094_wholebrainseg/2022-07-12_067_S_7094_T1w_trim_brainx_ExtractedBrain/2022-07-12_067_S_7094_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz
+# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/thickness/067_S_7094CorticalThickness.nii.gz 
+# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/9999-99-99/9999-99-99_067_S_7094_taupet_to_2022-07-12_T1.nii.gz 
+# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/9999-99-99/9999-99-99_067_S_7094_taupet_to_2022-07-12_T2.nii.gz
+# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/9999-99-99/9999-99-99_067_S_7094_amypet_to_2022-07-12_T1.nii.gz
+# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/9999-99-99/9999-99-99_067_S_7094_amypet_to_2022-07-12_T2.nii.gz
+# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/sfsegnibtend/tse.nii.gz 
+# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/2022-07-12_067_S_7094_T1w_trim.nii.gz
+# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/sfsegnibtend/final/067_S_7094_left_lfseg_corr_nogray.nii.gz 
+# false
+
 
 # Find out which atlas was used
 function getatlas()
@@ -40,7 +57,7 @@ function cleanup_prc()
   echo $NLEFT
 }
 
-# Generate the statistics for the subject (similar to what's in the ASHS qc dir)
+# Generate the statistics for the subject
 function genstats()
 {
   in=$1
@@ -282,8 +299,6 @@ function create_tsv_header()
 
   echo -e "${HEADER}\t$(cat $PETFILE | sed -n "1p")" > stats_lr_cleanup_corr_nogray.tsv
 }
-
-
 function collate_new_data ()
 {
   for fn in $(ls cleanup/stats/*whole.txt | cut -f 3 -d "/"); do
@@ -304,83 +319,75 @@ function collate_new_data ()
 
 
 
-
-SDROOT='/project/wolk_2/ADNI2018/scripts/pipeline_test_data'
-ROOT=/project/wolk_2/ADNI2018/dataset
-
 TMPDIR=$(mktemp -d)
 export TMPDIR
 # mkdir -p cleanup/dump
 # mkdir -p cleanup/png
 # mkdir -p cleanup/stats
 
-
-id="126_S_6721"
-tp="2021-05-05"  
-t1tp=$tp 
-tautp="2021-05-27" 
-
-# id=$1
-# tp=$2
-# t1tp=$3  
-# tautp=$4
-# amytp=$5
-# t2qa=$6
-# t1qa=$7
-# tauqa=$8
-# amyqa=${9}
-# line="${10}"
+id=$1  ##genstats
+wholebrainseg=$2 ##genstats
+thickness=$3 ##genstats
+t1tau=$4 ##genstats and mrionly
+t2tau=$5 ##genstats and mrionly
+t1amy=$6 ##genstats and mrionly
+t2amy=$7 ##genstats and mrionly
+tse=$8  ##cleanup
+t1trim=$9  ##mrionly
+t2segleft=$10  ##cleanup
+mri_only_mode=$11   #mrionly
 
 statline="$id"
-segmp=$ROOT/$id/$t1tp/${t1tp}_${id}_wholebrainseg/${t1tp}_${id}_T1w_trim_brainx_ExtractedBrain/${t1tp}_${id}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz
-thickmp=$ROOT/$id/${t1tp}/thickness/${id}CorticalThickness.nii.gz  #in python code
-taupet=$ROOT/$id/$tautp/${tautp}_${id}_taupet_to_${tp}_T2.nii.gz
-taupetmp=$ROOT/$id/$tautp/${tautp}_${id}_taupet_to_${t1tp}_T1.nii.gz #in python code
-amypet=$ROOT/$id/$amytp/${amytp}_${id}_amypet_to_${tp}_T2.nii.gz 
-amypetmp=$ROOT/$id/$amytp/${amytp}_${id}_amypet_to_${t1tp}_T1.nii.gz #in python code
-tse=$SDROOT/$id/$tp/sfsegnibtend/tse.nii.gz 
-T1trim=$SDROOT/$id/$tp/2021-05-05_126_S_6721_T1w_trim.nii.gz
-atlastype=$(getatlas $seg) 
+
+atlastype=$(getatlas $t2segleft) 
 
 for side in left right; do
-  seg=$SDROOT/$id/$tp/sfsegnibtend/final/126_S_6721_${side}_lfseg_corr_nogray.nii.gz 
+  echo "doing cleanup prc for $side"
+  if [ $side == "right" ] ; then
+    seg=$(echo $seg | sed "s/left/$side/") 
+  else 
+    seg=$t2segleft
+  fi
+
   if [ ! -f cleanup/${id}_${tp}_seg_${side}.nii.gz ]; then
       cleanup_prc $seg cleanup/${id}_${tp}_seg_${side}.nii.gz $atlastype
   fi
 done
 
+echo "making seg_both"
 if [ ! -f cleanup/${id}_${tp}_seg_both.nii.gz ]; then
-c3d $tse -as A cleanup/${id}_${tp}_seg_left.nii.gz -interp NN -reslice-identity \
-    -push A cleanup/${id}_${tp}_seg_right.nii.gz -interp NN -reslice-identity -add \
-    -o cleanup/${id}_${tp}_seg_both.nii.gz
+  c3d $tse -as A cleanup/${id}_${tp}_seg_left.nii.gz -interp NN -reslice-identity \
+      -push A cleanup/${id}_${tp}_seg_right.nii.gz -interp NN -reslice-identity -add \
+      -o cleanup/${id}_${tp}_seg_both.nii.gz
 fi
 
-
-
-THICK=$(c3d cleanup/${id}_${tp}_seg_left.nii.gz -info-full | grep Spacing | sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" | awk '{print $3}')
-# cleanup/126_S_6721_2021-05-05_seg_left.nii.gz
-statline="$statline\t$THICK"
-
-
-# Create fake images --MRI only version 
-c3d $T1trim -scale 0 -shift 1 -o $TMPDIR/faket1.nii.gz
-taupetmp=$TMPDIR/faket1.nii.gz
-amypetmp=$TMPDIR/faket1.nii.gz
-
 for side in left right; do
-  c3d cleanup/${id}_${tp}_seg_${side}.nii.gz -scale 0 -shift 1 $TMPDIR/faket2.nii.gz
-  taupet=$TMPDIR/faket2.nii.gz
-  amypet=$TMPDIR/faket2.nii.gz
+  if [ "$mri_only_mode" == true ] ; then 
+    echo "making fake t1"
+    c3d $t1trim -scale 0 -shift 1 -o $TMPDIR/faket1.nii.gz
+    t1tau=$TMPDIR/faket1.nii.gz
+    t1amy=$TMPDIR/faket1.nii.gz
 
-  echo cleanup/${id}_${tp}_seg_${side}.nii.gz \
-  $segmp $taupet $taupetmp $amypet $amypetmp $atlastype \
-  cleanup/${id}_${tp}_seg_both.nii.gz $thickmp
+    echo "making fake t2 for $side"
+    c3d cleanup/${id}_${tp}_seg_${side}.nii.gz -scale 0 -shift 1 $TMPDIR/faket2.nii.gz
+    t2tau=$TMPDIR/faket2.nii.gz
+    t2amy=$TMPDIR/faket2.nii.gz
+  fi
+
+  if [ "$side" == "left" ]; then
+    thick=$(c3d cleanup/${id}_${tp}_seg_left.nii.gz -info-full | grep Spacing | sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" | awk '{print $3}')
+    statline="$statline\t$thick"
+  fi
+
+  echo "call genstats"   
+  genstats cleanup/${id}_${tp}_seg_${side}.nii.gz \
+  $wholebrainseg $t2tau $t1tau $t2amy $t1amy $atlastype \
+  cleanup/${id}_${tp}_seg_both.nii.gz $thickness
+
+# statline="${statline}\t$(genstats cleanup/${id}_${tp}_seg_${side}.nii.gz \
+#   $wholebrainseg $t2tau $t1tau $t2amy $t1amy $atlastype \
+#   cleanup/${id}_${tp}_seg_both.nii.gz $thickness)"
 done
-    
-# # statline="${statline}\t$(genstats cleanup/${id}_${tp}_seg_${side}.nii.gz \
-# #   $segmp $taupet $taupetmp $amypet $amypetmp $atlastype \
-# #   cleanup/${id}_${tp}_seg_both.nii.gz $thickmp)"
-# done
 
 # echo -e "$statline\t${MRIDATE}\t${VISCODE}\t${VISCODE2}\t${PHASE}"  >> cleanup/stats/stats_${tp}_${id}_whole.txt
 
