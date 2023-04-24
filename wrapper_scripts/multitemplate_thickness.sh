@@ -27,9 +27,10 @@ OUTDIR=$5
 OUTCSV=$OUTDIR/${id}_${PREFIX}_${side}_thickness.csv
 echo "$id,$side,$AUTOSEG" > $OUTDIR/${id}_${PREFIX}_${side}_log.txt
 
-# load VTK module
+# load module
 module load matlab
 module load vtk/7.1.1
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/project/hippogang_2/pauly/icclibs
 
 if [[ ! -f $OUTCSV ]]; then
 mkdir -p $OUTDIR

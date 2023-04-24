@@ -85,6 +85,8 @@ class MRI:
         self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
         self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trim.nii.gz"
         
+        self.thickness = f"{self.filepath}/thickness/{self.id}CorticalThickness.nii.gz"
+
         self.brainx_thickness_dir = f"{self.filepath}/thickness/{self.id}ExtractedBrain0N4.nii.gz"
         self.brainx = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
         self.wbseg= f"{self.filepath}/{self.date_id_prefix}_wholebrainseg/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
@@ -214,7 +216,7 @@ class MRI:
         if ready_to_process("t2ashs", self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], output_files=[self.t2ashs_seg_left, self.t2ashs_seg_right]):
             os.system(f"mkdir {self.filepath}/sfsegnibtend")
             os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs.sh \
-                      {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.t2nifti}\
+                      {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
                       {self.filepath}/sfsegnibtend {self.id}")
             return
 
@@ -327,9 +329,9 @@ class MRIPetReg:
             return
 
 #Log file
-logging.basicConfig(filename=f"{adni_analysis_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
+# logging.basicConfig(filename=f"{adni_analysis_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
 #for testing:
-# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
 
 # Test runs
@@ -338,9 +340,7 @@ logging.basicConfig(filename=f"{adni_analysis_dir}/{current_date}.log", filemode
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
-mri_to_process = MRI("126_S_6721", "2021-05-05")
-print(mri_to_process.wbseg)
-
+# mri_to_process = MRI("126_S_6721", "2021-05-05")
 
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
@@ -365,7 +365,6 @@ print(mri_to_process.wbseg)
 # superres_job_name = mri_to_process.do_superres() 
 # t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
 # mri_to_process.do_t1mtthk(t1ashs_job_name) 
-
 
 ##PET processing
 # t1_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
