@@ -3,7 +3,7 @@
 
 # Usage:
 # ./stats.sh id wholebrainseg corticalthickness t1taureg t2taureg t1amyreg t2amyreg \
-# sfsegnibtend/tse.nii.gz t1trim t2ashs_left_seg mri_only_mode_boolean
+# sfsegnibtend/tse.nii.gz t1trim t2ashs_left_seg mode
 
 # 067_S_7094
 # /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/2022-07-12_067_S_7094_wholebrainseg/2022-07-12_067_S_7094_T1w_trim_brainx_ExtractedBrain/2022-07-12_067_S_7094_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz
@@ -15,7 +15,7 @@
 # /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/sfsegnibtend/tse.nii.gz 
 # /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/2022-07-12_067_S_7094_T1w_trim.nii.gz
 # /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/sfsegnibtend/final/067_S_7094_left_lfseg_corr_nogray.nii.gz 
-# false
+# mri
 
 
 # Find out which atlas was used
@@ -285,7 +285,6 @@ function genstats()
 TMPDIR=$(mktemp -d)
 export TMPDIR
 # mkdir -p cleanup/dump
-# mkdir -p cleanup/png
 # mkdir -p cleanup/stats
 
 id=$1  ##genstats
@@ -298,7 +297,7 @@ t2amy=$7 ##genstats and mrionly
 tse=$8  ##cleanup
 t1trim=$9  ##mrionly
 t2segleft=$10  ##cleanup
-mri_only_mode=$11   #mrionly
+mode=$11   #mrionly
 
 statline="$id"
 
@@ -325,7 +324,7 @@ if [ ! -f cleanup/${id}_${tp}_seg_both.nii.gz ]; then
 fi
 
 for side in left right; do
-  if [ "$mri_only_mode" == true ] ; then 
+  if [ "$mode" == "mri" ] ; then 
     echo "making fake t1"
     c3d $t1trim -scale 0 -shift 1 -o $TMPDIR/faket1.nii.gz
     t1tau=$TMPDIR/faket1.nii.gz
