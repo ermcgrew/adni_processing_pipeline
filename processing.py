@@ -339,7 +339,7 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
-# mri_to_process = MRI("099_S_6175", "2020-06-03")
+mri_to_process = MRI("099_S_6175", "2020-06-03")
 # mri_to_process = MRI("126_S_6721", "2021-05-05")
 
 

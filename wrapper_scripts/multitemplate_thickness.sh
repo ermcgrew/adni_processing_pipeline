@@ -30,7 +30,7 @@ echo "$id,$side,$AUTOSEG" > $OUTDIR/${id}_${PREFIX}_${side}_log.txt
 # load module
 module load matlab
 module load vtk/7.1.1
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/project/hippogang_2/pauly/icclibs
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/project/hippogang_2/pauly/icclibs:/project/hippogang_2/pauly/lib
 
 if [[ ! -f $OUTCSV ]]; then
 mkdir -p $OUTDIR
