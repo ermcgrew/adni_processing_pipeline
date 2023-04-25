@@ -10,8 +10,6 @@ wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly
 segqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
 wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
 ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
-
-# ashs_script = f"{ashs_root}/bin/ashs_main.sh"
 ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
 long_scripts = "/home/lxie/ADNI2018/scripts"
 icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
@@ -21,6 +19,7 @@ t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh
 
 #main file directories
 adni_analysis_dir = "/project/wolk_2/ADNI2018/analysis_input"
+cleanup_dir = f"{adni_analysis_dir}/cleanup"
 # adni_data_dir = "/project/wolk_2/ADNI2018/dataset"
 # for testing
 adni_data_dir = "/project/wolk_2/ADNI2018/scripts/pipeline_test_data"
@@ -219,6 +218,19 @@ class MRI:
                       {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
                       {self.filepath}/sfsegnibtend {self.id}")
             return
+
+    def prc_cleanup(self, parent_job_name = ""):
+        this_job_name=f"prc_cleanup_{self.date_id_prefix}"
+        submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
+        
+        #cleanup_prc function should become a wrapper script 
+
+        # make left & right segs, save in cleanup_dir
+        # wait for both to be done
+        # then make both_seg
+
+    
+
 
     def do_t1flair(self, parent_job_name = ""):
         this_job_name=f"t1flair_{self.date_id_prefix}"

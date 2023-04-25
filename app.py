@@ -61,16 +61,16 @@ def main(mode):
                 tau_to_process = TauPET(subject, taudate)
                 mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process)
                 logging.info(f"{mri_tau_reg_to_process.id}:{mri_tau_reg_to_process.mridate}:{mri_tau_reg_to_process.petdate}: Now processing")
-                # t1_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
-                # mri_tau_reg_to_process.do_pet_reg_qc(t1_pet_reg_job)
-                # mri_tau_reg_to_process.do_t2_pet_reg(t1_pet_reg_job)      
+                # t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
+                # mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
+                # mri_tau_reg_to_process.do_t2_pet_reg(t1_tau_pet_reg_job)      
 
                 amy_to_process = AmyloidPET(subject, amydate)
                 mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
                 logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
-                # t1_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
-                # mri_amy_reg_to_process.do_pet_reg_qc(t1_pet_reg_job)
-                # mri_amy_reg_to_process.do_t2_pet_reg(t1_pet_reg_job)
+                # t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
+                # mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
+                # mri_amy_reg_to_process.do_t2_pet_reg(t1_amy_pet_reg_job)
 
             print(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
                     {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
