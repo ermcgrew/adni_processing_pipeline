@@ -50,7 +50,8 @@ def main(mode):
                 # wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
                 # mri_to_process.do_wbsegqc(wbseg_job_name)
                 # mri_to_process.do_t1icv() 
-                # mri_to_process.do_t2ashs() 
+                # t2_ashs_job_name = mri_to_process.do_t2ashs() 
+                # mri_to_process.prc_cleanup(t2_ashs_job_name)
                 # mri_to_process.do_t1flair() 
                 # mri_to_process.do_wmh_prep() 
                 # superres_job_name = mri_to_process.do_superres() 
@@ -75,8 +76,7 @@ def main(mode):
             print(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
                     {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
                     {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
-                    {mri_to_process.filepath}/sfsegnibtend/tse.nii.gz {mri_to_process.t1trim}\
-                    {mri_to_process.t2ashs_seg_left} {mode}")
+                    {mri_to_process.t1trim} {mode}") ##add cleanup/segs
     
     #### once all subject,dates completed:
         #### collate all stats files to make tsv

@@ -3,7 +3,7 @@
 
 # Usage:
 # ./stats.sh id wholebrainseg corticalthickness t1taureg t2taureg t1amyreg t2amyreg \
-# sfsegnibtend/tse.nii.gz t1trim t2ashs_left_seg mode
+# t1trim mode
 
 # 067_S_7094
 # /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/2022-07-12_067_S_7094_wholebrainseg/2022-07-12_067_S_7094_T1w_trim_brainx_ExtractedBrain/2022-07-12_067_S_7094_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz
@@ -12,9 +12,7 @@
 # /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/9999-99-99/9999-99-99_067_S_7094_taupet_to_2022-07-12_T2.nii.gz
 # /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/9999-99-99/9999-99-99_067_S_7094_amypet_to_2022-07-12_T1.nii.gz
 # /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/9999-99-99/9999-99-99_067_S_7094_amypet_to_2022-07-12_T2.nii.gz
-# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/sfsegnibtend/tse.nii.gz 
 # /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/2022-07-12_067_S_7094_T1w_trim.nii.gz
-# /project/wolk_2/ADNI2018/scripts/pipeline_test_data/067_S_7094/2022-07-12/sfsegnibtend/final/067_S_7094_left_lfseg_corr_nogray.nii.gz 
 # mri
 
 
@@ -34,28 +32,6 @@ function getatlas()
   fi
 }
 
-# This code removes straggling PRC/ERC voxels
-function cleanup_prc()
-{
-  in=$1
-  out=$2
-  atype=$3
-
-  TMPDIR=$(mktemp -d)
-  INFO=$(c3d $in -thresh 9 inf 1 0 -dilate 0 1x1x0vox  -o $TMPDIR/temp.nii.gz -info)
-  NS=$(echo $INFO | sed -e "s/.*dim = .//g" -e "s/.;.*bb.*//g" | awk -F ',' '{print $3}')
-  slicecmd=$(for((i=1;i<$NS;i++)); do echo "-push X -slice z $i -voxel-sum "; done)
-  c3d $TMPDIR/temp.nii.gz -popas X $slicecmd | grep Voxel | awk '{print $3}' > $TMPDIR/counts.txt
-  NNZ=$(cat $TMPDIR/counts.txt | grep -v '^0$' | wc -l)
-  MEDIAN=$(cat $TMPDIR/counts.txt | grep -v '^0$' | sort -n | tail -n $((NNZ/2)) | head -n 1)
-  CUTOFF=$((MEDIAN / 4))
-  RULE=$(cat $TMPDIR/counts.txt | awk "{print NR-1,int(\$1 < $CUTOFF)}")
-  c3d $in $TMPDIR/temp.nii.gz -copy-transform -cmv -replace $RULE -popas M $in -as X \
-    -thresh 9 inf 1 0 -push M -times -scale -1 -shift 1 \
-    -push X -times -o $out
-  NLEFT=$(cat $TMPDIR/counts.txt | awk "\$1 > $CUTOFF {k++} END {print k}")
-  echo $NLEFT
-}
 
 # Generate the statistics for the subject
 function genstats()
@@ -284,44 +260,23 @@ function genstats()
 
 TMPDIR=$(mktemp -d)
 export TMPDIR
-# mkdir -p cleanup/dump
-# mkdir -p cleanup/stats
 
-id=$1  ##genstats
-wholebrainseg=$2 ##genstats
-thickness=$3 ##genstats
-t1tau=$4 ##genstats and mrionly
-t2tau=$5 ##genstats and mrionly
-t1amy=$6 ##genstats and mrionly
-t2amy=$7 ##genstats and mrionly
-tse=$8  ##cleanup
-t1trim=$9  ##mrionly
-t2segleft=$10  ##cleanup
-mode=$11   #mrionly
+
+id=$1  
+wholebrainseg=$2 
+thickness=$3 
+t1tau=$4 
+t2tau=$5 
+t1amy=$6 
+t2amy=$7 
+t1trim=$8
+mode=$9   
 
 statline="$id"
 
-atlastype=$(getatlas $t2segleft) 
 
-for side in left right; do
-  echo "doing cleanup prc for $side"
-  if [ $side == "right" ] ; then
-    seg=$(echo $seg | sed "s/left/$side/") 
-  else 
-    seg=$t2segleft
-  fi
-
-  if [ ! -f cleanup/${id}_${tp}_seg_${side}.nii.gz ]; then
-      cleanup_prc $seg cleanup/${id}_${tp}_seg_${side}.nii.gz $atlastype
-  fi
-done
-
-echo "making seg_both"
-if [ ! -f cleanup/${id}_${tp}_seg_both.nii.gz ]; then
-  c3d $tse -as A cleanup/${id}_${tp}_seg_left.nii.gz -interp NN -reslice-identity \
-      -push A cleanup/${id}_${tp}_seg_right.nii.gz -interp NN -reslice-identity -add \
-      -o cleanup/${id}_${tp}_seg_both.nii.gz
-fi
+#check for cleanup/id_seg_left/right/both & assign to variable 
+atlastype=$(getatlas $)  # use cleanup/seg_left var
 
 for side in left right; do
   if [ "$mode" == "mri" ] ; then 
