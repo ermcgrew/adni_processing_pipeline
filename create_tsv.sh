@@ -18,6 +18,7 @@ function create_tsv_header()
 
   echo -e "${HEADER}\t$(cat $PETFILE | sed -n "1p")" > stats_lr_cleanup_corr_nogray.tsv
 }
+
 function collate_new_data ()
 {
   for fn in $(ls cleanup/stats/*whole.txt | cut -f 3 -d "/"); do

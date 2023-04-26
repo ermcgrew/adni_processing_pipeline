@@ -80,8 +80,7 @@ def main(mode):
                     {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mode}") 
     
     #### once all subject,dates completed:
-        #### collate all stats files to make tsv
-        #### create_tsv.sh
+        #### collate all stats files to make tsv: create_tsv.sh
                 
 
 #### Log file
