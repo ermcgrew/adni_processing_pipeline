@@ -76,7 +76,8 @@ def main(mode):
             print(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
                     {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
                     {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
-                    {mri_to_process.t1trim} {mode}") ##add cleanup/segs
+                    {mri_to_process.t2ahs_cleanup_left} {mri_to_process.t2ahs_cleanup_right} \
+                    {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mode}") 
     
     #### once all subject,dates completed:
         #### collate all stats files to make tsv
