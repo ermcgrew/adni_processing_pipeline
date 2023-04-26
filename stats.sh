@@ -27,6 +27,12 @@ thick=$(c3d $cleanup_left -info-full | grep Spacing | sed -e "s/[a-zA-Z:,]//g" -
 statline="$statline\t$thick"
 
 for side in left right; do
+  if [ "$side" == "left" ] ; then
+    cleanup_seg=$cleanup_left
+  elif [ "$side" == "right" ] ; then
+    cleanup_seg=$cleanup_right
+  fi
+
   if [ "$mode" == "mri" ] ; then 
     echo "making fake t1"
     c3d $t1trim -scale 0 -shift 1 -o $TMPDIR/faket1.nii.gz
@@ -34,15 +40,9 @@ for side in left right; do
     t1amy=$TMPDIR/faket1.nii.gz
 
     echo "making fake t2 for $side"
-    c3d cleanup/${id}_${tp}_seg_${side}.nii.gz -scale 0 -shift 1 $TMPDIR/faket2.nii.gz
+    c3d $cleanup_seg -scale 0 -shift 1 $TMPDIR/faket2.nii.gz
     t2tau=$TMPDIR/faket2.nii.gz
     t2amy=$TMPDIR/faket2.nii.gz
-  fi
-
-  if [ "$side" == "left" ] ; then
-    cleanup_seg=$cleanup_left
-  elif [ "$side" == "right" ] ; then
-    cleanup_seg=$cleanup_right
   fi
 
   c3d $cleanup_seg $t2tau -interp NN -reslice-identity $cleanup_seg -lstat > $TMPDIR/stattau.txt
@@ -94,27 +94,6 @@ for side in left right; do
   TEMPMASKCOMM="$tempgmmask -interp NN -reslice-identity -thresh 1 1 1 0 -times"
   c3d $wbseg -dup $MASKCOMM -as A $thickness -interp NN -reslice-identity -push A  -lstat > $TMPDIR/allthick.txt
 
-  # PMTAU Anterior and Posterior ROI
-  pmtau=$(dirname $thickness)/template_avg_density_cutoff_mild_Tau_tangles_to_t1.nii.gz
-  pmfreq=$(dirname $thickness)/template_avg_density_Tau_tangles_to_t1.nii.gz
-  apmask=$(dirname $thickness)/ap.nii.gz
-  # PMTAU Anterior and Posterior ROI template space
-  pmtautemp=$TDIR/template_avg_density_cutoff_mild_Tau_tangles_to_ADNINormal.nii.gz
-  pmfreqtemp=$TDIR/template_avg_density_Tau_tangles_to_ADNINormal.nii.gz
-  apmasktemp=$TDIR/ap.nii.gz
-  # Thresholded PMTAU mask
-  PMTAUTHRESH=0.2
-  PMFREQTHRESH=0.1
-  c3d $apmask -dup $pmtau -interp NN -reslice-identity -thresh $PMTAUTHRESH 1 1 0 -times \
-    -dup $MASKCOMM -as APMASKED -dup $thickness -interp NN -reslice-identity -push APMASKED  -lstat | sed -n '3,$p' | awk ' { OFS=","; print $1,$2}' > $TMPDIR/pmtauthick.txt
-  c3d $apmasktemp -dup $pmtautemp -interp NN -reslice-identity -thresh $PMTAUTHRESH 1 1 0 -times \
-    -dup $TEMPMASKCOMM -as APMASKED -dup $jacobian -interp NN -reslice-identity -push APMASKED  -lstat | sed -n '3,$p' | awk ' { OFS=","; print $1,$2}' > $TMPDIR/pmtaujac.txt
-  # Weighted PMTAU thickness
-  c3d $apmask -dup $pmfreq -interp NN -reslice-identity -as PMTAU -thresh $PMTAUTHRESH 1 1 0 -times \
-    -dup $MASKCOMM -as APMASKED $thickness -interp NN -reslice-identity -push PMTAU -times -push APMASKED -lstat | sed -n '3,$p' | awk ' { OFS=","; print $1,$2}' > $TMPDIR/pmtauweightedthick.txt
-  c3d $apmasktemp -dup $pmfreqtemp -interp NN -reslice-identity -as PMTAU -thresh $PMTAUTHRESH 1 1 0 -times \
-    -dup $TEMPMASKCOMM -as APMASKED $jacobian -interp NN -reslice-identity -push PMTAU -times -push APMASKED -lstat | sed -n '3,$p' | awk ' { OFS=","; print $1,$2}' > $TMPDIR/pmtauweightedjac.txt
-  
   list=$(echo 1 2 4 3 7 8 10 11 12 13 14)
   VOLS=""
 
@@ -235,6 +214,27 @@ for side in left right; do
       THISTHICK=$(cat $TMPDIR/allthick.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
       VOLS="$VOLS\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )\t $THISTHICK"
     done
+
+    # PMTAU Anterior and Posterior ROI
+    pmtau=$(dirname $thickness)/template_avg_density_cutoff_mild_Tau_tangles_to_t1.nii.gz
+    pmfreq=$(dirname $thickness)/template_avg_density_Tau_tangles_to_t1.nii.gz
+    apmask=$(dirname $thickness)/ap.nii.gz
+    # PMTAU Anterior and Posterior ROI template space
+    pmtautemp=$TDIR/template_avg_density_cutoff_mild_Tau_tangles_to_ADNINormal.nii.gz
+    pmfreqtemp=$TDIR/template_avg_density_Tau_tangles_to_ADNINormal.nii.gz
+    apmasktemp=$TDIR/ap.nii.gz
+    # Thresholded PMTAU mask
+    PMTAUTHRESH=0.2
+    PMFREQTHRESH=0.1
+    c3d $apmask -dup $pmtau -interp NN -reslice-identity -thresh $PMTAUTHRESH 1 1 0 -times \
+      -dup $MASKCOMM -as APMASKED -dup $thickness -interp NN -reslice-identity -push APMASKED  -lstat | sed -n '3,$p' | awk ' { OFS=","; print $1,$2}' > $TMPDIR/pmtauthick.txt
+    c3d $apmasktemp -dup $pmtautemp -interp NN -reslice-identity -thresh $PMTAUTHRESH 1 1 0 -times \
+      -dup $TEMPMASKCOMM -as APMASKED -dup $jacobian -interp NN -reslice-identity -push APMASKED  -lstat | sed -n '3,$p' | awk ' { OFS=","; print $1,$2}' > $TMPDIR/pmtaujac.txt
+    # Weighted PMTAU thickness
+    c3d $apmask -dup $pmfreq -interp NN -reslice-identity -as PMTAU -thresh $PMTAUTHRESH 1 1 0 -times \
+      -dup $MASKCOMM -as APMASKED $thickness -interp NN -reslice-identity -push PMTAU -times -push APMASKED -lstat | sed -n '3,$p' | awk ' { OFS=","; print $1,$2}' > $TMPDIR/pmtauweightedthick.txt
+    c3d $apmasktemp -dup $pmfreqtemp -interp NN -reslice-identity -as PMTAU -thresh $PMTAUTHRESH 1 1 0 -times \
+      -dup $TEMPMASKCOMM -as APMASKED $jacobian -interp NN -reslice-identity -push PMTAU -times -push APMASKED -lstat | sed -n '3,$p' | awk ' { OFS=","; print $1,$2}' > $TMPDIR/pmtauweightedjac.txt
 
     # PMTAU thresholded thickness ANT and POST
     ANT=1
