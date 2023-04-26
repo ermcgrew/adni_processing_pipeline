@@ -21,8 +21,7 @@ t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh
 adni_analysis_dir = "/project/wolk_2/ADNI2018/analysis_input"
 cleanup_dir = f"{adni_analysis_dir}/cleanup"
 # adni_data_dir = "/project/wolk_2/ADNI2018/dataset"
-# for testing
-adni_data_dir = "/project/wolk_2/ADNI2018/scripts/pipeline_test_data"
+adni_data_dir = "/project/wolk_2/ADNI2018/scripts/pipeline_test_data"  # for testing
 
 #other variables
 sides = ["left", "right"]
@@ -76,7 +75,7 @@ class MRI:
     def __init__(self, subject, mridate):
         self.id = subject
         self.mridate = mridate
-        # self.T1_dicom_filepath = f"/project/wolk/PUBLIC/Dicoms/{self.id}/MRI3T/{self.mridate}/...dcm"
+        self.T1_dicom_filepath = f"/project/wolk/PUBLIC/Dicoms/{self.id}/MRI3T/{self.mridate}/"
         self.filepath=f"{adni_data_dir}/{self.id}/{self.mridate}"
         self.date_id_prefix = f"{self.mridate}_{self.id}"
         
@@ -95,21 +94,20 @@ class MRI:
         
         self.t1ashs_seg_left = f"{self.filepath}/ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
         self.t1ashs_seg_right = f"{self.filepath}/ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
-        self.t1ashs_qc_left = f"{self.filepath}/ASHST1/qa/qa_seg_bootstrap_heur_left_qa.png"
-        self.t1ashs_qc_right = f"{self.filepath}/ASHST1/qa/qa_seg_bootstrap_heur_right_qa.png" 
-
+        
         self.t1mtthk_left = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_left_thickness.csv"
         self.t1mtthk_right = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_right_thickness.csv"
         
-        self.t1icv_qc_left = f"{self.filepath}/ASHSICV/qa/qa_seg_multiatlas_corr_nogray_left_qa.png"
-        self.t1icv_qc_right = f"{self.filepath}/ASHSICV/qa/qa_seg_multiatlas_corr_nogray_right_qa.png"
+        self.t1icv_seg = f"{self.filepath}/ASHSICV/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
 
         self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
         self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
         self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
-        self.t2ashs_qc_left = f"{self.filepath}/sfsegnibtend/qa/"
-        self.t2ashs_qc_right = f"{self.filepath}/sfsegnibtend/qa/"
+        self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
         self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
+        self.t2ahs_cleanup_left=f"{cleanup_dir}/{self.id}_{self.mridate}_seg_left.nii.gz"
+        self.t2ahs_cleanup_right=f"{cleanup_dir}/{self.id}_{self.mridate}_seg_right.nii.gz"
+        self.t2ahs_cleanup_both=f"{cleanup_dir}/{self.id}_{self.mridate}_seg_both.nii.gz"
 
         self.flair = f"{self.filepath}/{self.date_id_prefix}_flair.nii.gz"
         self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
@@ -131,13 +129,6 @@ class MRI:
         wait_for_file(self.t1trim_thickness_dir)
         os.system(f"cp {self.t1trim_thickness_dir} {self.t1trim}")
         return this_job_name
-
-    # def do_brainx(self, parent_job_name = ""):
-    #     this_job_name=f"brainx_{self.date_id_prefix}"
-    #     submit_options =  set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-    #     # if ready_to_process('brainx',self.id,self.mridate, input_files=[self.t1trim], output_files = [self.brainx]):
-    #     os.system(f'bsub {submit_options} ./wrapper_scripts/brain_extract.sh {self.t1trim}')
-    #     return this_job_name
 
     def do_wbseg(self, parent_job_name = ""):
         this_job_name=f"wbseg_{self.date_id_prefix}"
@@ -173,7 +164,7 @@ class MRI:
         this_job_name=f"t1ashs_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process("t1ashs", self.id, self.mridate, input_files=[self.t1trim, self.superres], 
-                            output_files=[self.t1ashs_qc_left, self.t1ashs_qc_right], parent_job = parent_job_name):
+                            output_files=[self.t1ashs_seg_left, self.t1ashs_seg_right], parent_job = parent_job_name):
             os.system(f"mkdir {self.filepath}/ASHST1")
             os.system(f"bsub {submit_options} \
                       ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres}\
@@ -202,7 +193,8 @@ class MRI:
     def do_t1icv(self, parent_job_name = ""):
         this_job_name=f"t1icv_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        if ready_to_process("t1icv", self.id, self.mridate, input_files=[self.t1trim], output_files=[self.t1icv_qc_left, self.t1icv_qc_right]):
+        if ready_to_process("t1icv", self.id, self.mridate, input_files=[self.t1trim], \
+                            output_files=[self.t1icv_seg]):
             os.system(f"mkdir {self.filepath}/ASHSICV")
             os.system(f"bsub {submit_options} \
                   ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
@@ -212,7 +204,8 @@ class MRI:
     def do_t2ashs(self, parent_job_name = ""):
         this_job_name=f"t2ashs_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        if ready_to_process("t2ashs", self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], output_files=[self.t2ashs_seg_left, self.t2ashs_seg_right]):
+        if ready_to_process("t2ashs", self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
+                            output_files=[self.t2ashs_seg_left, self.t2ashs_seg_right]):
             os.system(f"mkdir {self.filepath}/sfsegnibtend")
             os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs.sh \
                       {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
@@ -220,16 +213,30 @@ class MRI:
             return
 
     def prc_cleanup(self, parent_job_name = ""):
-        this_job_name=f"prc_cleanup_{self.date_id_prefix}"
+        for side in sides:
+            this_job_name = f"prc_cleanup_{side}_{self.date_id_prefix}"
+
+            if side == "left":
+                seg=self.t2ashs_seg_left
+                output=self.t2ahs_cleanup_left
+            elif side == "right":
+                seg=self.t2ashs_seg_right
+                output=self.t2ahs_cleanup_right
+            
+            submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
+            if ready_to_process(f"prc_cleanup_{side}", self.id, self.mridate, input_files=[seg], \
+                                output_files=[output], parent_job = parent_job_name):
+                os.system(f"bsub {submit_options} ./wrapper_scripts/cleanup_prc.sh {seg} {output}")
+
+        this_job_name = f"prc_cleanup_both_{self.date_id_prefix}"
+        parent_job_name = f"prc_cleanup_right_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        
-        #cleanup_prc function should become a wrapper script 
-
-        # make left & right segs, save in cleanup_dir
-        # wait for both to be done
-        # then make both_seg
-
-    
+        if ready_to_process(f"prc_cleanup_both", self.id, self.mridate, \
+                            input_files=[self.t2ahs_cleanup_left, self.t2ahs_cleanup_right], \
+                            output_files=[self.t2ahs_cleanup_both], parent_job = parent_job_name):
+                os.system(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ahs_cleanup_left} \
+                          -interp NN -reslice-identity -push A {self.t2ahs_cleanup_right} \
+                          -interp NN -reslice-identity -add -o {self.t2ahs_cleanup_both}")
 
 
     def do_t1flair(self, parent_job_name = ""):
@@ -353,7 +360,7 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 mri_to_process = MRI("099_S_6175", "2020-06-03")
 # mri_to_process = MRI("126_S_6721", "2021-05-05")
-
+mri_to_process.prc_cleanup()
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
