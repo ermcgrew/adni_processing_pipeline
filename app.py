@@ -77,7 +77,8 @@ def main(mode):
                     {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
                     {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
                     {mri_to_process.t2ahs_cleanup_left} {mri_to_process.t2ahs_cleanup_right} \
-                    {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mode}") 
+                    {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mri_to_process.icv_file} \
+                    {mode}") 
     
     #### once all subject,dates completed:
         #### collate all stats files to make tsv: create_tsv.sh
