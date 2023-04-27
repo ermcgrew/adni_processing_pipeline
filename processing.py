@@ -105,6 +105,8 @@ class MRI:
         self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
         self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
         self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
+        self.icv_file = f"{self.filepath}/sfsegnibtend/final/{self.id}_icv.txt"
+
         self.t2ahs_cleanup_left=f"{cleanup_dir}/{self.id}_{self.mridate}_seg_left.nii.gz"
         self.t2ahs_cleanup_right=f"{cleanup_dir}/{self.id}_{self.mridate}_seg_right.nii.gz"
         self.t2ahs_cleanup_both=f"{cleanup_dir}/{self.id}_{self.mridate}_seg_both.nii.gz"
@@ -360,14 +362,18 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 mri_to_process = MRI("099_S_6175", "2020-06-03")
 # mri_to_process = MRI("126_S_6721", "2021-05-05")
-mri_to_process.prc_cleanup()
+# mri_to_process.prc_cleanup()
+print(mri_to_process.t2ahs_cleanup_left)
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
 # tau_to_process = TauPET("114_S_6917", "2021-08-11")
+tau_to_process = TauPET("099_S_6175", "2020-07-09")
+
 
 # mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
-# mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
+mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
+print(mri_tau_reg_to_process.t2_reg_nifti)
 
 
 ##MRI processing
