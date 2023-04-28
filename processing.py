@@ -16,6 +16,8 @@ icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
 ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
 t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
 t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh"
+pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
+
 
 #main file directories
 analysis_input_dir = "/project/wolk_2/ADNI2018/analysis_input"
@@ -361,7 +363,7 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
-mri_to_process = MRI("099_S_6175", "2020-06-03")
+# mri_to_process = MRI("099_S_6175", "2020-06-03")
 # mri_to_process = MRI("126_S_6721", "2021-05-05")
 # mri_to_process.prc_cleanup()
 # print(mri_to_process.t2ahs_cleanup_left)
@@ -369,11 +371,11 @@ mri_to_process = MRI("099_S_6175", "2020-06-03")
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
 # tau_to_process = TauPET("114_S_6917", "2021-08-11")
-tau_to_process = TauPET("099_S_6175", "2020-07-09")
+# tau_to_process = TauPET("099_S_6175", "2020-07-09")
 
 
 # mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
-mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
+# mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
 # print(mri_tau_reg_to_process.t2_reg_nifti)
 
 
