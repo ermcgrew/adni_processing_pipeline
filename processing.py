@@ -18,9 +18,10 @@ t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
 t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh"
 
 #main file directories
-adni_analysis_dir = "/project/wolk_2/ADNI2018/analysis_input"
-cleanup_dir = f"{adni_analysis_dir}/cleanup"
-# adni_data_dir = "/project/wolk_2/ADNI2018/dataset"
+analysis_input_dir = "/project/wolk_2/ADNI2018/analysis_input"
+analysis_output_dir = "/project/wolk_2/ADNI2018/analysis_output"
+cleanup_dir = f"{analysis_input_dir}/cleanup"
+# adni_data_dir = "/project/wolk_2/ADNI2018/dataset" #real location
 adni_data_dir = "/project/wolk_2/ADNI2018/scripts/pipeline_test_data"  # for testing
 
 #other variables
@@ -253,10 +254,10 @@ class MRI:
         this_job_name=f"wmhprep_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process("wmhprep", self.id, self.mridate, input_files=[self.flair], output_files=[self.wmh]):
-            if not os.path.exists(f"{adni_analysis_dir}/{current_date}"):
+            if not os.path.exists(f"{analysis_input_dir}/{current_date}"):
                 logging.info(f"making directory {current_date} in analysis_input for WMH analysis.")               
-                os.system(f"mkdir {adni_analysis_dir}/{current_date}")
-            os.system(f"bsub {submit_options} cp {self.flair} {adni_analysis_dir}/{current_date}/{self.mridate}_{self.id}_flair_0000.nii.gz")
+                os.system(f"mkdir {analysis_input_dir}/{current_date}")
+            os.system(f"bsub {submit_options} cp {self.flair} {analysis_input_dir}/{current_date}/{self.mridate}_{self.id}_flair_0000.nii.gz")
             return
 
 
@@ -350,7 +351,7 @@ class MRIPetReg:
             return
 
 #Log file
-# logging.basicConfig(filename=f"{adni_analysis_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
+# logging.basicConfig(filename=f"{analysis_input_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
 #for testing:
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
@@ -363,7 +364,7 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 mri_to_process = MRI("099_S_6175", "2020-06-03")
 # mri_to_process = MRI("126_S_6721", "2021-05-05")
 # mri_to_process.prc_cleanup()
-print(mri_to_process.t2ahs_cleanup_left)
+# print(mri_to_process.t2ahs_cleanup_left)
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
@@ -373,7 +374,7 @@ tau_to_process = TauPET("099_S_6175", "2020-07-09")
 
 # mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
 mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
-print(mri_tau_reg_to_process.t2_reg_nifti)
+# print(mri_tau_reg_to_process.t2_reg_nifti)
 
 
 ##MRI processing
@@ -395,4 +396,5 @@ print(mri_tau_reg_to_process.t2_reg_nifti)
 # t1_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
 # mri_tau_reg_to_process.do_pet_reg_qc(t1_pet_reg_job)
 # mri_tau_reg_to_process.do_t2_pet_reg(t1_pet_reg_job)
+
 
