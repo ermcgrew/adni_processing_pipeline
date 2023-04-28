@@ -2,8 +2,11 @@ import csv
 import datetime
 import logging
 import os
-# Classes:
+# Classes
 from processing import MRI, AmyloidPET, TauPET, MRIPetReg
+#variables
+from processing import wblabel_file, cleanup_dir, analysis_output_dir, current_date
+this_output_dir = f"{analysis_output_dir}/{current_date}"
 
 
 def reformat_dates(date):
@@ -18,6 +21,7 @@ def reformat_dates(date):
         day=MDYlist[1]
     year="20" + MDYlist[2]
     return year + "-" + month + "-" + day
+
 
 def open_csv():
     ##would this be the csv directly from adni?
@@ -81,8 +85,9 @@ def main(mode):
                     {mode}") 
     
     #### once all subject,dates completed:
-        #### collate all stats files to make tsv: create_tsv.sh
-                
+        # os.system(f"mkdir {this_output_dir}")
+        # os.system(f"bash create_tsv.sh {wblabel_file} {cleanup_dir} {this_output_dir}")
+
 
 #### Log file
 # logging.basicConfig(filename=f"{adni_analysis_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -95,5 +100,6 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 mode="both"
 
-main(mode)
+# main(mode)
+
 
