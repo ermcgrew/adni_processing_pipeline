@@ -19,7 +19,7 @@ t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh
 pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 
 
-#main file directories
+#main file directories in cluster
 analysis_input_dir = "/project/wolk_2/ADNI2018/analysis_input"
 analysis_output_dir = "/project/wolk_2/ADNI2018/analysis_output"
 cleanup_dir = f"{analysis_input_dir}/cleanup"
@@ -359,24 +359,21 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
 
 # Test runs
-# mri_to_process=MRI('141_S_6779','2020-10-27')
+# mri_to_process = MRI('141_S_6779','2020-10-27')
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
 # mri_to_process = MRI("126_S_6721", "2021-05-05")
-# mri_to_process.prc_cleanup()
-# print(mri_to_process.t2ahs_cleanup_left)
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
+
 # tau_to_process = TauPET("114_S_6917", "2021-08-11")
 # tau_to_process = TauPET("099_S_6175", "2020-07-09")
 
-
 # mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
 # mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
-# print(mri_tau_reg_to_process.t2_reg_nifti)
 
 
 ##MRI processing
