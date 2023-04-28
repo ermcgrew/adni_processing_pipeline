@@ -6,6 +6,7 @@
 # cleanup/seg_left cleanup/seg_right cleanup/seg_both t1trim t2ashs/final/icv.txt mode
 
 
+export DOERODE=true
 TMPDIR=$(mktemp -d)
 export TMPDIR
 
@@ -18,20 +19,24 @@ t1amy=$6
 t2amy=$7 
 cleanup_left=$8
 cleanup_right=$9
-cleanup_both=$10
-t1trim=$11
-icvfile=$12
-mode=$13
+cleanup_both=${10}
+t1trim=${11}
+icvfile=${12}
+mode=${13}
+wblabelfile=${14}
+pmtau_template_dir=${15}
 
 #determine first values to be added to stats
+echo "begin stats.sh"
 RID=$(echo $id | cut -f 3 -d "_")
-ICV=$( printf %10.2f $(cat $icvfile | awk '{print $2}') )
+ICV=$( printf %10.2f $(cat $icvfile | awk '{print $2}'))
 thick=$(c3d $cleanup_left -info-full | grep Spacing | \
   sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" | awk '{print $3}')
 statline="$RID\t$id\t$ICV\t$thick"
 
 #do stats for each hemisphere:
 for side in left right; do
+  echo "for $side:"
   if [ "$side" == "left" ] ; then
     cleanup_seg=$cleanup_left
   elif [ "$side" == "right" ] ; then
@@ -50,18 +55,21 @@ for side in left right; do
     t2amy=$TMPDIR/faket2.nii.gz
   fi
 
+  echo "line 56"
   c3d $cleanup_seg $t2tau -interp NN -reslice-identity $cleanup_seg -lstat > $TMPDIR/stattau.txt
   c3d $cleanup_seg $t2amy -interp NN -reslice-identity $cleanup_seg -lstat > $TMPDIR/statamy.txt
   
+  echo "line 60"
   # Get T1 segmentation and get cerebellar GM
-  c3d $wbseg -as SEG -thresh 38 38 1 0 -erode 1 2x2x2vox -popas A \
+  c3d $wholebrainseg -as SEG -thresh 38 38 1 0 -erode 1 2x2x2vox -popas A \
     -push SEG -thresh 39 39 1 0 -erode 1 2x2x2vox -popas B \
     -push SEG -thresh 71 71 1 0 -erode 1 2x2x2vox -popas C \
     -push SEG -thresh 72 72 1 0 -erode 1 2x2x2vox -popas D \
     -push SEG -thresh 73 73 1 0 -erode 1 2x2x2vox -popas E \
     -push A -push B -add -push C -add -push D -add -push E -add -as CEREB \
     $t1tau -interp NN -reslice-identity -push CEREB  -lstat > $TMPDIR/stattaump.txt
-  c3d $wbseg -as SEG -thresh 38 38 1 0 -popas A \
+  echo "line 69"
+  c3d $wholebrainseg -as SEG -thresh 38 38 1 0 -popas A \
     -push SEG -thresh 39 39 1 0 -popas B \
     -push SEG -thresh 71 71 1 0 -popas C \
     -push SEG -thresh 72 72 1 0 -popas D \
@@ -71,60 +79,76 @@ for side in left right; do
     -push A -push B -add -push C -add -push D -add -push E -add -push F -add -push G -add \
     -erode 1 2x2x2vox -as CEREB \
     $t1amy -interp NN -reslice-identity -push CEREB  -lstat > $TMPDIR/statamymp.txt
-
+  echo "# Occipital ROIs"
   # Occipital ROIs
-  c3d $wbseg -replace 128 1000 129 1000 144 1000 145 1000 156 1000 157 1000 160 1000 161 1000\
+  c3d $wholebrainseg -replace 128 1000 129 1000 144 1000 145 1000 156 1000 157 1000 160 1000 161 1000\
   -thresh 1000 1000 1 0 -as A $t1tau -interp NN -reslice-identity -push A  -lstat > $TMPDIR/stattauocc.txt
-  c3d $wbseg -replace 128 1000 129 1000 144 1000 145 1000 156 1000 157 1000 160 1000 161 1000 \
+  c3d $wholebrainseg -replace 128 1000 129 1000 144 1000 145 1000 156 1000 157 1000 160 1000 161 1000 \
   -thresh 1000 1000 1 0 -as A $t1amy -interp NN -reslice-identity -push A  -lstat > $TMPDIR/statamyocc.txt
+  
+  echo "Posterior Cingulate ROIs"
   # Posterior Cingulate ROIs
-  c3d $wbseg -replace 166 1000 167 1000 -thresh 1000 1000 1 0 -as A $t1tau -interp NN \
+  c3d $wholebrainseg -replace 166 1000 167 1000 -thresh 1000 1000 1 0 -as A $t1tau -interp NN \
   -reslice-identity -push A  -lstat > $TMPDIR/stattaupc.txt
-  c3d $wbseg -replace 166 1000 167 1000 -thresh 1000 1000 1 0 -as A $t1amy -interp NN \
+  c3d $wholebrainseg -replace 166 1000 167 1000 -thresh 1000 1000 1 0 -as A $t1amy -interp NN \
   -reslice-identity -push A  -lstat > $TMPDIR/statamypc.txt
   
+  echo "Other ROIs"
   # Other ROIs suitable for looking at subtypes: 
   # inf temporal gyrus (132 133) middle temporal (154 right 155 left) superior temporal 200 201 \
   # superior parietal 198 199 calcarine 108 109 angular gyrus 106 107 190 191 superior frontal
-  c3d $wbseg -popas A $(for roi in 132 133 154 155 200 201 198 199 108 109 106 107 190 191; \
+  c3d $wholebrainseg -popas A $(for roi in 132 133 154 155 200 201 198 199 108 109 106 107 190 191; \
   do echo "-push A -thresh $roi $roi $roi 0" ; done) \
     -accum -add -endaccum -as SUM  $t1tau -interp NN -reslice-identity -push SUM -lstat > $TMPDIR/varioustaurois.txt
-  c3d $wbseg -popas A $(for roi in 132 133 154 155 200 201 198 199 108 109 106 107 190 191; \
+  c3d $wholebrainseg -popas A $(for roi in 132 133 154 155 200 201 198 199 108 109 106 107 190 191; \
   do echo "-push A -thresh $roi $roi $roi 0" ; done) \
     -accum -add -endaccum -as SUM  $t1amy -interp NN -reslice-identity -push SUM -lstat > $TMPDIR/variousamyrois.txt
-  
+  echo "Mask with GM"
   # Mask with GM
   tissueseg=$(echo $thickness | sed -e 's/CorticalThickness/BrainSegmentation/g')
   jacobian=$(echo $tissueseg | sed -e 's/BrainSegmentation/SubjectToTemplateLogJacobian/g' )
-  tempgmmask=$TDIR/adninormalgmmask.nii.gz
+  tempgmmask=$pmtau_template_dir/adninormalgmmask.nii.gz
 
+echo "All ROIs tau"
   # All ROIs tau
-  c3d $wbseg -as A $t1tau -interp NN -reslice-identity -push A  -lstat > $TMPDIR/alltau.txt
-  c3d $wbseg -as A $t1amy -interp NN -reslice-identity -push A  -lstat > $TMPDIR/allamy.txt
+  c3d $wholebrainseg -as A $t1tau -interp NN -reslice-identity -push A  -lstat > $TMPDIR/alltau.txt
+  c3d $wholebrainseg -as A $t1amy -interp NN -reslice-identity -push A  -lstat > $TMPDIR/allamy.txt
   
+  echo "All ROIs thickness"
   # All ROIs thickness
   MASKCOMM="$tissueseg -interp NN -reslice-identity -thresh 2 2 1 0 -times"
   TEMPMASKCOMM="$tempgmmask -interp NN -reslice-identity -thresh 1 1 1 0 -times"
-  c3d $wbseg -dup $MASKCOMM -as A $thickness -interp NN -reslice-identity -push A  -lstat > $TMPDIR/allthick.txt
+  c3d $wholebrainseg -dup $MASKCOMM -as A $thickness -interp NN -reslice-identity -push A  -lstat > $TMPDIR/allthick.txt
 
   #list is label numbers in stattau.txt file: CA1 CA2 CA3 DG MISC SUB ERC BA35 BA36 PHC sulcus 
   list=$(echo 1 2 4 3 7 8 10 11 12 13 14)
-  
+  echo "ready for CEREBs"
   #cerebellem reference region to compare radiotracer uptake to
+  # echo $( cat $TMPDIR/stattaump.txt )
   CEREBTAU=$(cat $TMPDIR/stattaump.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
   CEREBAMY=$(cat $TMPDIR/statamymp.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
-
+  # echo $CEREBTAU
+  echo "loop for list"
   for i in $list; do
+    # echo "start of loop"
     THISVOL=$(cat $TMPDIR/stattau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $7}')
+    # echo "after THISVOL"
     THISNSLICE=$(cat $TMPDIR/stattau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $10}')
+    # echo "after THISNSLICE"
     THISTAU=$(cat $TMPDIR/stattau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
+    # echo "after THISTAU"
+    # echo "after $THISTAU"
+
     THISAMY=$(cat $TMPDIR/statamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
+    # echo "after THISAMY"
     statline="$statline\t $THISVOL\t $THISNSLICE\t$(echo $THISTAU/${CEREBTAU} | bc -l )\t$(echo $THISAMY/${CEREBAMY} | bc -l )"
+  
   done
 
   #remove leading tab
-  statline=$(  echo -e "$statline" | sed -e "s/^\t//g")
+  statline=$( echo -e "$statline" | sed -e "s/^\t//g")
   
+  echo "CA all together"
   # CA (CA1 + CA2 + CA3)
   c3d $cleanup_seg -replace 2 1 4 1 -as A $t2tau -interp NN -reslice-identity -push A -lstat > $TMPDIR/stattau.txt
   c3d $cleanup_seg -replace 2 1 4 1 -as A $t2amy -interp NN -reslice-identity -push A -lstat > $TMPDIR/statamy.txt
@@ -136,6 +160,7 @@ for side in left right; do
     statline="$statline\t $THISVOL\t  $THISNSLICE\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
   done
 
+  echo "HIPP"
   # HIPP
   c3d $cleanup_seg -replace 2 1 3 1 4 1 -as A $t2tau -interp NN -reslice-identity -push A -lstat > $TMPDIR/stathipptau.txt
   c3d $cleanup_seg -replace 2 1 3 1 4 1 -as A $t2amy -interp NN -reslice-identity -push A -lstat > $TMPDIR/stathippamy.txt
@@ -179,7 +204,8 @@ for side in left right; do
     THISAMY=$(cat $TMPDIR/statmtlno36amy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
     statline="$statline\t $THISVOL\t  $THISNSLICE\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
   done
-
+ 
+ echo "for side == right only"
   if [ "${side}" == "right" ]; then
     # BOTH HIPP
     c3d $cleanup_both -replace 2 1 3 1 4 1 -as A $t2tau -interp NN -reslice-identity -push A -lstat > $TMPDIR/stathippbothtau.txt
@@ -202,6 +228,7 @@ for side in left right; do
     THISAMY=$(cat $TMPDIR/statmtlno36bothamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
     statline="$statline\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
 
+    echo "T1 ROIs"
     # T1 ROIs
     # Cerebellum
     THISTAU=$(cat $TMPDIR/stattaump.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
@@ -222,8 +249,8 @@ for side in left right; do
       THISAMY=$(cat $TMPDIR/variousamyrois.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
       statline="$statline\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
     done
-    
-    for i in $(cat $SDROOT/wholebrainlabels_itksnaplabelfile.txt | grep -v '#' | sed -n '9,$p' | \
+    echo "doing whole brain label loop"
+    for i in $(cat $wblabelfile | grep -v '#' | sed -n '9,$p' | \
     grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF' | awk '{print $1}' ); do
       THISTAU=$(cat $TMPDIR/alltau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
       THISAMY=$(cat $TMPDIR/allamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
@@ -236,12 +263,13 @@ for side in left right; do
     pmfreq=$(dirname $thickness)/template_avg_density_Tau_tangles_to_t1.nii.gz
     apmask=$(dirname $thickness)/ap.nii.gz
     # PMTAU Anterior and Posterior ROI template space
-    pmtautemp=$TDIR/template_avg_density_cutoff_mild_Tau_tangles_to_ADNINormal.nii.gz
-    pmfreqtemp=$TDIR/template_avg_density_Tau_tangles_to_ADNINormal.nii.gz
-    apmasktemp=$TDIR/ap.nii.gz
+    pmtautemp=$pmtau_template_dir/template_avg_density_cutoff_mild_Tau_tangles_to_ADNINormal.nii.gz
+    pmfreqtemp=$pmtau_template_dir/template_avg_density_Tau_tangles_to_ADNINormal.nii.gz
+    apmasktemp=$pmtau_template_dir/ap.nii.gz
     # Thresholded PMTAU mask
     PMTAUTHRESH=0.2
     PMFREQTHRESH=0.1
+    echo "doing PMTAU stuff"
     c3d $apmask -dup $pmtau -interp NN -reslice-identity -thresh $PMTAUTHRESH 1 1 0 -times \
       -dup $MASKCOMM -as APMASKED -dup $thickness -interp NN -reslice-identity -push APMASKED  \
       -lstat | sed -n '3,$p' | awk ' { OFS=","; print $1,$2}' > $TMPDIR/pmtauthick.txt
@@ -274,5 +302,6 @@ for side in left right; do
 
 done
 
+echo $statline
 # echo -e "$statline\t${MRIDATE}\t${VISCODE}\t${VISCODE2}\t${PHASE}"  >> cleanup/stats/stats_${tp}_${id}_whole.txt
 

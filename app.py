@@ -5,7 +5,7 @@ import os
 # Classes
 from processing import MRI, AmyloidPET, TauPET, MRIPetReg
 #variables
-from processing import wblabel_file, cleanup_dir, analysis_output_dir, current_date
+from processing import wblabel_file, cleanup_dir, analysis_output_dir, current_date, pmtau_template_dir
 this_output_dir = f"{analysis_output_dir}/{current_date}"
 
 
@@ -45,6 +45,10 @@ def main(mode):
     # open_csv()
         #### for each subject, date:
             #### function: download new dicom files from adni & sort into correct locations in cluster
+            subject = "099_S_6175"
+            mridate = "2020-06-03"
+            taudate = "2020-07-09"
+            amydate = "2020-07-08"
 
             if mode == "mri" or mode == "both":
                 mri_to_process = MRI(subject,mridate)
@@ -77,12 +81,12 @@ def main(mode):
                 # mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
                 # mri_amy_reg_to_process.do_t2_pet_reg(t1_amy_pet_reg_job)
 
-            print(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
+            os.system(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
                     {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
                     {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
                     {mri_to_process.t2ahs_cleanup_left} {mri_to_process.t2ahs_cleanup_right} \
                     {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mri_to_process.icv_file} \
-                    {mode}") 
+                    {mode} {wblabel_file} {pmtau_template_dir}") 
     
     #### once all subject,dates completed:
         # os.system(f"mkdir {this_output_dir}")
@@ -100,6 +104,6 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 mode="both"
 
-# main(mode)
+main(mode)
 
 
