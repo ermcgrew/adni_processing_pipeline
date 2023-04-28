@@ -90,6 +90,7 @@ def main(mode):
     
     #### once all subject,dates completed:
         # os.system(f"mkdir {this_output_dir}")
+        # if mode == both, do once for mri, once for pet; otherwise, just do once 
         # os.system(f"bash create_tsv.sh {wblabel_file} {cleanup_dir} {this_output_dir}")
 
 

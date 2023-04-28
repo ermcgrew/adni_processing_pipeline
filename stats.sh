@@ -25,6 +25,7 @@ icvfile=${12}
 mode=${13}
 wblabelfile=${14}
 pmtau_template_dir=${15}
+outpu
 
 #determine first values to be added to stats
 echo "begin stats.sh"
@@ -145,9 +146,11 @@ echo "All ROIs tau"
   
   done
 
+  echo $statline
   #remove leading tab
   statline=$( echo -e "$statline" | sed -e "s/^\t//g")
-  
+  echo $statline
+
   echo "CA all together"
   # CA (CA1 + CA2 + CA3)
   c3d $cleanup_seg -replace 2 1 4 1 -as A $t2tau -interp NN -reslice-identity -push A -lstat > $TMPDIR/stattau.txt
@@ -268,7 +271,7 @@ echo "All ROIs tau"
     apmasktemp=$pmtau_template_dir/ap.nii.gz
     # Thresholded PMTAU mask
     PMTAUTHRESH=0.2
-    PMFREQTHRESH=0.1
+    # PMFREQTHRESH=0.1  ####not used??
     echo "doing PMTAU stuff"
     c3d $apmask -dup $pmtau -interp NN -reslice-identity -thresh $PMTAUTHRESH 1 1 0 -times \
       -dup $MASKCOMM -as APMASKED -dup $thickness -interp NN -reslice-identity -push APMASKED  \
@@ -303,5 +306,9 @@ echo "All ROIs tau"
 done
 
 echo $statline
-# echo -e "$statline\t${MRIDATE}\t${VISCODE}\t${VISCODE2}\t${PHASE}"  >> cleanup/stats/stats_${tp}_${id}_whole.txt
+
+#if mri, 
+#echo statline >> stats/stats_mri_{mridate}_{id}_whole.txt
+#if pet
+# echo statline >> stats/stats_tau_{taudate}_amy_{amydate}_mri_{mridate}_{id}_whole.txt
 
