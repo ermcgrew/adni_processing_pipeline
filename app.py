@@ -65,6 +65,7 @@ def main(mode):
                 # superres_job_name = mri_to_process.do_superres() 
                 # t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
                 # mri_to_process.do_t1mtthk(t1ashs_job_name) 
+                # mri_to_process.do_pmtau(ants_job_name)
 
             if mode == "pet" or mode == "both": 
                 tau_to_process = TauPET(subject, taudate)

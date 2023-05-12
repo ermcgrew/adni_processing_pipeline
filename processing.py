@@ -87,6 +87,7 @@ class MRI:
         self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trim.nii.gz"
         
         self.thickness = f"{self.filepath}/thickness/{self.id}CorticalThickness.nii.gz"
+        self.pmtau_output = f"{self.filepath}/thickness/ap.nii.gz"
 
         self.brainx_thickness_dir = f"{self.filepath}/thickness/{self.id}ExtractedBrain0N4.nii.gz"
         self.brainx = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
@@ -98,8 +99,8 @@ class MRI:
         self.t1ashs_seg_left = f"{self.filepath}/ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
         self.t1ashs_seg_right = f"{self.filepath}/ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
         
-        self.t1mtthk_left = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_left_thickness.csv"
-        self.t1mtthk_right = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.date_id_prefix}_right_thickness.csv"
+        self.t1mtthk_left = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_left_thickness.csv"
+        self.t1mtthk_right = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_right_thickness.csv"   
         
         self.t1icv_seg = f"{self.filepath}/ASHSICV/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
 
@@ -118,10 +119,21 @@ class MRI:
         self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
         self.t1flair = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_to_flair.mat"
 
+
         self.log_output_dir = f"{self.filepath}/logs_{current_date}"
         if not os.path.exists(self.log_output_dir):
             os.system(f"mkdir {self.log_output_dir}")
         self.bsub_output = f"-o {self.log_output_dir}"
+
+    def neck_trim(self, parent_job_name = ""):
+        this_job_name=f"necktrim_{self.date_id_prefix}"
+        submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
+        if ready_to_process("necktrim", self.id, self.mridate, input_files=[self.t1nifti], 
+                            output_files=[self.t1trim], parent_job = parent_job_name):
+            os.system(f"bsub {submit_options} /home/lxie/pkg/trim_neck_rf.sh \
+                 {self.t1nifti} {self.t1trim}")
+        return(this_job_name)
+                    #  sandy's script: /project/hippogang_1/srdas/homebin/ashsharpicvscripts/trim_neck.sh -w $(mktemp -d)
 
     def do_ants(self, parent_job_name = ""):
         this_job_name=f"ants_{self.date_id_prefix}"
@@ -262,6 +274,13 @@ class MRI:
             os.system(f"bsub {submit_options} cp {self.flair} {analysis_input_dir}/{current_date}/{self.mridate}_{self.id}_flair_0000.nii.gz")
             return
 
+    def do_pmtau(self, parent_job_name = ""):
+        this_job_name=f"pmtau_{self.date_id_prefix}"
+        submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
+        if ready_to_process("pmtau", self.id, self.mridate, input_files=[self.thickness], \
+                            output_files=[self.pmtau_output]):
+            os.system(f"bsub {submit_options} ./wrapper_scripts/pmtau.sh {self.id} {self.mridate} {self.filepath}/thickness")
+            return
 
 class AmyloidPET:
     # strings for Amyloid PET filepaths
@@ -352,6 +371,7 @@ class MRIPetReg:
                   {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
             return
 
+    
 #Log file
 # logging.basicConfig(filename=f"{analysis_input_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
 #for testing:
@@ -364,7 +384,7 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
-# mri_to_process = MRI("126_S_6721", "2021-05-05")
+mri_to_process = MRI("126_S_6721", "2021-05-05")
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
@@ -387,9 +407,13 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 # mri_to_process.do_t1flair() 
 # mri_to_process.do_wmh_prep() 
 
+# mri_to_process.neck_trim()
 # superres_job_name = mri_to_process.do_superres() 
 # t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
 # mri_to_process.do_t1mtthk(t1ashs_job_name) 
+
+# mri_to_process.do_pmtau()
+
 
 ##PET processing
 # t1_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
