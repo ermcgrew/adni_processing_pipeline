@@ -37,13 +37,22 @@ MYSEG=$OUTDIR/ashsseg.nii.gz
 c3d $THICKDIR/${sub}CorticalThickness.nii.gz \
     $SEG -interp NN -reslice-identity -o $MYSEG
 
-pos=$( /home/sudas/bin/findaxisdir $MYSEG cor | awk '{print $1}' )
-dir=$( /home/sudas/bin/findaxisdir $MYSEG cor | awk '{print $2}' )
+#to determine -thresh values for line 52
+voxels=($( c3d $MYSEG  -info | cut -f 3 -d ";" | sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" -e "s/=//" ))
+orientation=($( c3d $MYSEG -info | cut -f 5 -d ";" | cut -f 2 -d "=" | sed 's/[A-Z]/ &/g;s/^ //'))
+for ((i = 0 ; i < "${#orientation[@]}" ; i++)); do
+    if [[ "${orientation[i]}" == "A" || "${orientation[i]}" == "P" ]]; then
+        threshmin="${voxels[$i]}"
+        threshmax="${threshmin}.2"
+    fi
+done
 
 c3d $MYSEG -as A -thresh 1 1 1 0 -sdt -popas DISTA -push A -thresh 2 2 1 0 -sdt \
     -dup -times -sqrt -push DISTA -dup -times -sqrt  -add \
-    -thresh 1.0 1.2 1 0 -o $OUTDIR/bndry.nii.gz -cmv -oo $OUTDIR/coordmap%d.nii.gz
+    -thresh $threshmin $threshmax 1 0 -o $OUTDIR/bndry.nii.gz -cmv -oo $OUTDIR/coordmap%d.nii.gz
 
+pos=$( /home/sudas/bin/findaxisdir $MYSEG cor | awk '{print $1}' )
+dir=$( /home/sudas/bin/findaxisdir $MYSEG cor | awk '{print $2}' )
 bndry_centroid=$(c3d $OUTDIR/bndry.nii.gz -centroid | grep CENTROID_VOX | cut -f 2 -d "[" | cut -f 1 -d "]" | sed -e "s/ //g" | cut -f $pos -d , | awk '{printf("%.f\n",$0)}' )
 
 zeropos=$(echo " $pos - 1 " | bc -l )
