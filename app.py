@@ -1,3 +1,4 @@
+import argparse
 import csv
 import datetime
 import logging
@@ -82,7 +83,9 @@ def main(mode):
                 # mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
                 # mri_amy_reg_to_process.do_t2_pet_reg(t1_amy_pet_reg_job)
 
-            os.system(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
+            #bsub this so it runs after all processing steps
+            #for mri mode, t1& t2 -pet reg need to be assigned
+            print(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
                     {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
                     {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
                     {mri_to_process.t2ahs_cleanup_left} {mri_to_process.t2ahs_cleanup_right} \
@@ -94,18 +97,22 @@ def main(mode):
         # if mode == both, do once for mri, once for pet; otherwise, just do once 
         # os.system(f"bash create_tsv.sh {wblabel_file} {cleanup_dir} {this_output_dir}")
 
-
+#Logging
 #### Log file
 # logging.basicConfig(filename=f"{adni_analysis_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
 #### for testing:            
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
-#### file takes kwargs 
-# mode: mri, pet, both
+#Arguments
+ap = argparse.ArgumentParser()
+# mode: mri, pet, both 
+ap.add_argument('-m', '--mode', required=True,  action='store', help='process new mri, pet, or both')
 # options to call only certain processing steps
+ap.add_argument('-s', '--steps', required=False,  action='store', help='only run particular processing step')
 
-mode="both"
+args = ap.parse_args()
+mode=args.mode
+# print(mode)
 
 main(mode)
-
 
