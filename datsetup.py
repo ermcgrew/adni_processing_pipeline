@@ -1,6 +1,9 @@
+#!/usr/bin/bash python3
+
 import pandas as pd
 import os
 import csv
+from processing import adni_data_dir
 
 #from vergnet_db/csv_preprocessing.py
 # Helper function to set rid, viscode, phase in MRI/PET tables
@@ -70,7 +73,7 @@ def set_rid_and_phase(df, i, row):
         df.at[i, 'PHASE'] = "ADNI3"
 
 
-def preprocess_new(csvfilename, dirs, registry=None):
+def preprocess_new(csvfilename, source_directory, registry=None):
     # If registry passed in, encapsulate its data in a dictionary
     reg_vc_vc2_dict = {}
     reg_vc2_date_dict = {}
@@ -85,9 +88,8 @@ def preprocess_new(csvfilename, dirs, registry=None):
             reg_vc_vc2_dict[rid][vc] = vc2
             reg_vc2_date_dict[rid][vc2] = edate
 
-    # for dir in dirs:
     # Read the CSV file into a PANDAS dataframe
-    df = pd.read_csv(os.path.join(dirs, csvfilename))
+    df = pd.read_csv(os.path.join(source_directory, csvfilename))
 
     # Rename lowercase columns, examdate
     df = df.rename(columns={
@@ -100,19 +102,16 @@ def preprocess_new(csvfilename, dirs, registry=None):
     df.columns = df.columns.str.replace('.', '_')
     df.columns = df.columns.str.replace(' ', '')
 
-
     # Per-table special processing
     if csvfilename.startswith('MRILIST'):
         for col in ('RID', 'PHASE', 'MRITYPE', 'T1ACCE'):
             df[col] = None
-        # print(df.head())
 
         # Uppercase the sequence name
         df['SEQUENCE'] = df['SEQUENCE'].str.upper()
 
         # Generate VISCODE, RID, PHASE column data
         df = fixup_imaging_csv(df)
-        # print(df.head())
 
         for i, row in df.iterrows():
             # Preprocess the MRI type (T1/T2)
@@ -127,8 +126,8 @@ def preprocess_new(csvfilename, dirs, registry=None):
                 df.at[i, 'T1ACCE'] = 1
             else:
                 df.at[i, 'T1ACCE'] = 0
-        # print(df.head())
 
+    # transformations for all sheets:
     # Replace screening viscodes with BL
     for col in 'VISCODE', 'VISCODE2':
         if col in df.columns:
@@ -138,7 +137,6 @@ def preprocess_new(csvfilename, dirs, registry=None):
     for col in df.columns:
         if 'DATE' in col:
             df[col] = pd.to_datetime(df[col], errors='coerce')
-    # print(df.head())
 
     # Create a SMARTDATE field that captures best available date
     df['SMARTDATE'] = None
@@ -150,7 +148,6 @@ def preprocess_new(csvfilename, dirs, registry=None):
             df['SMARTDATE'] = df[key]
             df['SMARTDATESRC'] = key
             break
-    # print(df.head())
 
     # If VISCODE2 is missing and VISCODE is present, assign VISCODE2 column
     if 'RID' in df.columns and 'VISCODE' in df.columns and 'VISCODE2' not in df.columns:
@@ -168,28 +165,39 @@ def preprocess_new(csvfilename, dirs, registry=None):
                 if rid in reg_vc2_date_dict and vc2 in reg_vc2_date_dict[rid]:
                     df.at[i, 'SMARTDATE'] = pd.to_datetime(reg_vc2_date_dict[rid][vc2])
                     df.at[i, 'SMARTDATESRC'] = 'VISCODE2'
-    # print(df.head())
 
-    # # Make sure smartdate is in date format
+    # Make sure smartdate is in date format
     df['SMARTDATE'] = pd.to_datetime(df['SMARTDATE'], errors='coerce')
 
-    return df
+    # Write to file
+    df.to_csv(os.path.join(source_directory, csvfilename.replace('.csv', '_clean.csv')),
+                index=False, quoting=csv.QUOTE_ALL,
+                date_format='%Y-%m-%d')
 
 
-def merge_for_mri():
+def merge_for_mri(clean_csvlist, source_directory):
+    mrimeta_df = pd.read_csv(os.path.join(source_directory,clean_csvlist[0]))
+    mrilist_df = pd.read_csv(os.path.join(source_directory,clean_csvlist[1]))
+    print(mrimeta_df.head())
+    print(mrilist_df.head())
+
+
+
 
     return
 
 
 ##programmatic way to get csvs--grab names from specific directory on cluster
-# registry_csv = "REGISTRY_12Jun2023.csv"
-registry_df = pd.read_csv("REGISTRY_12Jun2023.csv")
-csvlist = ["MRI3META_12Jun2023.csv","MRILIST_12Jun2023.csv"]
-#directory containing csv files
-dirs = "/project/wolk/ADNI2018/scripts/pipeline_test_data"
-for csvfile in csvlist:
-    csvname=csvfile.split("_")[0]
-    csvname_clean = preprocess_new(csvfile, dirs, registry=registry_df)
+registry_csv = "REGISTRY_12Jun2023.csv"
+registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
 
-    print(csvname_clean.head())
+csvlist = ["MRI3META_12Jun2023.csv","MRILIST_12Jun2023.csv"]
+clean_csvlist = [csvfile.replace('.csv', '_clean.csv') for csvfile in csvlist]
+
+for csvfile in csvlist:
+    preprocess_new(csvfile, adni_data_dir, registry=registry_df)
+
+merge_for_mri(clean_csvlist, adni_data_dir)
+
+
 
