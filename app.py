@@ -42,10 +42,13 @@ def open_csv():
 
 
 def main(mode):
-    #### function: get new scans info from adni, return list of subject,date
+    #### already have new scans downloaded to cluster
+    #### already have adni spreadsheets saved in clustr
+    #run datasetup.py to prep for long's code 
+    #create sheet of file locations 
+
     # open_csv()
         #### for each subject, date:
-            #### function: download new dicom files from adni & sort into correct locations in cluster
             subject = "099_S_6175"
             mridate = "2020-06-03"
             taudate = "2020-07-09"

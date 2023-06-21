@@ -91,6 +91,7 @@ def preprocess_new(csvfilename, source_directory, registry=None):
 
     # Read the CSV file into a PANDAS dataframe
     df = pd.read_csv(os.path.join(source_directory, csvfilename))
+    print(f"Reading dataframe: {csvfilename}")
 
     # Rename lowercase columns, examdate
     df = df.rename(columns={
@@ -170,6 +171,7 @@ def preprocess_new(csvfilename, source_directory, registry=None):
     # Make sure smartdate is in date format
     df['SMARTDATE'] = pd.to_datetime(df['SMARTDATE'], errors='coerce')
 
+    print(f"writing {csvfilename} to file")
     # Write to file
     df.to_csv(os.path.join(source_directory, csvfilename.replace('.csv', '_clean.csv')),
                 index=False, quoting=csv.QUOTE_ALL,
@@ -193,6 +195,7 @@ def get_uids(dataframe, which="smallest"):
 def merge_for_mri(clean_csvlist, source_directory):
     mrimeta_df = pd.read_csv(os.path.join(source_directory,clean_csvlist[0]))
     mrilist_df = pd.read_csv(os.path.join(source_directory,clean_csvlist[1]))
+    
     print(mrimeta_df.head())
     print(mrilist_df.head())
 
@@ -205,13 +208,13 @@ def merge_for_mri(clean_csvlist, source_directory):
     mrimeta_df_small.drop_duplicates(subset=['RID','SMARTDATE'],keep='last',inplace=True)
 
     listuniq = mrilist_df['RID'].unique().tolist()
-    print(len(listuniq))
     metauniq = mrimeta_df['RID'].unique().tolist()
-    print(len(metauniq))
     newtotalsubs=[]
     for subj in metauniq:
         if subj in listuniq:
             newtotalsubs.append(subj)
+
+    print(f"total number of subjects is {len(newtotalsubs)}")
 
     outputdf=pd.DataFrame()
     index = 0
@@ -237,6 +240,7 @@ def merge_for_mri(clean_csvlist, source_directory):
 
     ###T1#################################################################################################        
             if len(t1scans) > 0:
+                print(f"Finding t1 scans for {subject} {date}")
                 notacce = t1scans.loc[t1scans['T1ACCE'] == 0]
                 yesacce = t1scans.loc[t1scans['T1ACCE'] == 1]
 
@@ -257,6 +261,7 @@ def merge_for_mri(clean_csvlist, source_directory):
                 
     ###T2#################################################################################################  
             if len(t2scans) > 0:
+                print(f"There is a T2 scan for {subject} {date}")
                 t2uid = get_uids(t2scans, "biggest")
                 allt2uids = ";".join(map(str, t2scans['IMAGEUID'].tolist()))
             else: 
@@ -278,10 +283,13 @@ def merge_for_mri(clean_csvlist, source_directory):
     alloutput = outputdf.merge(mrimeta_df_small, how='left',on=['RID','SMARTDATE'])
     alloutput.info()
     
+    alloutput.to_csv(os.path.join(adni_data_dir,savefilename),header=True,index=False)
     return
 
 
 ##programmatic way to get csvs--grab names from specific directory on cluster
+savefilename='mrilist_with_uids.csv'
+
 registry_csv = "REGISTRY_12Jun2023.csv"
 registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
 
