@@ -1,4 +1,4 @@
-#!/usr/bin/bash python3
+#!/usr/bin/env python3
 
 import pandas as pd
 import os
@@ -57,6 +57,7 @@ def fixup_imaging_csv(df):
     df['VISCODE'] = df['VISIT'].replace(repdic)
 
     return df
+
 
 # Helper function to set RID, phase for MRI/PET tables
 def set_rid_and_phase(df, i, row):
@@ -175,15 +176,108 @@ def preprocess_new(csvfilename, source_directory, registry=None):
                 date_format='%Y-%m-%d')
 
 
+def get_uids(dataframe, which="smallest"):
+    if len(dataframe) == 1:
+        return dataframe['IMAGEUID'].values[0]
+    elif len(dataframe) >= 2:
+        alluids=dataframe['IMAGEUID'].tolist()
+        if which == "biggest": 
+            alluids.sort(reverse=True) 
+        else:
+            alluids.sort()      
+        return alluids[0]
+    else:
+        return
+    
+
 def merge_for_mri(clean_csvlist, source_directory):
     mrimeta_df = pd.read_csv(os.path.join(source_directory,clean_csvlist[0]))
     mrilist_df = pd.read_csv(os.path.join(source_directory,clean_csvlist[1]))
     print(mrimeta_df.head())
     print(mrilist_df.head())
 
+    ## columns to use from each df:
+    mrimetacols=['RID','SMARTDATE','FIELD_STRENGTH','VISCODE', 'VISCODE2']
+    mrilistcols=['RID','MRITYPE','SMARTDATE', 'IMAGEUID', 'T1ACCE', 'PHASE','SUBJECT', 'SEQUENCE']
+    mrimeta_df_small = mrimeta_df[mrimetacols]
+    mrilist_df_small = mrilist_df[mrilistcols]
 
+    mrimeta_df_small.drop_duplicates(subset=['RID','SMARTDATE'],keep='last',inplace=True)
 
+    listuniq = mrilist_df['RID'].unique().tolist()
+    print(len(listuniq))
+    metauniq = mrimeta_df['RID'].unique().tolist()
+    print(len(metauniq))
+    newtotalsubs=[]
+    for subj in metauniq:
+        if subj in listuniq:
+            newtotalsubs.append(subj)
 
+    outputdf=pd.DataFrame()
+    index = 0
+    for subject in newtotalsubs:
+        subject_mrilist = mrilist_df_small.loc[mrilist_df_small['RID'] == subject]
+    #     print(f"Subject {subject} has {matches} rows in mrilist")
+        dates = subject_mrilist['SMARTDATE'].unique()
+    #     print(f"Subject {subject} has {dates} scans in mrilist")
+        for date in dates: 
+            single_date_mrilist = subject_mrilist.loc[subject_mrilist['SMARTDATE'] == date]
+            t1scans=single_date_mrilist.loc[single_date_mrilist['MRITYPE']== 0]
+            t2scans=single_date_mrilist.loc[single_date_mrilist['MRITYPE']== 1]
+
+            if len(t1scans) == 0 and len(t2scans) == 0:
+                print(f"No scans for {subject} {date} with index {index} Loop should do continue")
+                continue
+                
+    #         print(f"Index to outputdf {index} {subject} {date}")
+            outputdf.loc[index,['RID','SMARTDATE','ID','PHASE']] = [int(subject),date,
+                                                        single_date_mrilist['SUBJECT'].tolist()[0],
+                                                        single_date_mrilist['PHASE'].tolist()[0]]
+            index +=1            
+
+    ###T1#################################################################################################        
+            if len(t1scans) > 0:
+                notacce = t1scans.loc[t1scans['T1ACCE'] == 0]
+                yesacce = t1scans.loc[t1scans['T1ACCE'] == 1]
+
+                if len(notacce) == 0:
+    #                 print(f"No un-accelerated T1 scans, use an accel t1 as main")
+                    t1uid=get_uids(yesacce, "biggest") #return biggest UID
+                    ist1acce='Y'
+                else: 
+                    t1uid = get_uids(notacce) #return smallest UID is default in function
+                    ist1acce='N'
+
+                notacce_t1_uids = ";".join(map(str, notacce['IMAGEUID'].tolist()))
+                yesacce_t1_uids = ";".join(map(str, yesacce['IMAGEUID'].tolist()))
+            else:
+                #There aren't currently any sessions with a missing T1 but present T2, 
+                #so this else clause is never triggered. 
+                t1uid, ist1acce, notacce, notacce_t1_uids, yesacce, yesacce_t1_uids = [None,None,None,None,None,None]
+                
+    ###T2#################################################################################################  
+            if len(t2scans) > 0:
+                t2uid = get_uids(t2scans, "biggest")
+                allt2uids = ";".join(map(str, t2scans['IMAGEUID'].tolist()))
+            else: 
+                t2uid, allt2uids = [None,None]
+                
+    ###Add to new dataframe###############################################################################
+            datalisttoadd=[t1uid,ist1acce,t2uid,len(notacce),notacce_t1_uids,
+                        len(yesacce),yesacce_t1_uids,len(t2scans),allt2uids]
+
+            outputdf.loc[
+                (outputdf['RID'] == subject) & (outputdf['SMARTDATE'] == date),
+                    ['IMAGUID_T1','T1ISACCE', 'IMAGUID_T2', 'NT1NONEACCE','IMAGEUID_T1NONEACCE', 
+                    'NT1ACCE', 'IMAGEUID_T1ACCE', 'NT2','IMAGEUID_T2ALL']
+                        ] = datalisttoadd
+    
+
+    outputdf.info()
+
+    alloutput = outputdf.merge(mrimeta_df_small, how='left',on=['RID','SMARTDATE'])
+    alloutput.info()
+    
     return
 
 
