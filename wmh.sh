@@ -8,7 +8,7 @@ Help()
     echo 
     echo "Options:"
     echo "-c     Copy output files to session folders."
-    echo "-d     directory name in /project/wolk_2/ADNI2018/analysis_input/ that contains both data_for_inference/ and output_from_nnunet_inference/."
+    echo "-d     directory name in /project/wolk/ADNI2018/analysis_input/ that contains both data_for_inference/ and output_from_nnunet_inference/."
     echo "-g     Print commands to copy files and run docker container to the terminal"
     echo "-h     Print this help."
     echo "-u     Your bscsub/chead/lambda-picsl username."
@@ -21,32 +21,40 @@ Help()
 Get_commands()
 {
 echo Printing commands for username $username and directory $directory.
-echo "Format is @clustername:working/directory$"
+echo "in format:"
+echo "@clustername:working/directory/for/command$"
 echo "      command to copy and run"
 
 echo "ONE"
-echo "@scisub$"
-echo "      scp -r $username@bscsub.pmacs.upenn.edu:/project/wolk_2/ADNI2018/analysis_input/$directory/data_for_inference $username@chead.uphs.upenn.edu:/home/$username"
+echo "@bscsub$"
+echo "      scp -r $username@bscsub.pmacs.upenn.edu:/project/wolk/ADNI2018/analysis_input/$directory/data_for_inference $username@chead.uphs.upenn.edu:/home/$username"
+echo 'enter your chead password to complete scp transfer'
 
 echo "TWO"
+echo 'log into chead, then log in to lambda-picsl'
+
+echo "THREE"
 echo "@lambda-picsl:/data/$username$"
 echo "      scp -r $username@chead.uphs.upenn.edu:/home/$username/data_for_inference/ ." 
 
-echo "THREE"
+echo "FOUR"
 echo "@lambda-picsl$"
 echo "      docker pull pulks/docker_hippogang_exvivo_segm:v1.3.0"
 
-echo "FOUR"
+echo "FIVE"
 echo "@lambda-picsl$"
 echo "      docker run --gpus all --privileged -v /data/$username/:/data/exvivo/ -it pulks/docker_hippogang_exvivo_segm:v1.3.0 /bin/bash -c "bash /src/commands_nnunet_inference_WMH_invivo.sh" >> logs.txt"
 
-echo "FIVE"
+echo "SIX"
 echo "@lambda-picsl:/data/$username/data_for_inference$"
 echo "      scp -r ./output_from_nnunet_inference $username@chead.uphs.upenn.edu:/home/$username/"
 
-echo "SIX"
+echo "SEVEN"
+echo 'log out of lambda, back to chead'
+
+echo "EIGHT"
 echo "@chead:~$"
-echo "      scp -r ./output_from_nnunet_inference $username@bscsub.pmacs.upenn.edu:/project/wolk_2/ADNI2018/analysis_input/$directory"
+echo "      scp -r ./output_from_nnunet_inference $username@bscsub.pmacs.upenn.edu:/project/wolk/ADNI2018/analysis_input/$directory"
 }
 
 
