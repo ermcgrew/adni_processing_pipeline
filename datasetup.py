@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# !/usr/bin/env python
 
 import pandas as pd
 import os
@@ -128,6 +128,30 @@ def preprocess_new(csvfilename, source_directory, registry=None):
                 df.at[i, 'T1ACCE'] = 1
             else:
                 df.at[i, 'T1ACCE'] = 0
+
+    elif csvfilename.startswith('PET_META_LIST'):
+        # Rename the columns
+        df.rename(columns={"Scan Date": "SCANDATE"})
+        for col in ('RID', 'PHASE', 'PETTYPE', 'RIGHTONE'):
+            df[col] = None
+
+        # Generate a VISCODE column
+        df = fixup_imaging_csv(df)
+
+        for i, row in df.iterrows():
+            # Preprocess the PET we want
+            ###################
+            mi_pet = "Coreg, Avg, Std Img and Vox Siz, Uniform Resolution"
+            df.at[i, 'RIGHTONE'] = 1 if mi_pet in row['Sequence'] else 0
+
+            # Preprocess PET scan type (TAU=1/Amyloid=2/other=0)
+            if "FBB" in row['Sequence'] or "AV45" in row['Sequence']:
+                df.at[i, 'PETTYPE'] = 1
+            elif "AV1451" in row['Sequence']:
+                df.at[i, 'PETTYPE'] = 2
+            else:
+                df.at[i, 'PETTYPE'] = 0
+
 
     # transformations for all sheets:
     # Replace screening viscodes with BL
@@ -286,6 +310,12 @@ def merge_for_mri(clean_csvlist, source_directory):
     alloutput.to_csv(os.path.join(adni_data_dir,savefilename),header=True,index=False)
     return
 
+def update_mri_list():
+    pass
+    #compare output of merge_for_mri function to previous mri_with_uid list
+    #if 
+
+
 
 ##programmatic way to get csvs--grab names from specific directory on cluster
 savefilename='mrilist_with_uids.csv'
@@ -293,13 +323,17 @@ savefilename='mrilist_with_uids.csv'
 registry_csv = "REGISTRY_12Jun2023.csv"
 registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
 
-csvlist = ["MRI3META_12Jun2023.csv","MRILIST_12Jun2023.csv"]
+csvlist = ["MRI3META_12Jun2023.csv","MRILIST_12Jun2023.csv", "PET_META_LIST_30Jun2023.csv"]
 clean_csvlist = [csvfile.replace('.csv', '_clean.csv') for csvfile in csvlist]
 
-for csvfile in csvlist:
-    preprocess_new(csvfile, adni_data_dir, registry=registry_df)
+preprocess_new(csvlist[2], adni_data_dir, registry=registry_df)
 
-merge_for_mri(clean_csvlist, adni_data_dir)
+# for csvfile in csvlist:
+#     preprocess_new(csvfile, adni_data_dir, registry=registry_df)
+
+# merge_for_mri(clean_csvlist, adni_data_dir)
+
+#call function or script that gets nifti name if it exists
 
 
 

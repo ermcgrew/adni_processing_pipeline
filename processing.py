@@ -127,6 +127,10 @@ class MRI:
             os.system(f"mkdir {self.log_output_dir}")
         self.bsub_output = f"-o {self.log_output_dir}"
 
+    def dicom_to_nifti(self):
+        print(f"c3d command")
+        pass
+
     def neck_trim(self, parent_job_name = ""):
         this_job_name=f"necktrim_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
