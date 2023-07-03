@@ -3,6 +3,7 @@
 import pandas as pd
 import os
 import csv
+import subprocess
 from processing import adni_data_dir
 
 #from vergnet_db/csv_preprocessing.py
@@ -313,12 +314,25 @@ def merge_for_mri(clean_csvlist, source_directory):
 def update_mri_list():
     pass
     #compare output of merge_for_mri function to previous mri_with_uid list
-    #if 
+    
+
+def file_locs(uid_csv):
+    uid_df = pd.read_csv(uid_csv)
+    print(uid_df.head())
+    for index,row in uid_df.iterrows():
+        id = str(row['ID'])
+        scandate = str(row['SMARTDATE'])
+        t1uid = str(row['IMAGUID_T1'])
+        # os.system(f"bash nifti_file.sh {id} {scandate} {t1uid}")
+        ##how to return that info?
+        result = subprocess.run(["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,t1uid],  
+                                capture_output=True, text=True)
+        print(result.stdout)
 
 
 
 ##programmatic way to get csvs--grab names from specific directory on cluster
-savefilename='mrilist_with_uids.csv'
+savefilename='mrilist_with_uids_smalltest.csv'
 
 registry_csv = "REGISTRY_12Jun2023.csv"
 registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
@@ -326,14 +340,17 @@ registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
 csvlist = ["MRI3META_12Jun2023.csv","MRILIST_12Jun2023.csv", "PET_META_LIST_30Jun2023.csv"]
 clean_csvlist = [csvfile.replace('.csv', '_clean.csv') for csvfile in csvlist]
 
-preprocess_new(csvlist[2], adni_data_dir, registry=registry_df)
 
 # for csvfile in csvlist:
 #     preprocess_new(csvfile, adni_data_dir, registry=registry_df)
+# preprocess_new(csvlist[2], adni_data_dir, registry=registry_df)
 
 # merge_for_mri(clean_csvlist, adni_data_dir)
 
+#
+
 #call function or script that gets nifti name if it exists
+file_locs(os.path.join(adni_data_dir,savefilename))
 
 
 
