@@ -45,18 +45,9 @@ def main(mode):
     #### already have new scans downloaded to cluster
     # os.system(bash organize_files.sh)
 
-    ###### set mode here--mri, pet, or mri/pet anchor
+    ###### set mode here?--mri, pet, or mri/pet anchor
     #### already have adni spreadsheets saved in clustr
-    # os.system(python datasetup.py) to get UID list 
-
-    #get file locations:
-    # open the UID list csv & read in sub, mridate 
-    # c3d command to match uids
-    # instantiate mri class object
-    # do dicom to nifti unpack
-    # add file loc to csv --> save off for later use with PET 
-    # is it a copy or symlink between PUBLIC/nifit and ADNI2018/dataset/?
-    # then continue with mri processing
+    # os.system(python datasetup.py) to get UID & fileloc lists 
 
     # open_csv()
         #### for each subject, date:
