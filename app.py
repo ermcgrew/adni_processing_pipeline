@@ -25,7 +25,6 @@ def reformat_dates(date):
 
 
 def open_csv():
-    ##would this be the csv directly from adni?
     with open("../pipeline_test_data/MRI3TLIST_testdata.csv") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
@@ -49,8 +48,11 @@ def main(mode):
     #### already have adni spreadsheets saved in clustr
     # os.system(python datasetup.py) to get UID & fileloc lists 
 
-    # open_csv()
+    # open_csv() #fileloc.csv
         #### for each subject, date:
+        ####fileloc.csv as df, include status so only those w/ new nifti are processed?
+
+
             subject = "099_S_6175"
             mridate = "2020-06-03"
             taudate = "2020-07-09"
@@ -59,7 +61,6 @@ def main(mode):
             if mode == "mri" or mode == "both":
                 mri_to_process = MRI(subject,mridate)
                 logging.info(f"{mri_to_process.id}:{mri_to_process.mridate}: Now processing")
-                #### function: dicom to nifti
                 # ants_job_name = mri_to_process.do_ants()
                 # wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
                 # mri_to_process.do_wbsegqc(wbseg_job_name)

@@ -19,8 +19,7 @@ else
 
     if [[ ! -f $nifti_file ]] ; then
         mkdir -p $nifti_dir
-        c3d -dicom-series-read "${dicoms[0]}" "${series_id}" \
-            -o $nifti_file
+        c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
         # purple='this is a placeholder'
         if [[ -f $nifti_file ]] ; then
             status="conversion to nifti sucessful"
