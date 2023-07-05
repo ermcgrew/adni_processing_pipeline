@@ -59,7 +59,7 @@ def fixup_imaging_csv(df):
 
     return df
 
-
+#from vergnet_db/csv_preprocessing.py
 # Helper function to set RID, phase for MRI/PET tables
 def set_rid_and_phase(df, i, row):
     # Assign the phase
@@ -74,7 +74,7 @@ def set_rid_and_phase(df, i, row):
     if df.at[i, 'RID'] > 5999:
         df.at[i, 'PHASE'] = "ADNI3"
 
-
+#from vergnet_db/csv_preprocessing.py
 def preprocess_new(csvfilename, source_directory, registry=None):
     # If registry passed in, encapsulate its data in a dictionary
     reg_vc_vc2_dict = {}
@@ -308,7 +308,7 @@ def merge_for_mri(clean_csvlist, source_directory):
     alloutput = outputdf.merge(mrimeta_df_small, how='left',on=['RID','SMARTDATE'])
     alloutput.info()
     
-    alloutput.to_csv(os.path.join(adni_data_dir,savefilename),header=True,index=False)
+    alloutput.to_csv(os.path.join(adni_data_dir,mrilist_uids),header=True,index=False)
     return
 
 
@@ -319,54 +319,56 @@ def update_mri_list():
 
 def file_locs(uid_csv):
     uid_df = pd.read_csv(uid_csv)
-    print(uid_df.head())
+    # print(uid_df.head())
     for index,row in uid_df.iterrows():
         id = str(row['ID'])
         scandate = str(row['SMARTDATE'])
-        t1uid = str(row['IMAGUID_T1'])
+        # print(id)
+        # print(scandate)
+        uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
+        for key in uids:
+            # print(uids[key])
+            result = subprocess.run(
+                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,uids[key]],  
+                capture_output=True, text=True)
+            ##handle any errors 
+            # print(result.stdout)
+            result_list = result.stdout.split("\n")
+            status = result_list[0]
+            print(f"Status: {status}") # status goes to log file
 
-        result = subprocess.run(["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,t1uid],  
-                                capture_output=True, text=True)
-        #handle any errors 
-        print(result.stdout)
-        result_list = result.stdout.split("\n")
-        status = result_list[0]
-        print(f"Status: {status}") # status goes to log file
-
-        # if len(result_list) > 2: #status + nifti filepath + newline
-        if status == "conversion to nifti sucessful":
-            nifti_file_loc = result_list[1]
-            print(f"Nifti filepath: {nifti_file_loc}")
-            uid_df.at[index,'FINALT1NIFTI'] = nifti_file_loc
+            if status == "conversion to nifti sucessful":
+                nifti_file_loc = result_list[1]
+                print(f"Nifti filepath: {nifti_file_loc}")
+                if key == "t1_uid":
+                    uid_df.at[index,'FINALT1NIFTI'] = nifti_file_loc
+                elif key == "t2_uid":
+                    uid_df.at[index,'FINALT2NIFTI'] = nifti_file_loc
     
     # print(uid_df.head())
-
-
-
+    uid_df.to_csv(os.path.join(adni_data_dir,mrilist_uids_filelocs),index=False,header=True)
 
 
 
 
 ##programmatic way to get csvs--grab names from specific directory on cluster
-savefilename='mrilist_with_uids_smalltest.csv'
-
 registry_csv = "REGISTRY_12Jun2023.csv"
-registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
-
 csvlist = ["MRI3META_12Jun2023.csv","MRILIST_12Jun2023.csv", "PET_META_LIST_30Jun2023.csv"]
 clean_csvlist = [csvfile.replace('.csv', '_clean.csv') for csvfile in csvlist]
+mrilist_uids='mrilist_with_uids_smalltest.csv'
+mrilist_uids_filelocs='mrilist_uids_filelocs.csv'
 
 
+registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
 # for csvfile in csvlist:
 #     preprocess_new(csvfile, adni_data_dir, registry=registry_df)
 # preprocess_new(csvlist[2], adni_data_dir, registry=registry_df)
 
 # merge_for_mri(clean_csvlist, adni_data_dir)
 
-#
+# update_mri_list()
 
-#call function or script that gets nifti name if it exists
-file_locs(os.path.join(adni_data_dir,savefilename))
+# file_locs(os.path.join(adni_data_dir,mrilist_uids))
 
 
 
