@@ -212,7 +212,7 @@ def get_uids(dataframe, which="smallest"):
             alluids.sort(reverse=True) 
         else:
             alluids.sort()      
-        return alluids[0]
+        return int(alluids[0]) ##needs to return an integer, not a float
     else:
         return
     
