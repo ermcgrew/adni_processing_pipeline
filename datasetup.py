@@ -311,6 +311,7 @@ def merge_for_mri(clean_csvlist, source_directory):
     alloutput.to_csv(os.path.join(adni_data_dir,savefilename),header=True,index=False)
     return
 
+
 def update_mri_list():
     pass
     #compare output of merge_for_mri function to previous mri_with_uid list
@@ -323,11 +324,26 @@ def file_locs(uid_csv):
         id = str(row['ID'])
         scandate = str(row['SMARTDATE'])
         t1uid = str(row['IMAGUID_T1'])
-        # os.system(f"bash nifti_file.sh {id} {scandate} {t1uid}")
-        ##how to return that info?
+
         result = subprocess.run(["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,t1uid],  
                                 capture_output=True, text=True)
+        #handle any errors 
         print(result.stdout)
+        result_list = result.stdout.split("\n")
+        status = result_list[0]
+        print(f"Status: {status}") # status goes to log file
+
+        # if len(result_list) > 2: #status + nifti filepath + newline
+        if status == "conversion to nifti sucessful":
+            nifti_file_loc = result_list[1]
+            print(f"Nifti filepath: {nifti_file_loc}")
+            uid_df.at[index,'FINALT1NIFTI'] = nifti_file_loc
+    
+    # print(uid_df.head())
+
+
+
+
 
 
 
