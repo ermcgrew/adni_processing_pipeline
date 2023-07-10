@@ -76,7 +76,7 @@ def set_rid_and_phase(df, i, row):
         df.at[i, 'PHASE'] = "ADNI3"
 
 #from vergnet_db/csv_preprocessing.py
-def preprocess_new(csvfilename, source_directory, registry=None):
+def preprocess_new(csvfilename, registry=None):
     # If registry passed in, encapsulate its data in a dictionary
     reg_vc_vc2_dict = {}
     reg_vc2_date_dict = {}
@@ -92,7 +92,7 @@ def preprocess_new(csvfilename, source_directory, registry=None):
             reg_vc2_date_dict[rid][vc2] = edate
 
     # Read the CSV file into a PANDAS dataframe
-    df = pd.read_csv(os.path.join(source_directory, csvfilename))
+    df = pd.read_csv(os.path.join(adni_data_dir, csvfilename))
     print(f"Reading dataframe: {csvfilename}")
 
     # Rename lowercase columns, examdate
@@ -199,7 +199,7 @@ def preprocess_new(csvfilename, source_directory, registry=None):
 
     print(f"writing {csvfilename} to file")
     # Write to file
-    df.to_csv(os.path.join(source_directory, csvfilename.replace('.csv', '_clean.csv')),
+    df.to_csv(os.path.join(adni_data_dir, csvfilename.replace('.csv', '_clean.csv')),
                 index=False, quoting=csv.QUOTE_ALL,
                 date_format='%Y-%m-%d')
 
@@ -218,9 +218,9 @@ def get_uids(dataframe, which="smallest"):
         return
     
 
-def merge_for_mri(clean_csvlist, source_directory):
-    mrimeta_df = pd.read_csv(os.path.join(source_directory,clean_csvlist[0]))
-    mrilist_df = pd.read_csv(os.path.join(source_directory,clean_csvlist[1]))
+def merge_for_mri(clean_csvlist):
+    mrimeta_df = pd.read_csv(os.path.join(adni_data_dir,clean_csvlist[0]))
+    mrilist_df = pd.read_csv(os.path.join(adni_data_dir,clean_csvlist[1]))
     
     print(mrimeta_df.head())
     print(mrilist_df.head())
@@ -313,15 +313,43 @@ def merge_for_mri(clean_csvlist, source_directory):
     return
 
 
-def update_mri_list():
-    pass
+def update_mri_list(new_uids):
     #compare output of merge_for_mri function to previous mri_with_uid list
+    oldmrilist="/project/hippogang_1/srdas/wd/TAUPET/longnew/longADNI/RefreshT1T2NIFTI_10172022/MRI3TListWithNIFTIPath_10172022.tsv"
+    oldmrilist_df = pd.read_csv(oldmrilist,sep="\t")
+    oldmrilist_df['IMAGEUID_T1'] =  oldmrilist_df['IMAGEUID_T1'].astype(str)
+    oldmrilist_df['IMAGEUID_T2'] =  oldmrilist_df['IMAGEUID_T2'].astype(str)
+
+    newuids_df = pd.read_csv(new_uids)
+    # print(newuids_df.head())
+    for index,row in newuids_df.iterrows():
+        id = str(row['ID'])
+        scandate = str(row['SMARTDATE'])
+        match = oldmrilist_df.loc[(oldmrilist_df['ID'] == id) & (oldmrilist_df['SCANDATE'] == scandate)]
+        if len(match) == 1:
+            # check uids
+            if str(row['IMAGUID_T1']) == match['IMAGEUID_T1'].values.tolist()[0].split(".")[0]:
+                print("T1: same uid, already processed")
+            else:
+                logging.info(f"New uid selected from data")
+            
+            if str(row['IMAGUID_T2']).split('.')[0] == match['IMAGEUID_T2'].values.tolist()[0].split(".")[0]:
+                print("T2: same uid, already processed")
+            else:
+                logging.info(f"New uid selected from data")
+
+        elif len(match) < 1:
+            print("new scan")
+            
+        else:
+            print("duplicate entry")
     
 
 def file_locs(uid_csv):
     uid_df = pd.read_csv(uid_csv)
     # print(uid_df.head())
     for index,row in uid_df.iterrows():
+        #only do if status == 1
         id = str(row['ID'])
         scandate = str(row['SMARTDATE'])
         nifti_file_loc_dataset_prefix = f"{adni_data_dir}/{id}/{scandate}/{scandate}_{id}"
@@ -336,39 +364,42 @@ def file_locs(uid_csv):
         for i in range(0,len(siteinfo_result_list)):
             uid_df.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
 
-        # uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
-        # for key in uids:
-        #     # print(uids[key])
-        #     result = subprocess.run(
-        #         ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,uids[key]],  
-        #         capture_output=True, text=True)
-        #     ##handle any errors 
-        #     # print(result.stdout)
-        #     result_list = result.stdout.split("\n")
-        #     status = result_list[0]
-        #     # print(f"Status: {status}")
-        #     logging.info(f"{id}:{scandate}:Nifti conversion status is:{status}")
+        #baseline scan date
+        alldates = uid_df.loc[uid_df['ID'] == id]['SMARTDATE'].values.tolist()
+        alldates.sort()
+        uid_df.at[index,"BLSCANDATE"] = alldates[0]
 
-        #     if status == "conversion to nifti sucessful":
-        #         nifti_file_loc_public = result_list[1]
-        #         # print(f"Nifti filepath: {nifti_file_loc_public}")
-        #         if key == "t1_uid":
-        #             uid_df.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
-        #             uid_df.at[index,'T1_PROCESS_STATUS'] = 1
-        #             nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T1w.nii.gz"
-        #         elif key == "t2_uid":
-        #             uid_df.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
-        #             uid_df.at[index,'T2_PROCESS_STATUS'] = 1
-        #             nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T2w.nii.gz"
+        ##get file location & make symlink
+        ##set uids keys only for the correspoding status=1
+        uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
+        for key in uids:
+            # print(uids[key])
+            result = subprocess.run(
+                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,uids[key]],  
+                capture_output=True, text=True)
+            ##handle any errors 
+            result_list = result.stdout.split("\n")
+            status = result_list[0]
+            logging.info(f"{id}:{scandate}:Nifti conversion status is:{status}")
+
+            if status == "conversion to nifti sucessful":
+                nifti_file_loc_public = result_list[1]
+                # print(f"Nifti filepath: {nifti_file_loc_public}")
+                if key == "t1_uid":
+                    uid_df.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
+                    uid_df.at[index,'T1_PROCESS_STATUS'] = 1
+                    nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T1w.nii.gz"
+                elif key == "t2_uid":
+                    uid_df.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
+                    uid_df.at[index,'T2_PROCESS_STATUS'] = 1
+                    nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T2w.nii.gz"
                 
-        #         # make sym link between /PUBLIC and /dataset
-        #         # print(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
-        #        # os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
-
-
+                # make sym link between /PUBLIC and /dataset
+                print(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
+                # os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
 
     print(uid_df.head())
-    # uid_df.to_csv(os.path.join(adni_data_dir,mrilist_uids_filelocs),index=False,header=True)
+    uid_df.to_csv(os.path.join(adni_data_dir,mrilist_uids_filelocs),index=False,header=True)
 
 
 
@@ -383,14 +414,14 @@ mrilist_uids_filelocs='mrilist_uids_filelocs.csv'
 
 registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
 # for csvfile in csvlist:
-#     preprocess_new(csvfile, adni_data_dir, registry=registry_df)
-# preprocess_new(csvlist[2], adni_data_dir, registry=registry_df)
+#     preprocess_new(csvfile, registry=registry_df)
+# preprocess_new(csvlist[2], registry=registry_df)
 
-# merge_for_mri(clean_csvlist, adni_data_dir)
+# merge_for_mri(clean_csvlist)
 
-# update_mri_list()
+update_mri_list(os.path.join(adni_data_dir,mrilist_uids))
 
-file_locs(os.path.join(adni_data_dir,mrilist_uids))
+# file_locs(os.path.join(adni_data_dir,mrilist_uids))
 
 
 
