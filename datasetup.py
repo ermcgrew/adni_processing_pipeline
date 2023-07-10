@@ -3,6 +3,7 @@
 import pandas as pd
 import os
 import csv
+import logging
 import subprocess
 from processing import adni_data_dir
 
@@ -323,30 +324,51 @@ def file_locs(uid_csv):
     for index,row in uid_df.iterrows():
         id = str(row['ID'])
         scandate = str(row['SMARTDATE'])
-        # print(id)
-        # print(scandate)
-        uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
-        for key in uids:
-            # print(uids[key])
-            result = subprocess.run(
-                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,uids[key]],  
-                capture_output=True, text=True)
-            ##handle any errors 
-            # print(result.stdout)
-            result_list = result.stdout.split("\n")
-            status = result_list[0]
-            print(f"Status: {status}") # status goes to log file
+        nifti_file_loc_dataset_prefix = f"{adni_data_dir}/{id}/{scandate}/{scandate}_{id}"
 
-            if status == "conversion to nifti sucessful":
-                nifti_file_loc = result_list[1]
-                print(f"Nifti filepath: {nifti_file_loc}")
-                if key == "t1_uid":
-                    uid_df.at[index,'FINALT1NIFTI'] = nifti_file_loc
-                elif key == "t2_uid":
-                    uid_df.at[index,'FINALT2NIFTI'] = nifti_file_loc
-    
-    # print(uid_df.head())
-    uid_df.to_csv(os.path.join(adni_data_dir,mrilist_uids_filelocs),index=False,header=True)
+        ##fill in site vendor & model info
+        site = id.split("_")[0]
+        siteinfo_result = subprocess.run(
+            ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
+             capture_output=True, text=True)
+        siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
+        siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
+        for i in range(0,len(siteinfo_result_list)):
+            uid_df.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
+
+        # uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
+        # for key in uids:
+        #     # print(uids[key])
+        #     result = subprocess.run(
+        #         ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,uids[key]],  
+        #         capture_output=True, text=True)
+        #     ##handle any errors 
+        #     # print(result.stdout)
+        #     result_list = result.stdout.split("\n")
+        #     status = result_list[0]
+        #     # print(f"Status: {status}")
+        #     logging.info(f"{id}:{scandate}:Nifti conversion status is:{status}")
+
+        #     if status == "conversion to nifti sucessful":
+        #         nifti_file_loc_public = result_list[1]
+        #         # print(f"Nifti filepath: {nifti_file_loc_public}")
+        #         if key == "t1_uid":
+        #             uid_df.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
+        #             uid_df.at[index,'T1_PROCESS_STATUS'] = 1
+        #             nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T1w.nii.gz"
+        #         elif key == "t2_uid":
+        #             uid_df.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
+        #             uid_df.at[index,'T2_PROCESS_STATUS'] = 1
+        #             nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T2w.nii.gz"
+                
+        #         # make sym link between /PUBLIC and /dataset
+        #         # print(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
+        #        # os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
+
+
+
+    print(uid_df.head())
+    # uid_df.to_csv(os.path.join(adni_data_dir,mrilist_uids_filelocs),index=False,header=True)
 
 
 
@@ -368,7 +390,7 @@ registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
 
 # update_mri_list()
 
-# file_locs(os.path.join(adni_data_dir,mrilist_uids))
+file_locs(os.path.join(adni_data_dir,mrilist_uids))
 
 
 
