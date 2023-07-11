@@ -3,6 +3,7 @@ import csv
 import datetime
 import logging
 import os
+import pandas
 # Classes
 from processing import MRI, AmyloidPET, TauPET, MRIPetReg
 #variables
@@ -42,15 +43,15 @@ def open_csv():
 
 def main(mode):
     #### already have new scans downloaded to cluster
-    # os.system(bash organize_files.sh)
+    # os.system(bash organize_files.sh) #run once overall
 
     ###### set mode here?--mri, pet, or mri/pet anchor
     #### already have adni spreadsheets saved in clustr
     # os.system(python datasetup.py) to get UID & fileloc lists 
 
-    # open_csv() #fileloc.csv
+    # 
         #### for each subject, date:
-        ####fileloc.csv as df, include status so only those w/ new nifti are processed?
+        ####uid.csv as df, include status so only those w/ new nifti are processed?
 
 
             subject = "099_S_6175"

@@ -227,7 +227,7 @@ def merge_for_mri(clean_csvlist):
 
     ## columns to use from each df:
     mrimetacols=['RID','SMARTDATE','FIELD_STRENGTH','VISCODE', 'VISCODE2']
-    mrilistcols=['RID','MRITYPE','SMARTDATE', 'IMAGEUID', 'T1ACCE', 'PHASE','SUBJECT', 'SEQUENCE']
+    mrilistcols=['RID','MRITYPE','SMARTDATE', 'IMAGEUID', 'T1ACCE', 'PHASE', 'SUBJECT']
     mrimeta_df_small = mrimeta_df[mrimetacols]
     mrilist_df_small = mrilist_df[mrilistcols]
 
@@ -302,7 +302,6 @@ def merge_for_mri(clean_csvlist):
                     ['IMAGUID_T1','T1ISACCE', 'IMAGUID_T2', 'NT1NONEACCE','IMAGEUID_T1NONEACCE', 
                     'NT1ACCE', 'IMAGEUID_T1ACCE', 'NT2','IMAGEUID_T2ALL']
                         ] = datalisttoadd
-    
 
     outputdf.info()
 
@@ -313,37 +312,41 @@ def merge_for_mri(clean_csvlist):
     return
 
 
-def update_mri_list(new_uids):
-    #compare output of merge_for_mri function to previous mri_with_uid list
-    oldmrilist="/project/hippogang_1/srdas/wd/TAUPET/longnew/longADNI/RefreshT1T2NIFTI_10172022/MRI3TListWithNIFTIPath_10172022.tsv"
-    oldmrilist_df = pd.read_csv(oldmrilist,sep="\t")
-    oldmrilist_df['IMAGEUID_T1'] =  oldmrilist_df['IMAGEUID_T1'].astype(str)
-    oldmrilist_df['IMAGEUID_T2'] =  oldmrilist_df['IMAGEUID_T2'].astype(str)
+def identify_new_scans(new_uids_csv,old_uid_csv):
+    #compare output of merge_for_mri function to previous mri_uid list
+    old_uids_df = pd.read_csv(old_uid_csv,sep="\t")
+    old_uids_df['IMAGEUID_T1'] =  old_uids_df['IMAGEUID_T1'].astype(str)
+    old_uids_df['IMAGEUID_T2'] =  old_uids_df['IMAGEUID_T2'].astype(str)
 
-    newuids_df = pd.read_csv(new_uids)
-    # print(newuids_df.head())
-    for index,row in newuids_df.iterrows():
+    new_uids_df = pd.read_csv(new_uids_csv)
+    for index,row in new_uids_df.iterrows():
         id = str(row['ID'])
         scandate = str(row['SMARTDATE'])
-        match = oldmrilist_df.loc[(oldmrilist_df['ID'] == id) & (oldmrilist_df['SCANDATE'] == scandate)]
-        if len(match) == 1:
-            # check uids
-            if str(row['IMAGUID_T1']) == match['IMAGEUID_T1'].values.tolist()[0].split(".")[0]:
-                print("T1: same uid, already processed")
-            else:
-                logging.info(f"New uid selected from data")
-            
-            if str(row['IMAGUID_T2']).split('.')[0] == match['IMAGEUID_T2'].values.tolist()[0].split(".")[0]:
-                print("T2: same uid, already processed")
-            else:
-                logging.info(f"New uid selected from data")
 
-        elif len(match) < 1:
-            print("new scan")
-            
+        #find each row from newuid.csv in olduid.csv
+        match_in_old = old_uids_df.loc[(old_uids_df['ID'] == id) & (old_uids_df['SCANDATE'] == scandate)]
+        if len(match_in_old) == 1:
+            # check uids: T1
+            if str(row['IMAGUID_T1']) == match_in_old['IMAGEUID_T1'].values.tolist()[0].split(".")[0]:
+                new_uids_df.at[index,'NEW_currentdate'] = 0            
+            else:
+                logging.debug(f"{id}:{scandate}:New uid selected from adni csv data")
+                new_uids_df.at[index,'NEW_currentdate'] = 2
+            # check uids: T2
+            if str(row['IMAGUID_T2']).split('.')[0] == match_in_old['IMAGEUID_T2'].values.tolist()[0].split(".")[0]:
+                new_uids_df.at[index,'NEW_currentdate'] = 0            
+            else:
+                logging.debug(f"{id}:{scandate}:New uid selected from adni csv data")
+                new_uids_df.at[index,'NEW_currentdate'] = 2
+        elif len(match_in_old) < 1:
+            logging.info(f"{id}:{scandate}:New scan to process")
+            new_uids_df.at[index,'NEW_currentdate'] = 1
         else:
-            print("duplicate entry")
-    
+            logging.debug(f"{id}:{scandate}:Duplicate entries in previous uid.csv")
+            new_uids_df.at[index,'NEW_currentdate'] = 2
+
+    new_uids_df.to_csv(os.path.join(adni_data_dir, mri_uids_new), index=False, header=True)
+
 
 def file_locs(uid_csv):
     uid_df = pd.read_csv(uid_csv)
@@ -409,7 +412,9 @@ registry_csv = "REGISTRY_12Jun2023.csv"
 csvlist = ["MRI3META_12Jun2023.csv","MRILIST_12Jun2023.csv", "PET_META_LIST_30Jun2023.csv"]
 clean_csvlist = [csvfile.replace('.csv', '_clean.csv') for csvfile in csvlist]
 mrilist_uids='mrilist_with_uids_smalltest.csv'
+mri_uids_new = "mri_uids_new.csv"
 mrilist_uids_filelocs='mrilist_uids_filelocs.csv'
+oldmrilist="/project/hippogang_1/srdas/wd/TAUPET/longnew/longADNI/RefreshT1T2NIFTI_10172022/MRI3TListWithNIFTIPath_10172022.tsv"
 
 
 registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
@@ -419,7 +424,7 @@ registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
 
 # merge_for_mri(clean_csvlist)
 
-update_mri_list(os.path.join(adni_data_dir,mrilist_uids))
+identify_new_scans(os.path.join(adni_data_dir,mrilist_uids),oldmrilist)
 
 # file_locs(os.path.join(adni_data_dir,mrilist_uids))
 
