@@ -5,7 +5,7 @@ import os
 import csv
 import logging
 import subprocess
-from processing import adni_data_dir
+from processing import adni_data_dir, csvs_dir, csvs_dirs_dict
 
 #from vergnet_db/csv_preprocessing.py
 # Helper function to set rid, viscode, phase in MRI/PET tables
@@ -92,7 +92,7 @@ def preprocess_new(csvfilename, registry=None):
             reg_vc2_date_dict[rid][vc2] = edate
 
     # Read the CSV file into a PANDAS dataframe
-    df = pd.read_csv(os.path.join(adni_data_dir, csvfilename))
+    df = pd.read_csv(os.path.join(download_dir_path, csvfilename))
     print(f"Reading dataframe: {csvfilename}")
 
     # Rename lowercase columns, examdate
@@ -199,7 +199,7 @@ def preprocess_new(csvfilename, registry=None):
 
     print(f"writing {csvfilename} to file")
     # Write to file
-    df.to_csv(os.path.join(adni_data_dir, csvfilename.replace('.csv', '_clean.csv')),
+    df.to_csv(os.path.join(download_dir_path, csvfilename.replace('.csv', '_clean.csv')),
                 index=False, quoting=csv.QUOTE_ALL,
                 date_format='%Y-%m-%d')
 
@@ -218,12 +218,15 @@ def get_uids(dataframe, which="smallest"):
         return
     
 
-def merge_for_mri(clean_csvlist):
-    mrimeta_df = pd.read_csv(os.path.join(adni_data_dir,clean_csvlist[0]))
-    mrilist_df = pd.read_csv(os.path.join(adni_data_dir,clean_csvlist[1]))
+def merge_for_mri(mri_csvs):
+    meta_csv = [file for file in mri_csvs if "META" in file]
+    mrilist_csv = [file for file in mri_csvs if "LIST" in file]
+    mrimeta_df = pd.read_csv(os.path.join(download_dir_path,meta_csv))
+    mrilist_df = pd.read_csv(os.path.join(download_dir_path,mrilist_csv))
     
     print(mrimeta_df.head())
     print(mrilist_df.head())
+    # return
 
     ## columns to use from each df:
     mrimetacols=['RID','SMARTDATE','FIELD_STRENGTH','VISCODE', 'VISCODE2']
@@ -348,85 +351,95 @@ def identify_new_scans(new_uids_csv,old_uid_csv):
     new_uids_df.to_csv(os.path.join(adni_data_dir, mri_uids_new), index=False, header=True)
 
 
-def file_locs(uid_csv):
-    uid_df = pd.read_csv(uid_csv)
-    # print(uid_df.head())
-    for index,row in uid_df.iterrows():
-        #only do if status == 1
-        id = str(row['ID'])
-        scandate = str(row['SMARTDATE'])
-        nifti_file_loc_dataset_prefix = f"{adni_data_dir}/{id}/{scandate}/{scandate}_{id}"
+# oldmrilist="/project/hippogang_1/srdas/wd/TAUPET/longnew/longADNI/RefreshT1T2NIFTI_10172022/MRI3TListWithNIFTIPath_10172022.tsv"
+# def file_locs(uid_csv):
+#     uid_df = pd.read_csv(uid_csv)
+#     # print(uid_df.head())
+#     for index,row in uid_df.iterrows():
+#         #only do if status == 1
+#         id = str(row['ID'])
+#         scandate = str(row['SMARTDATE'])
+#         nifti_file_loc_dataset_prefix = f"{adni_data_dir}/{id}/{scandate}/{scandate}_{id}"
 
-        ##fill in site vendor & model info
-        site = id.split("_")[0]
-        siteinfo_result = subprocess.run(
-            ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
-             capture_output=True, text=True)
-        siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
-        siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
-        for i in range(0,len(siteinfo_result_list)):
-            uid_df.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
+#         ##fill in site vendor & model info
+#         site = id.split("_")[0]
+#         siteinfo_result = subprocess.run(
+#             ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
+#              capture_output=True, text=True)
+#         siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
+#         siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
+#         for i in range(0,len(siteinfo_result_list)):
+#             uid_df.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
 
-        #baseline scan date
-        alldates = uid_df.loc[uid_df['ID'] == id]['SMARTDATE'].values.tolist()
-        alldates.sort()
-        uid_df.at[index,"BLSCANDATE"] = alldates[0]
+#         #baseline scan date
+#         alldates = uid_df.loc[uid_df['ID'] == id]['SMARTDATE'].values.tolist()
+#         alldates.sort()
+#         uid_df.at[index,"BLSCANDATE"] = alldates[0]
 
-        ##get file location & make symlink
-        ##set uids keys only for the correspoding status=1
-        uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
-        for key in uids:
-            # print(uids[key])
-            result = subprocess.run(
-                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,uids[key]],  
-                capture_output=True, text=True)
-            ##handle any errors 
-            result_list = result.stdout.split("\n")
-            status = result_list[0]
-            logging.info(f"{id}:{scandate}:Nifti conversion status is:{status}")
+#         ##get file location & make symlink
+#         ##set uids keys only for the correspoding status=1
+#         uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
+#         for key in uids:
+#             # print(uids[key])
+#             result = subprocess.run(
+#                 ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,uids[key]],  
+#                 capture_output=True, text=True)
+#             ##handle any errors 
+#             result_list = result.stdout.split("\n")
+#             status = result_list[0]
+#             logging.info(f"{id}:{scandate}:Nifti conversion status is:{status}")
 
-            if status == "conversion to nifti sucessful":
-                nifti_file_loc_public = result_list[1]
-                # print(f"Nifti filepath: {nifti_file_loc_public}")
-                if key == "t1_uid":
-                    uid_df.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
-                    uid_df.at[index,'T1_PROCESS_STATUS'] = 1
-                    nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T1w.nii.gz"
-                elif key == "t2_uid":
-                    uid_df.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
-                    uid_df.at[index,'T2_PROCESS_STATUS'] = 1
-                    nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T2w.nii.gz"
+#             if status == "conversion to nifti sucessful":
+#                 nifti_file_loc_public = result_list[1]
+#                 # print(f"Nifti filepath: {nifti_file_loc_public}")
+#                 if key == "t1_uid":
+#                     uid_df.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
+#                     uid_df.at[index,'T1_PROCESS_STATUS'] = 1
+#                     nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T1w.nii.gz"
+#                 elif key == "t2_uid":
+#                     uid_df.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
+#                     uid_df.at[index,'T2_PROCESS_STATUS'] = 1
+#                     nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T2w.nii.gz"
                 
-                # make sym link between /PUBLIC and /dataset
-                print(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
-                # os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
+#                 # make sym link between /PUBLIC and /dataset
+#                 print(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
+#                 # os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
 
-    print(uid_df.head())
-    uid_df.to_csv(os.path.join(adni_data_dir,mrilist_uids_filelocs),index=False,header=True)
+#     print(uid_df.head())
+#     # uid_df.to_csv(os.path.join(adni_data_dir,mrilist_uids_filelocs),index=False,header=True)
 
 
 
 
 ##programmatic way to get csvs--grab names from specific directory on cluster
-registry_csv = "REGISTRY_12Jun2023.csv"
-csvlist = ["MRI3META_12Jun2023.csv","MRILIST_12Jun2023.csv", "PET_META_LIST_30Jun2023.csv"]
-clean_csvlist = [csvfile.replace('.csv', '_clean.csv') for csvfile in csvlist]
+
 mrilist_uids='mrilist_with_uids_smalltest.csv'
 mri_uids_new = "mri_uids_new.csv"
 mrilist_uids_filelocs='mrilist_uids_filelocs.csv'
-oldmrilist="/project/hippogang_1/srdas/wd/TAUPET/longnew/longADNI/RefreshT1T2NIFTI_10172022/MRI3TListWithNIFTIPath_10172022.tsv"
 
 
-registry_df = pd.read_csv(os.path.join(adni_data_dir,registry_csv))
+#list directories, sort, get those with most recent date and add to a new list
+all_csvs_dirs = os.listdir(csvs_dir)
+all_csvs_dirs.sort(reverse = True)
+csvs_dirs_list = all_csvs_dirs[0:4]
+
+for key in csvs_dirs_dict:
+    csvs_dirs_dict[key] = [x for x in csvs_dirs_list if key in x][0]
+
+#All csv's downloaded from ida.loni.usc.edu
+csvlist = os.listdir(os.path.join(csvs_dir,csvs_dirs_dict["ida_study_datasheets"]))
+clean_csvlist = [csvfile.replace('.csv', '_clean.csv') for csvfile in csvlist]
+download_dir_path = os.path.join(csvs_dir,csvs_dirs_dict["ida_study_datasheets"])
+
+registry_csv = [file for file in csvlist if "REGISTRY" in file][0]
+registry_df = pd.read_csv(os.path.join(download_dir_path,registry_csv))
+
+## id mri files for merge
+csvs_mri_merge = [file for file in clean_csvlist if "MRI3META" in file or "MRILIST" in file]
+
 # for csvfile in csvlist:
 #     preprocess_new(csvfile, registry=registry_df)
-# preprocess_new(csvlist[2], registry=registry_df)
 
-# merge_for_mri(clean_csvlist)
+# merge_for_mri(csvs_mri_merge)
 
-identify_new_scans(os.path.join(adni_data_dir,mrilist_uids),oldmrilist)
-
-# file_locs(os.path.join(adni_data_dir,mrilist_uids))
-
-
-
+# identify_new_scans(os.path.join(adni_data_dir,mrilist_uids),oldmrilist)
