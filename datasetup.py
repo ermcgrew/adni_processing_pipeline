@@ -5,7 +5,7 @@ import os
 import csv
 import logging
 import subprocess
-from processing import adni_data_dir, csvs_dir, csvs_dirs_dict
+from processing import csvs_dir, csvs_dirs_dict
 
 #from vergnet_db/csv_preprocessing.py
 # Helper function to set rid, viscode, phase in MRI/PET tables
@@ -93,7 +93,7 @@ def preprocess_new(csvfilename, registry=None):
 
     # Read the CSV file into a PANDAS dataframe
     df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"], csvfilename))
-    print(f"Reading dataframe: {csvfilename}")
+    logging.info(f"Datasetup.py/function preprocess_new is reading {csvfilename} into a dataframe")
 
     # Rename lowercase columns, examdate
     df = df.rename(columns={
@@ -142,8 +142,7 @@ def preprocess_new(csvfilename, registry=None):
 
         for i, row in df.iterrows():
             # Preprocess the PET we want
-            ###################
-            mi_pet = "Coreg, Avg, Std Img and Vox Siz, Uniform Resolution"
+            mi_pet = "Coreg, Avg, Std Img and Vox Siz, Uniform" ##TODO: this title has changed
             df.at[i, 'RIGHTONE'] = 1 if mi_pet in row['Sequence'] else 0
 
             # Preprocess PET scan type (TAU=1/Amyloid=2/other=0)
@@ -197,11 +196,11 @@ def preprocess_new(csvfilename, registry=None):
     # Make sure smartdate is in date format
     df['SMARTDATE'] = pd.to_datetime(df['SMARTDATE'], errors='coerce')
 
-    print(f"writing {csvfilename} to file")
     # Write to file
     df.to_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"], csvfilename.replace('.csv', '_clean.csv')),
                 index=False, quoting=csv.QUOTE_ALL,
                 date_format='%Y-%m-%d')
+    return
 
 
 def get_uids(dataframe, which="smallest"):
@@ -223,12 +222,8 @@ def merge_for_mri(mri_csvs):
     mrilist_csv = [file for file in mri_csvs if "LIST" in file][0]
     mrimeta_df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"],meta_csv))
     mrilist_df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"],mrilist_csv))
-    
-    print(mrimeta_df.head())
-    print(mrilist_df.head())
-    # return
 
-    ## columns to use from each df:
+    #columns to use from each df:
     mrimetacols=['RID','SMARTDATE','FIELD_STRENGTH','VISCODE', 'VISCODE2']
     mrilistcols=['RID','MRITYPE','SMARTDATE', 'IMAGEUID', 'T1ACCE', 'PHASE', 'SUBJECT']
     mrimeta_df_small = mrimeta_df[mrimetacols]
@@ -243,25 +238,20 @@ def merge_for_mri(mri_csvs):
         if subj in listuniq:
             newtotalsubs.append(subj)
 
-    print(f"total number of subjects is {len(newtotalsubs)}")
-
     outputdf=pd.DataFrame()
     index = 0
     for subject in newtotalsubs:
         subject_mrilist = mrilist_df_small.loc[mrilist_df_small['RID'] == subject]
-    #     print(f"Subject {subject} has {matches} rows in mrilist")
         dates = subject_mrilist['SMARTDATE'].unique()
-    #     print(f"Subject {subject} has {dates} scans in mrilist")
         for date in dates: 
             single_date_mrilist = subject_mrilist.loc[subject_mrilist['SMARTDATE'] == date]
             t1scans=single_date_mrilist.loc[single_date_mrilist['MRITYPE']== 0]
             t2scans=single_date_mrilist.loc[single_date_mrilist['MRITYPE']== 1]
 
             if len(t1scans) == 0 and len(t2scans) == 0:
-                print(f"No scans for {subject} {date} with index {index} Loop should do continue")
+                logging.info(f"{subject}:{date}:No T1 or T2 scans listed.")
                 continue
                 
-    #         print(f"Index to outputdf {index} {subject} {date}")
             outputdf.loc[index,['RID','SMARTDATE','ID','PHASE']] = [int(subject),date,
                                                         single_date_mrilist['SUBJECT'].tolist()[0],
                                                         single_date_mrilist['PHASE'].tolist()[0]]
@@ -269,12 +259,10 @@ def merge_for_mri(mri_csvs):
 
     ###T1#################################################################################################        
             if len(t1scans) > 0:
-                print(f"Finding t1 scans for {subject} {date}")
                 notacce = t1scans.loc[t1scans['T1ACCE'] == 0]
                 yesacce = t1scans.loc[t1scans['T1ACCE'] == 1]
 
                 if len(notacce) == 0:
-    #                 print(f"No un-accelerated T1 scans, use an accel t1 as main")
                     t1uid=get_uids(yesacce, "biggest") #return biggest UID
                     ist1acce='Y'
                 else: 
@@ -284,13 +272,11 @@ def merge_for_mri(mri_csvs):
                 notacce_t1_uids = ";".join(map(str, notacce['IMAGEUID'].tolist()))
                 yesacce_t1_uids = ";".join(map(str, yesacce['IMAGEUID'].tolist()))
             else:
-                #There aren't currently any sessions with a missing T1 but present T2, 
-                #so this else clause is never triggered. 
+                #There aren't currently any sessions with a missing T1 but present T2, so this else clause is never triggered. 
                 t1uid, ist1acce, notacce, notacce_t1_uids, yesacce, yesacce_t1_uids = [None,None,None,None,None,None]
                 
     ###T2#################################################################################################  
             if len(t2scans) > 0:
-                print(f"There is a T2 scan for {subject} {date}")
                 t2uid = get_uids(t2scans, "biggest")
                 allt2uids = ";".join(map(str, t2scans['IMAGEUID'].tolist()))
             else: 
@@ -306,11 +292,10 @@ def merge_for_mri(mri_csvs):
                     'NT1ACCE', 'IMAGEUID_T1ACCE', 'NT2','IMAGEUID_T2ALL']
                         ] = datalisttoadd
 
-    outputdf.info()
-
     alloutput = outputdf.merge(mrimeta_df_small, how='left',on=['RID','SMARTDATE'])
+    alloutput['RID'] = alloutput['RID'].astype(int)
     alloutput.info()
-    
+
     alloutput.to_csv(os.path.join(csvs_dirs_dict["merged_data_uids"],mri_uids),header=True,index=False)
     return
 
@@ -321,26 +306,46 @@ def identify_new_scans(new_uids_csv,old_uid_csv):
     old_uids_df['IMAGEUID_T1'] =  old_uids_df['IMAGEUID_T1'].astype(str)
     old_uids_df['IMAGEUID_T2'] =  old_uids_df['IMAGEUID_T2'].astype(str)
 
+    # print(old_uids_df.info())
     new_uids_df = pd.read_csv(os.path.join(csvs_dirs_dict["merged_data_uids"],new_uids_csv))
+    # print(new_uids_df.info())
     for index,row in new_uids_df.iterrows():
-        id = str(row['ID'])
-        scandate = str(row['SMARTDATE'])
+        # id = str(row['ID'])
+        # scandate = str(row['SMARTDATE'])
+
+        id = row['ID']
+        scandate = row['SMARTDATE']
+        # print(id)
+        # print(scandate)
+        # print(row['IMAGUID_T1'])
+        
 
         #find each row from newuid.csv in olduid.csv
         match_in_old = old_uids_df.loc[(old_uids_df['ID'] == id) & (old_uids_df['SCANDATE'] == scandate)]
+        # print(match_in_old)
         if len(match_in_old) == 1:
             # check uids: T1
-            if str(row['IMAGUID_T1']) == match_in_old['IMAGEUID_T1'].values.tolist()[0].split(".")[0]:
-                new_uids_df.at[index,'NEW_currentdate'] = 0            
+            if str(row['IMAGUID_T1']).split('.')[0] == match_in_old['IMAGEUID_T1'].values.tolist()[0].split(".")[0]:
+                if match_in_old['FINALT1NIFTI'].values.tolist()[0]:
+                    new_uids_df.at[index,'NEW_currentdate'] = 0 
+                else:
+                    logging.debug(f"{id}:{scandate}:Previous nifti conversion failed")
+                    new_uids_df.at[index,'NEW_currentdate'] = 2
             else:
                 logging.debug(f"{id}:{scandate}:New uid selected from adni csv data")
                 new_uids_df.at[index,'NEW_currentdate'] = 2
+
             # check uids: T2
             if str(row['IMAGUID_T2']).split('.')[0] == match_in_old['IMAGEUID_T2'].values.tolist()[0].split(".")[0]:
-                new_uids_df.at[index,'NEW_currentdate'] = 0            
+                if match_in_old['FINALT2NIFTI'].values.tolist()[0]:
+                    new_uids_df.at[index,'NEW_currentdate'] = 0            
+                else:
+                    logging.debug(f"{id}:{scandate}:Previous nifti conversion failed")
+                    new_uids_df.at[index,'NEW_currentdate'] = 2
             else:
                 logging.debug(f"{id}:{scandate}:New uid selected from adni csv data")
                 new_uids_df.at[index,'NEW_currentdate'] = 2
+
         elif len(match_in_old) < 1:
             logging.info(f"{id}:{scandate}:New scan to process")
             new_uids_df.at[index,'NEW_currentdate'] = 1
@@ -348,7 +353,7 @@ def identify_new_scans(new_uids_csv,old_uid_csv):
             logging.debug(f"{id}:{scandate}:Duplicate entries in previous uid.csv")
             new_uids_df.at[index,'NEW_currentdate'] = 2
 
-    new_uids_df.to_csv(os.path.join(csvs_dirs_dict["uids_process_status"], mri_uids_processing), index=False, header=True)
+    # new_uids_df.to_csv(os.path.join(csvs_dirs_dict["uids_process_status"], mri_uids_processing), index=False, header=True)
 
 
 ### Set up variables for data locations
@@ -373,7 +378,8 @@ registry_df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"],re
 csvs_mri_merge = [file for file in clean_csvlist if "MRI3META" in file or "MRILIST" in file]
 
 #merged data csv names, join with csvs_dirs_dict["merged_data_uids"]
-mri_uids = "mri_uids.csv"
+# mri_uids = "mri_uids.csv"
+mri_uids = "mri_uids_smalltest.csv"
 tau_uids = "tau_uids.csv"
 amy_uids = "amy_uids.csv"
 
@@ -391,10 +397,12 @@ amy_uids_processing = "amy_uids_processing_status.csv"
 
 
 def main():
-    pass
+    # pass
     # for csvfile in csvlist:
     #     preprocess_new(csvfile, registry=registry_df)
 
     # merge_for_mri(csvs_mri_merge)
 
-    # identify_new_scans(mriuids, previous_mri_filelocs)
+    identify_new_scans(mri_uids, previous_mri_filelocs)
+
+main()

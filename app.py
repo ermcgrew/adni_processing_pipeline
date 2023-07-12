@@ -8,37 +8,10 @@ import pandas as pd
 from processing import MRI, AmyloidPET, TauPET, MRIPetReg
 #variables
 from processing import convert_to_nifti, wblabel_file, cleanup_dir, analysis_output_dir, current_date, pmtau_template_dir
+
+
 this_output_dir = f"{analysis_output_dir}/{current_date}"
 
-
-def reformat_dates(date):
-    MDYlist=date.split('/')
-    if len(MDYlist[0]) == 1:
-        month = "0" + MDYlist[0]
-    else:
-        month = MDYlist[0]
-    if  len(MDYlist[1]) == 1:
-        day = "0" + MDYlist[1]
-    else:
-        day=MDYlist[1]
-    year="20" + MDYlist[2]
-    return year + "-" + month + "-" + day
-
-
-def open_csv():
-    with open("../pipeline_test_data/MRI3TLIST_testdata.csv") as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        line_count = 0
-        for row in csv_reader:
-            if line_count == 0:
-                line_count+=1
-            else:
-                line_count+=1
-                subject = row[1]
-                if "/" in row[6]:
-                    mridate = reformat_dates(row[6])
-                else:
-                    mridate = row[6]
 
 
 def main(mode):
@@ -53,6 +26,7 @@ def main(mode):
 
 
     ####uid.csv as df, include status so only those w/ new nifti are processed?
+    # "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_uids_process_status/mri_uids_processing_status.csv"
     uid_df = pd.read_csv("/project/wolk/ADNI2018/scripts/pipeline_test_data/mri_uids_new.csv")
     
     scans_to_process = uid_df.loc[uid_df["NEW_currentdate"] == 1]

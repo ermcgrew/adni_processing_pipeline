@@ -33,13 +33,10 @@ csvs_dirs_dict = {"ida_study_datasheets" : "", "merged_data_uids":"", "uids_proc
 # adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
 adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 
-oldmrilist="/project/hippogang_1/srdas/wd/TAUPET/longnew/longADNI/RefreshT1T2NIFTI_10172022/MRI3TListWithNIFTIPath_10172022.tsv"
-
 
 #other variables
 sides = ["left", "right"]
 current_date = datetime.datetime.now().strftime("%Y_%m_%d")
-mri_uids_filelocs='mri_uids_filelocs.csv'
 
 
 #common functions
