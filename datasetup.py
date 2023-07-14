@@ -142,7 +142,8 @@ def preprocess_new(csvfilename, registry=None):
 
         for i, row in df.iterrows():
             # Preprocess the PET we want
-            mi_pet = "Coreg, Avg, Std Img and Vox Siz, Uniform" ##TODO: this title has changed
+            ##TODO: this title has changed
+            mi_pet = "Coreg, Avg, Std Img and Vox Siz, Uniform Resolution" 
             df.at[i, 'RIGHTONE'] = 1 if mi_pet in row['Sequence'] else 0
 
             # Preprocess PET scan type (TAU=1/Amyloid=2/other=0)
@@ -299,6 +300,54 @@ def merge_for_mri(mri_csvs):
     alloutput.to_csv(os.path.join(csvs_dirs_dict["merged_data_uids"],mri_uids),header=True,index=False)
     return
 
+def reformat_date_dash_to_slash(df):
+## object YYYY-MM-DD to M/D/YY
+    for index, row in df.iterrows():
+        datelist=row['SMARTDATE'].split('-')
+
+        if datelist[1][0] == '0':
+            month=datelist[1][1]
+        else:
+            month=datelist[1]
+
+        if datelist[2][0] == '0':
+            day=datelist[2][1]
+        else:
+            day=datelist[2]
+
+        dateslash=month + '/'+ day +'/'+ datelist[0][-2:]
+
+        df.at[index,'SMARTDATE']=dateslash
+    return df
+
+def pet_uids(petmeta):
+    petmeta_df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"],petmeta))
+    # print(petmeta_df.head())
+    for i in range(0,len(pet_uid_csv_list)):
+        print(pet_uid_csv_list[i])
+        logging.info(f"Datasetup.py/function pet_uids is collating data for {pet_uid_csv_list[i]}")
+        outputdf=pd.DataFrame()
+        meta_typex = petmeta_df.loc[petmeta_df['PETTYPE'] == i]
+
+        for subject in meta_typex['RID'].unique():
+            this_subject = meta_typex.loc[meta_typex['RID'] == subject]
+            dates = this_subject['SMARTDATE'].unique()
+            for date in dates: 
+                match = meta_typex.loc[(meta_typex['RID']== subject) & (meta_typex['SMARTDATE'] == date) & (meta_typex['RIGHTONE'] == 1)]
+                if len(match) == 0:
+                    continue
+                else:
+                    outputdf = pd.concat([outputdf,match],ignore_index = True)
+
+        outputdf.drop(columns=['Orig_Proc','VISIT', 'SCANDATE','SMARTDATESRC','PETTYPE','RIGHTONE'],inplace=True)
+        outputdf.rename(columns={"SUBJECT":'ID'},inplace=True)
+        outputdf_dates = reformat_date_dash_to_slash(outputdf)
+        outputdf_dates.columns = outputdf_dates.columns.str.upper()
+        querymergedf = outputdf_dates[['RID', 'ID', 'VISCODE', 'VISCODE2', 'PHASE', 'SMARTDATE', 'SEQUENCE',
+       'STUDYID', 'SERIESID', 'IMAGEID']]
+        # print(querymergedf.info())
+        querymergedf.to_csv(os.path.join(csvs_dirs_dict["merged_data_uids"],pet_uid_csv_list[i]),header=True,index=False)
+
 
 def identify_new_scans(new_uids_csv,old_uid_csv):
     #compare output of merge_for_mri function to previous mri_uid list
@@ -377,11 +426,14 @@ registry_df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"],re
 #mri files to merge
 csvs_mri_merge = [file for file in clean_csvlist if "MRI3META" in file or "MRILIST" in file]
 
+#grab PET META LIST
+pet_meta_list = [file for file in clean_csvlist if 'PET_META_LIST' in file][0]
+
+
 #merged data csv names, join with csvs_dirs_dict["merged_data_uids"]
 # mri_uids = "mri_uids.csv"
 mri_uids = "mri_uids_smalltest.csv"
-tau_uids = "tau_uids.csv"
-amy_uids = "amy_uids.csv"
+pet_uid_csv_list = ["fdg_uids.csv","amy_uids.csv","tau_uids.csv"]
 
 ##get previous filepath file for comparison to new uids
 ##TODO: use uids csv instead of filepath one?
@@ -403,6 +455,8 @@ def main():
 
     # merge_for_mri(csvs_mri_merge)
 
-    identify_new_scans(mri_uids, previous_mri_filelocs)
+    pet_uids(pet_meta_list)
+
+    # identify_new_scans(mri_uids, previous_mri_filelocs)
 
 main()
