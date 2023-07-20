@@ -82,24 +82,17 @@ def wait_for_file(file):
 
 
 def convert_to_nifti(scanclass,uids):
-    # uid_df = pd.read_csv(uid_csv)
-    # print(uid_df.head())
-    # for index,row in uid_df.iterrows():
-        # id = str(row['ID'])
-        # scandate = str(row['SMARTDATE'])
-        # nifti_file_loc_dataset_prefix = f"{adni_data_dir}/{id}/{scandate}/{scandate}_{id}"
-        # uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
         print("In convert_to_nifti function")
         id = scanclass.id
-        scandate = scanclass.mridate
+        scandate = scanclass.mridate ########
+        scantype = scanclass.__class__.__name__
         # print(id)
         # print(scandate)
         for key in uids:
-            # print(uids[key])
             result = subprocess.run(
-                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,uids[key]],  
+                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,uids[key],scantype],  
                 capture_output=True, text=True)
-            ##handle any errors 
+            ##TODO: handle any errors 
             result_list = result.stdout.split("\n")
             status = result_list[0]
             logging.info(f"{id}:{scandate}:Nifti conversion status is:{status}")
@@ -119,8 +112,6 @@ def convert_to_nifti(scanclass,uids):
                 # make sym link between /PUBLIC and /dataset
                 print(f"ln -sf {nifti_file_loc_public} {scanclass.t1nifti}") 
                 # os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
-
-
 
 
     #     #fill in site vendor & model info
@@ -150,7 +141,6 @@ class MRI:
     def __init__(self, subject, mridate):
         self.id = subject
         self.mridate = mridate
-        self.T1_dicom_filepath = f"/project/wolk/PUBLIC/Dicoms/{self.id}/MRI3T/{self.mridate}/"
         self.filepath=f"{adni_data_dir}/{self.id}/{self.mridate}"
         self.date_id_prefix = f"{self.mridate}_{self.id}"
         
@@ -457,7 +447,14 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
-mri_to_process = MRI("126_S_6721", "2021-05-05")
+uid_df = pd.read_csv("/project/wolk/ADNI2018/scripts/pipeline_test_data/mrilist_with_uids_smalltest.csv")
+for index, row in uid_df.iterrows():
+        subject = str(row['ID'])
+        mridate = str(row['SMARTDATE'])
+        uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
+
+        mri_to_process = MRI(subject,mridate)
+        convert_to_nifti(mri_to_process, uids)
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
