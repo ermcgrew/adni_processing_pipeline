@@ -14,30 +14,19 @@ from processing import convert_to_nifti, wblabel_file, cleanup_dir, analysis_out
 this_output_dir = f"{analysis_output_dir}/{current_date}"
 
 
+
 def main(mode):
     #### already have new scans downloaded to cluster
     # os.system(bash organize_files.sh) #run once overall
     print(f"bash organize_files.sh --symlink, unzip, rsync")
 
+    ###### set mode here?--mri, pet, or mri/pet anchor
     #### already have adni spreadsheets saved in clustr
     # os.system(python datasetup.py) to get UID & fileloc lists 
     print(f"python datasetup.py --cleans ADNI csvs, merges data and selects correct UIDs")
 
 
-
-    ##do nifti conversion for T1, T2, tau, amy
-        #for mri, amy, tau csv sheets in /date_uids_process_status/:
-            #pd.read_csv
-
-
-
-    #do mri processing
-
-    #do tau-mri processing
-    #do amy-mri processing
-
-
-
+    ####uid.csv as df, include status so only those w/ new nifti are processed?
     # "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_uids_process_status/mri_uids_processing_status.csv"
     uid_df = pd.read_csv("/project/wolk/ADNI2018/scripts/pipeline_test_data/mri_uids_new.csv")
     scans_to_process = uid_df.loc[uid_df["NEW_currentdate"] == 1]
@@ -58,7 +47,7 @@ def main(mode):
             uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
             for key in uids:
                 result = subprocess.run(
-                    ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
+                    ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",\
                     mri_to_process.id,mri_to_process.mridate,uids[key],mri_to_process.__class__.__name__], 
                     capture_output=True, text=True)
                 ##TODO: handle any errors 
