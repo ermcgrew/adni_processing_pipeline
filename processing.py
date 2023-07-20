@@ -27,8 +27,8 @@ pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
 cleanup_dir = f"{analysis_input_dir}/cleanup"
-csvs_dir = f"{analysis_input_dir}/adni_data_setup_csvs"
-csvs_dirs_dict = {"ida_study_datasheets" : "", "merged_data_uids":"", "uids_process_status":"", "filelocs":""}
+adni_data_setup_csvs_directory = f"{analysis_input_dir}/adni_data_setup_csvs"
+datasetup_directories_path = {"ida_study_datasheets" : "", "merged_data_uids":"", "uids_process_status":"", "filelocs":""}
 
 # adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
 adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
