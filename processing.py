@@ -27,8 +27,6 @@ pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
 cleanup_dir = f"{analysis_input_dir}/cleanup"
-adni_data_setup_csvs_directory = f"{analysis_input_dir}/adni_data_setup_csvs"
-datasetup_directories_path = {"ida_study_datasheets" : "", "merged_data_uids":"", "uids_process_status":"", "filelocs":""}
 
 # adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
 adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
@@ -90,7 +88,7 @@ def convert_to_nifti(scanclass,uids):
         # print(scandate)
         for key in uids:
             result = subprocess.run(
-                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/nifti_file.sh",id,scandate,uids[key],scantype],  
+                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",id,scandate,uids[key],scantype],  
                 capture_output=True, text=True)
             ##TODO: handle any errors 
             result_list = result.stdout.split("\n")
@@ -447,14 +445,14 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
-uid_df = pd.read_csv("/project/wolk/ADNI2018/scripts/pipeline_test_data/mrilist_with_uids_smalltest.csv")
-for index, row in uid_df.iterrows():
-        subject = str(row['ID'])
-        mridate = str(row['SMARTDATE'])
-        uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
+# uid_df = pd.read_csv("/project/wolk/ADNI2018/scripts/pipeline_test_data/mrilist_with_uids_smalltest.csv")
+# for index, row in uid_df.iterrows():
+#         subject = str(row['ID'])
+#         mridate = str(row['SMARTDATE'])
+#         uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
 
-        mri_to_process = MRI(subject,mridate)
-        convert_to_nifti(mri_to_process, uids)
+#         mri_to_process = MRI(subject,mridate)
+#         convert_to_nifti(mri_to_process, uids)
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")

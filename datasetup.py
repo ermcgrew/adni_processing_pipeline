@@ -5,7 +5,7 @@ import os
 import csv
 import logging
 import subprocess
-from processing import adni_data_setup_csvs_directory, datasetup_directories_path
+from config import *
 
 #from vergnet_db/csv_preprocessing.py
 # Helper function to set rid, viscode, phase in MRI/PET tables
@@ -424,71 +424,18 @@ def identify_new_scans(new_uids_csv,old_uid_csv):
     # new_uids_df.to_csv(os.path.join(datasetup_directories_path["uids_process_status"], mri_uids_processing), index=False, header=True)
 
 
-#### Data location variables #####
-#list all directories with adni data setup sheets, then select those for newest date
-# adni_data_setup_csvs_directory = /project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs
-adni_data_csvs_directories_allruns = os.listdir(adni_data_setup_csvs_directory)
-adni_data_csvs_directories_allruns.sort(reverse = True)
-adni_data_csvs_directories_thisrun = adni_data_csvs_directories_allruns[0:4]
-
-for key in datasetup_directories_path:
-    basename = [x for x in adni_data_csvs_directories_thisrun if key in x][0]
-    datasetup_directories_path[key] = os.path.join(adni_data_setup_csvs_directory, basename)
-
-#All csv's downloaded from ida.loni.usc.edu
-original_ida_datasheets = os.listdir(datasetup_directories_path["ida_study_datasheets"])
-cleaned_ida_datasheets = [csvfile.replace('.csv', '_clean.csv') for csvfile in original_ida_datasheets]
-
-#registry file
-registry_csv = [file for file in original_ida_datasheets if "REGISTRY" in file][0]
-registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
-
-#Files to merge/filter for UIDs
-csvs_mri_merge = [file for file in cleaned_ida_datasheets if "MRI3META" in file or "MRILIST" in file]
-pet_meta_list = [file for file in cleaned_ida_datasheets if 'PET_META_LIST' in file][0]
-
-#merged data csv names, join with datasetup_directories_path["merged_data_uids"]
-# mri_uids = "mri_uids.csv"
-mri_uids = "mri_uids_smalltest.csv"
-pet_uid_csv_list = ["fdg_uids.csv","amy_uids.csv","tau_uids.csv"]
-
-#processing status csv names, join with datasetup_directories_path["uids_process_status"]
-mri_uids_processing = "mri_uids_processing_status.csv"
-tau_uids_processing = "tau_uids_processing_status.csv"
-amy_uids_processing = "amy_uids_processing_status.csv"
-
-
-##get previous run's filepath files for comparison to new uids
-##TODO: use uids csv instead of filepath one?
-# fileloc_directory_previousrun_basename = [x for x in adni_data_csvs_directories_allruns[4:8] if "fileloc" in x][0]
-# fileloc_directory_previousrun = os.path.join(adni_data_setup_csvs_directory,fileloc_directory_previousrun_basename)
-# previous_filelocs_csvs = os.listdir(fileloc_directory_previousrun)
-# previous_mri_filelocs = [x for x in previous_filelocs_csvs if "MRI" in x][0]
-
-
-# mergeduids_directory_previousrun_basename = [x for x in adni_data_csvs_directories_allruns[4:8] if "merge" in x][0]
-# mergeduids_directory_previousrun=os.path.join(adni_data_setup_csvs_directory,mergeduids_directory_previousrun_basename)
-
-# scantype_dictionary = {"MRI":"","AMY":"","TAU":"","FDG":""}
-# for key in scantype_dictionary:
-#    current_uid_csv = [x for x in os.listdir(datasetup_directories_path["merged_data_uids"]) if key.casefold() in x or key in x]
-#    previous_uid_csv = [x for x in os.listdir(mergeduids_directory_previousrun) if key.casefold() in x or key in x]
-#    scantype_dictionary[key] = current_uid_csv + previous_uid_csv
-   
-# print(scantype_dictionary)
-
 def main():
+    registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
+
     # for csvfile in csvlist:
     #     preprocess_new(csvfile, registry=registry_df)
-
 
     # create_mri_uid_list(csvs_mri_merge)
     # create_pet_uid_list(pet_meta_list) #function goes through all 3 pet types
 
-    
     # identify_new_scans(mri_uids, previous_mri_filelocs)
-    identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/tau_uids.csv",\
-        "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/taulist_dec15_2022_fileloc_2022-12-20.tsv")
+    # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/tau_uids.csv",\
+    #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/taulist_dec15_2022_fileloc_2022-12-20.tsv")
 
 
 main()
