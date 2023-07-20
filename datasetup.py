@@ -5,7 +5,7 @@ import os
 import csv
 import logging
 import subprocess
-from processing import csvs_dir, csvs_dirs_dict
+from processing import adni_data_setup_csvs_directory, datasetup_directories_path
 
 #from vergnet_db/csv_preprocessing.py
 # Helper function to set rid, viscode, phase in MRI/PET tables
@@ -92,7 +92,7 @@ def preprocess_new(csvfilename, registry=None):
             reg_vc2_date_dict[rid][vc2] = edate
 
     # Read the CSV file into a PANDAS dataframe
-    df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"], csvfilename))
+    df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"], csvfilename))
     logging.info(f"Datasetup.py/function preprocess_new is reading {csvfilename} into a dataframe")
 
     # Rename lowercase columns, examdate
@@ -198,13 +198,13 @@ def preprocess_new(csvfilename, registry=None):
     df['SMARTDATE'] = pd.to_datetime(df['SMARTDATE'], errors='coerce')
 
     # Write to file
-    df.to_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"], csvfilename.replace('.csv', '_clean.csv')),
+    df.to_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"], csvfilename.replace('.csv', '_clean.csv')),
                 index=False, quoting=csv.QUOTE_ALL,
                 date_format='%Y-%m-%d')
     return
 
 
-def get_uids(dataframe, which="smallest"):
+def sort_uids(dataframe, which="smallest"):
     if len(dataframe) == 1:
         return dataframe['IMAGEUID'].values[0]
     elif len(dataframe) >= 2:
@@ -218,11 +218,11 @@ def get_uids(dataframe, which="smallest"):
         return
     
 
-def merge_for_mri(mri_csvs):
+def create_mri_uid_list(mri_csvs):
     meta_csv = [file for file in mri_csvs if "META" in file][0]
     mrilist_csv = [file for file in mri_csvs if "LIST" in file][0]
-    mrimeta_df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"],meta_csv))
-    mrilist_df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"],mrilist_csv))
+    mrimeta_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],meta_csv))
+    mrilist_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],mrilist_csv))
 
     #columns to use from each df:
     mrimetacols=['RID','SMARTDATE','FIELD_STRENGTH','VISCODE', 'VISCODE2']
@@ -264,10 +264,10 @@ def merge_for_mri(mri_csvs):
                 yesacce = t1scans.loc[t1scans['T1ACCE'] == 1]
 
                 if len(notacce) == 0:
-                    t1uid=get_uids(yesacce, "biggest") #return biggest UID
+                    t1uid=sort_uids(yesacce, "biggest") #return biggest UID
                     ist1acce='Y'
                 else: 
-                    t1uid = get_uids(notacce) #return smallest UID is default in function
+                    t1uid = sort_uids(notacce) #return smallest UID is default in function
                     ist1acce='N'
 
                 notacce_t1_uids = ";".join(map(str, notacce['IMAGEUID'].tolist()))
@@ -278,7 +278,7 @@ def merge_for_mri(mri_csvs):
                 
     ###T2#################################################################################################  
             if len(t2scans) > 0:
-                t2uid = get_uids(t2scans, "biggest")
+                t2uid = sort_uids(t2scans, "biggest")
                 allt2uids = ";".join(map(str, t2scans['IMAGEUID'].tolist()))
             else: 
                 t2uid, allt2uids = [None,None]
@@ -297,8 +297,9 @@ def merge_for_mri(mri_csvs):
     alloutput['RID'] = alloutput['RID'].astype(int)
     alloutput.info()
 
-    alloutput.to_csv(os.path.join(csvs_dirs_dict["merged_data_uids"],mri_uids),header=True,index=False)
+    alloutput.to_csv(os.path.join(datasetup_directories_path["merged_data_uids"],mri_uids),header=True,index=False)
     return
+
 
 def reformat_date_dash_to_slash(df):
 ## object YYYY-MM-DD to M/D/YY
@@ -320,12 +321,13 @@ def reformat_date_dash_to_slash(df):
         df.at[index,'SMARTDATE']=dateslash
     return df
 
-def pet_uids(petmeta):
-    petmeta_df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"],petmeta))
+
+def create_pet_uid_list(petmeta):
+    petmeta_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],petmeta))
     # print(petmeta_df.head())
     for i in range(0,len(pet_uid_csv_list)):
-        print(pet_uid_csv_list[i])
-        logging.info(f"Datasetup.py/function pet_uids is collating data for {pet_uid_csv_list[i]}")
+        # print(pet_uid_csv_list[i])
+        logging.info(f"Datasetup.py/function create_pet_uid_list is collating data for {pet_uid_csv_list[i]}")
         outputdf=pd.DataFrame()
         meta_typex = petmeta_df.loc[petmeta_df['PETTYPE'] == i]
 
@@ -346,117 +348,147 @@ def pet_uids(petmeta):
         querymergedf = outputdf_dates[['RID', 'ID', 'VISCODE', 'VISCODE2', 'PHASE', 'SMARTDATE', 'SEQUENCE',
        'STUDYID', 'SERIESID', 'IMAGEID']]
         # print(querymergedf.info())
-        querymergedf.to_csv(os.path.join(csvs_dirs_dict["merged_data_uids"],pet_uid_csv_list[i]),header=True,index=False)
+        querymergedf.to_csv(os.path.join(datasetup_directories_path["merged_data_uids"],pet_uid_csv_list[i]),header=True,index=False)
 
 
 def identify_new_scans(new_uids_csv,old_uid_csv):
-    #compare output of merge_for_mri function to previous mri_uid list
-    old_uids_df = pd.read_csv(os.path.join(previous_fileloc_dir_fullpath,old_uid_csv),sep="\t")
-    old_uids_df['IMAGEUID_T1'] =  old_uids_df['IMAGEUID_T1'].astype(str)
-    old_uids_df['IMAGEUID_T2'] =  old_uids_df['IMAGEUID_T2'].astype(str)
+    #compare output of create_mri_uid_list function to previous mri_uid list
+    new_uids_df = pd.read_csv(new_uids_csv)
+    old_uids_df = pd.read_csv(old_uid_csv,sep="\t")
+    print(new_uids_df.info())
+    print(old_uids_df.info())
 
-    # print(old_uids_df.info())
-    new_uids_df = pd.read_csv(os.path.join(csvs_dirs_dict["merged_data_uids"],new_uids_csv))
-    # print(new_uids_df.info())
+
+    # old_uids_df = pd.read_csv(os.path.join(fileloc_directory_previousrun,old_uid_csv),sep="\t")
+    # old_uids_df['IMAGEUID_T1'] =  old_uids_df['IMAGEUID_T1'].astype(str)
+    # old_uids_df['IMAGEUID_T2'] =  old_uids_df['IMAGEUID_T2'].astype(str)
+    # new_uids_df = pd.read_csv(os.path.join(datasetup_directories_path["merged_data_uids"],new_uids_csv))
+    
     for index,row in new_uids_df.iterrows():
-        # id = str(row['ID'])
-        # scandate = str(row['SMARTDATE'])
-
         id = row['ID']
         scandate = row['SMARTDATE']
-        # print(id)
-        # print(scandate)
-        # print(row['IMAGUID_T1'])
         
-
         #find each row from newuid.csv in olduid.csv
-        match_in_old = old_uids_df.loc[(old_uids_df['ID'] == id) & (old_uids_df['SCANDATE'] == scandate)]
-        # print(match_in_old)
-        if len(match_in_old) == 1:
-            # check uids: T1
-            if str(row['IMAGUID_T1']).split('.')[0] == match_in_old['IMAGEUID_T1'].values.tolist()[0].split(".")[0]:
-                if match_in_old['FINALT1NIFTI'].values.tolist()[0]:
-                    new_uids_df.at[index,'NEW_currentdate'] = 0 
-                else:
-                    logging.debug(f"{id}:{scandate}:Previous nifti conversion failed")
-                    new_uids_df.at[index,'NEW_currentdate'] = 2
-            else:
-                logging.debug(f"{id}:{scandate}:New uid selected from adni csv data")
-                new_uids_df.at[index,'NEW_currentdate'] = 2
+        # mri uses SCANDATE, pet uses SMARTDATE
+        # match_in_old = old_uids_df.loc[(old_uids_df['ID'] == id) & (old_uids_df['SCANDATE'] == scandate)]
+        match_in_old = old_uids_df.loc[(old_uids_df['ID'] == id) & (old_uids_df['SMARTDATE'] == scandate)]
 
-            # check uids: T2
-            if str(row['IMAGUID_T2']).split('.')[0] == match_in_old['IMAGEUID_T2'].values.tolist()[0].split(".")[0]:
-                if match_in_old['FINALT2NIFTI'].values.tolist()[0]:
-                    new_uids_df.at[index,'NEW_currentdate'] = 0            
-                else:
-                    logging.debug(f"{id}:{scandate}:Previous nifti conversion failed")
-                    new_uids_df.at[index,'NEW_currentdate'] = 2
-            else:
-                logging.debug(f"{id}:{scandate}:New uid selected from adni csv data")
-                new_uids_df.at[index,'NEW_currentdate'] = 2
+        # print(len(match_in_old))
+        if len(match_in_old) == 1:
+            continue
+            # if type == mri:
+                # newuid = str(row['IMAGUID_T1']).split('.')[0]
+                # olduid = 
+                # oldfilepath = 
+            # elif type == pet:
+                # newuid = row['IMAGEID']
+                # olduid = match_in_old['IMAGEID']
+                # oldfilepath = 
+
+            #mri has to check both t1 and t2
+                #either both will be new or both will be old, not one old, one new?
+            
+
+
+
+    #         # check uids: T1
+    #         if str(row['IMAGUID_T1']).split('.')[0] == match_in_old['IMAGEUID_T1'].values.tolist()[0].split(".")[0]:
+    #             if match_in_old['FINALT1NIFTI'].values.tolist()[0]:
+    #                 new_uids_df.at[index,'NEW_currentdate'] = 0 
+    #             else:
+    #                 logging.debug(f"{id}:{scandate}:Previous nifti conversion failed")
+    #                 new_uids_df.at[index,'NEW_currentdate'] = 2
+    #         else:
+    #             logging.debug(f"{id}:{scandate}:New uid selected from adni csv data")
+    #             new_uids_df.at[index,'NEW_currentdate'] = 2
+
+    #         # check uids: T2
+    #         if str(row['IMAGUID_T2']).split('.')[0] == match_in_old['IMAGEUID_T2'].values.tolist()[0].split(".")[0]:
+    #             if match_in_old['FINALT2NIFTI'].values.tolist()[0]:
+    #                 new_uids_df.at[index,'NEW_currentdate'] = 0            
+    #             else:
+    #                 logging.debug(f"{id}:{scandate}:Previous nifti conversion failed")
+    #                 new_uids_df.at[index,'NEW_currentdate'] = 2
+    #         else:
+    #             logging.debug(f"{id}:{scandate}:New uid selected from adni csv data")
+    #             new_uids_df.at[index,'NEW_currentdate'] = 2
+        
 
         elif len(match_in_old) < 1:
             logging.info(f"{id}:{scandate}:New scan to process")
-            new_uids_df.at[index,'NEW_currentdate'] = 1
+    #         new_uids_df.at[index,'NEW_currentdate'] = 1
         else:
             logging.debug(f"{id}:{scandate}:Duplicate entries in previous uid.csv")
-            new_uids_df.at[index,'NEW_currentdate'] = 2
+    #         new_uids_df.at[index,'NEW_currentdate'] = 2
 
-    # new_uids_df.to_csv(os.path.join(csvs_dirs_dict["uids_process_status"], mri_uids_processing), index=False, header=True)
+    # new_uids_df.to_csv(os.path.join(datasetup_directories_path["uids_process_status"], mri_uids_processing), index=False, header=True)
 
 
-### Set up variables for data locations
-#list all directories with adni data setup sheets, get only those for newest date
-all_csvs_dirs = os.listdir(csvs_dir)
-all_csvs_dirs.sort(reverse = True)
-csvs_dirs_list = all_csvs_dirs[0:4]
+#### Data location variables #####
+#list all directories with adni data setup sheets, then select those for newest date
+# adni_data_setup_csvs_directory = /project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs
+adni_data_csvs_directories_allruns = os.listdir(adni_data_setup_csvs_directory)
+adni_data_csvs_directories_allruns.sort(reverse = True)
+adni_data_csvs_directories_thisrun = adni_data_csvs_directories_allruns[0:4]
 
-for key in csvs_dirs_dict:
-    basename = [x for x in csvs_dirs_list if key in x][0]
-    csvs_dirs_dict[key] = os.path.join(csvs_dir, basename)
+for key in datasetup_directories_path:
+    basename = [x for x in adni_data_csvs_directories_thisrun if key in x][0]
+    datasetup_directories_path[key] = os.path.join(adni_data_setup_csvs_directory, basename)
 
 #All csv's downloaded from ida.loni.usc.edu
-csvlist = os.listdir(csvs_dirs_dict["ida_study_datasheets"])
-clean_csvlist = [csvfile.replace('.csv', '_clean.csv') for csvfile in csvlist]
+original_ida_datasheets = os.listdir(datasetup_directories_path["ida_study_datasheets"])
+cleaned_ida_datasheets = [csvfile.replace('.csv', '_clean.csv') for csvfile in original_ida_datasheets]
 
 #registry file
-registry_csv = [file for file in csvlist if "REGISTRY" in file][0]
-registry_df = pd.read_csv(os.path.join(csvs_dirs_dict["ida_study_datasheets"],registry_csv))
+registry_csv = [file for file in original_ida_datasheets if "REGISTRY" in file][0]
+registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
 
-#mri files to merge
-csvs_mri_merge = [file for file in clean_csvlist if "MRI3META" in file or "MRILIST" in file]
+#Files to merge/filter for UIDs
+csvs_mri_merge = [file for file in cleaned_ida_datasheets if "MRI3META" in file or "MRILIST" in file]
+pet_meta_list = [file for file in cleaned_ida_datasheets if 'PET_META_LIST' in file][0]
 
-#grab PET META LIST
-pet_meta_list = [file for file in clean_csvlist if 'PET_META_LIST' in file][0]
-
-
-#merged data csv names, join with csvs_dirs_dict["merged_data_uids"]
+#merged data csv names, join with datasetup_directories_path["merged_data_uids"]
 # mri_uids = "mri_uids.csv"
 mri_uids = "mri_uids_smalltest.csv"
 pet_uid_csv_list = ["fdg_uids.csv","amy_uids.csv","tau_uids.csv"]
 
-##get previous filepath file for comparison to new uids
-##TODO: use uids csv instead of filepath one?
-previous_fileloc_dir_basename = [x for x in all_csvs_dirs[4:8] if "fileloc" in x][0]
-previous_fileloc_dir_fullpath = os.path.join(csvs_dir,previous_fileloc_dir_basename)
-previous_filelocs_csvs = os.listdir(previous_fileloc_dir_fullpath)
-previous_mri_filelocs = [x for x in previous_filelocs_csvs if "MRI" in x][0]
-
-#uids + processing status csv names, join with csvs_dirs_dict["uids_process_status"]
+#processing status csv names, join with datasetup_directories_path["uids_process_status"]
 mri_uids_processing = "mri_uids_processing_status.csv"
 tau_uids_processing = "tau_uids_processing_status.csv"
 amy_uids_processing = "amy_uids_processing_status.csv"
 
 
+##get previous run's filepath files for comparison to new uids
+##TODO: use uids csv instead of filepath one?
+# fileloc_directory_previousrun_basename = [x for x in adni_data_csvs_directories_allruns[4:8] if "fileloc" in x][0]
+# fileloc_directory_previousrun = os.path.join(adni_data_setup_csvs_directory,fileloc_directory_previousrun_basename)
+# previous_filelocs_csvs = os.listdir(fileloc_directory_previousrun)
+# previous_mri_filelocs = [x for x in previous_filelocs_csvs if "MRI" in x][0]
+
+
+# mergeduids_directory_previousrun_basename = [x for x in adni_data_csvs_directories_allruns[4:8] if "merge" in x][0]
+# mergeduids_directory_previousrun=os.path.join(adni_data_setup_csvs_directory,mergeduids_directory_previousrun_basename)
+
+# scantype_dictionary = {"MRI":"","AMY":"","TAU":"","FDG":""}
+# for key in scantype_dictionary:
+#    current_uid_csv = [x for x in os.listdir(datasetup_directories_path["merged_data_uids"]) if key.casefold() in x or key in x]
+#    previous_uid_csv = [x for x in os.listdir(mergeduids_directory_previousrun) if key.casefold() in x or key in x]
+#    scantype_dictionary[key] = current_uid_csv + previous_uid_csv
+   
+# print(scantype_dictionary)
+
 def main():
-    # pass
     # for csvfile in csvlist:
     #     preprocess_new(csvfile, registry=registry_df)
 
-    # merge_for_mri(csvs_mri_merge)
 
-    pet_uids(pet_meta_list)
+    # create_mri_uid_list(csvs_mri_merge)
+    # create_pet_uid_list(pet_meta_list) #function goes through all 3 pet types
 
+    
     # identify_new_scans(mri_uids, previous_mri_filelocs)
+    identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/tau_uids.csv",\
+        "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/taulist_dec15_2022_fileloc_2022-12-20.tsv")
+
 
 main()

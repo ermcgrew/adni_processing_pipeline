@@ -41,8 +41,6 @@ def main(mode):
         ##abstract reading id & dates into a function that returns there here as a list to run? 
         
 
-
-
         if mode == "mri" or mode == "both":
             mri_to_process = MRI(subject,mridate)
             logging.info(f"{mri_to_process.id}:{mri_to_process.mridate}: Now processing")
@@ -70,10 +68,19 @@ def main(mode):
             # mri_to_process.do_t1mtthk(t1ashs_job_name) 
             # mri_to_process.do_pmtau(ants_job_name)
 
-        # if mode == "pet" or mode == "both": 
-        #     tau_to_process = TauPET(subject, taudate)
-        #     mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process)
-        #     logging.info(f"{mri_tau_reg_to_process.id}:{mri_tau_reg_to_process.mridate}:{mri_tau_reg_to_process.petdate}: Now processing")
+        if mode == "pet" or mode == "both": 
+            tau_to_process = TauPET(subject, taudate)
+            uids={"pet_uid": str(row['IMAGEID'])}
+            convert_to_nifti(mri_to_process,uids)
+
+
+            mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process)
+            logging.info(f"{mri_tau_reg_to_process.id}:{mri_tau_reg_to_process.mridate}:{mri_tau_reg_to_process.petdate}: Now processing")
+            
+
+
+
+
             # t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
             # mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
             # mri_tau_reg_to_process.do_t2_pet_reg(t1_tau_pet_reg_job)      
