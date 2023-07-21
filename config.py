@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+import logging
 import os
 
-#
+#Locations for CSVs downloaded from ida.loni.usc.edu & derivatives
 adni_data_setup_csvs_directory = "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs"
 datasetup_directories_path = {"ida_study_datasheets" : "", "merged_data_uids":"", 
                               "uids_process_status":"", "filelocs":""}
@@ -60,3 +61,10 @@ fdg_filelocations  = "fdg_filelocationss.csv"
 #    previous_uid_csv = [x for x in os.listdir(mergeduids_directory_previousrun) if key.casefold() in x or key in x]
 #    scantype_dictionary[key] = current_uid_csv + previous_uid_csv
    
+
+
+   
+#Log file
+# logging.basicConfig(filename=f"{analysis_input_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
+#for testing:
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)

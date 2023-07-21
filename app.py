@@ -1,5 +1,4 @@
 import argparse
-import csv
 import datetime
 import logging
 import os
@@ -31,10 +30,8 @@ def main():
     
     for file in processing_lists:
         df=pd.read_csv(file)
-
-        df_newscans = df.loc[df["NEW_currentdate"] == 1]
+        df_newscans = df.loc[df["NEW"] == 1]
         for index,row in df_newscans.iterrows():
-
             subject = str(row['ID'])
             scandate = str(row['SMARTDATE'])  ##TODO: all use same date col name?
             if file == 'tau':
@@ -160,13 +157,6 @@ def main():
     # os.system(f"mkdir {this_output_dir}")
     # os.system(f"bash create_tsv.sh {wblabel_file} {cleanup_dir} {this_output_dir}")
 
-
-
-#Logging
-#### Log file
-# logging.basicConfig(filename=f"{adni_analysis_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
-#### for testing:            
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 #Arguments
 ap = argparse.ArgumentParser()
