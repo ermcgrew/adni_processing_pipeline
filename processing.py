@@ -79,60 +79,6 @@ def wait_for_file(file):
         return 
 
 
-def convert_to_nifti(scanclass,uids):
-        print("In convert_to_nifti function")
-        id = scanclass.id
-        scandate = scanclass.mridate ########
-        scantype = scanclass.__class__.__name__
-        # print(id)
-        # print(scandate)
-        for key in uids:
-            result = subprocess.run(
-                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",id,scandate,uids[key],scantype],  
-                capture_output=True, text=True)
-            ##TODO: handle any errors 
-            result_list = result.stdout.split("\n")
-            status = result_list[0]
-            logging.info(f"{id}:{scandate}:Nifti conversion status is:{status}")
-
-            if status == "conversion to nifti sucessful":
-                nifti_file_loc_public = result_list[1]
-                # print(f"Nifti filepath: {nifti_file_loc_public}")
-                # if key == "t1_uid":
-                    # uid_df.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
-                    # uid_df.at[index,'T1_PROCESS_STATUS'] = 1
-                    # nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T1w.nii.gz"
-                # elif key == "t2_uid":
-                    # uid_df.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
-                    # uid_df.at[index,'T2_PROCESS_STATUS'] = 1
-                    # nifti_file_loc_dataset = f"{nifti_file_loc_dataset_prefix}_T2w.nii.gz"
-                
-                # make sym link between /PUBLIC and /dataset
-                print(f"ln -sf {nifti_file_loc_public} {scanclass.t1nifti}") 
-                # os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
-
-
-    #     #fill in site vendor & model info
-    #     site = id.split("_")[0]
-    #     siteinfo_result = subprocess.run(
-    #         ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
-    #          capture_output=True, text=True)
-    #     siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
-    #     siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
-    #     for i in range(0,len(siteinfo_result_list)):
-    #         uid_df.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
-
-    #     #baseline scan date
-    #     alldates = uid_df.loc[uid_df['ID'] == id]['SMARTDATE'].values.tolist()
-    #     alldates.sort()
-    #     uid_df.at[index,"BLSCANDATE"] = alldates[0]
-
-    # print(uid_df.head())
-    # uid_df.to_csv(os.path.join(adni_data_dir,mri_uids_filelocs),index=False,header=True)
-
-
-
-
 #Class definitions
 class MRI:
     #strings for MRI filepaths and functions for MRI processing
