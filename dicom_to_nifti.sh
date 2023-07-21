@@ -33,6 +33,7 @@ else
 
     if [[ ! -f $nifti_file ]] ; then
         # mkdir -p $nifti_dir
+        ##TODO: make this a bsub call, make sure script waits for job to complete before continuing
         # c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
         purple='this is a placeholder'
         if [[ -f $nifti_file ]] ; then
