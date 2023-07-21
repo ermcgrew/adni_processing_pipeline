@@ -5,7 +5,7 @@ import logging
 import os
 import time
 import pandas as pd
-import subprocess
+from config import *
 
 #Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
@@ -378,11 +378,7 @@ class MRIPetReg:
                   {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
             return
 
-    
-#Log file
-# logging.basicConfig(filename=f"{analysis_input_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
-#for testing:
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+ 
 
 
 # Test runs
