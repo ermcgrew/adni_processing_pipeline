@@ -1,9 +1,10 @@
 # !/usr/bin/env python
 
+import csv
+from datetime import datetime
+import logging
 import pandas as pd
 import os
-import csv
-import logging
 from config import *
 
 #from vergnet_db/csv_preprocessing.py
@@ -351,6 +352,87 @@ def create_pet_uid_list(petmeta):
         querymergedf.to_csv(os.path.join(datasetup_directories_path["merged_data_uids"],pet_uid_csv_list[i]),header=True,index=False)
 
 
+def create_tau_anchored_uid_list():
+    pass
+    #need tau, amy, mri uid csvs
+    taus = pd.read_csv('')
+    amys = pd.read_csv("")
+    mris = pd.read_csv("")
+
+    tau_subjects=taus['ID']
+    tau_subjects.drop_duplicates(keep='first',inplace=True)
+    tau_subjects.reset_index(drop=True,inplace=True)
+    tau_subjects.keys()
+
+    taucolstoadd = [col + ".tau" for col in taus.columns if col != "ID" and col != "RID"]
+    amycolstoadd = [col + ".amy" for col in amys.columns if col != "ID" and col != "RID"]
+    mricolstoadd = [col + ".mri" for col in mris.columns if col != "ID" and col != "RID"]
+
+    outputdf=pd.DataFrame()
+    index = 0
+    for subject in tau_subjects:
+        ##find subject rows in tau, use to create a date list
+        taumatch=taus.loc[taus['ID'] == subject] 
+        taudates = taumatch['SMARTDATE'].unique()
+
+        ## match to subject rows in mriuidslist
+        mrimatch=mris.loc[mris['ID']==subject]   
+        mridates=mrimatch['SMARTDATE'].values.tolist()
+        mridates_formatted=[datetime.strptime(x,"%Y-%m-%d") for x in mridates]
+        
+        ## match to subject rows in amy uids list
+        amymatch = amys.loc[amys['ID'] == subject]
+        amydates=amymatch['SMARTDATE'].values.tolist()
+        amydates_formatted=[datetime.strptime(x,"%Y-%m-%d") for x in amydates]
+
+        ## if subject not found in either sheet
+        if len(mrimatch) == 0 and len(amymatch) == 0:  
+            continue
+        else:
+            for taudate in taudates:
+                ##add RID,ID to new outputdf
+                outputdf.loc[index,['RID','ID']] = [subject, subject[-4:]]
+                taudate_dt=datetime.strptime(taudate,"%Y-%m-%d")
+                
+                ##Add rest of the tau data to new outputdf as colname.tau
+                tau_rowtouse=taumatch.loc[taumatch['SMARTDATE'] == taudate]
+                tau_rowtouse_small=tau_rowtouse.drop(columns=['ID','RID'])
+                tau_rowtouse_values = tau_rowtouse_small.values.tolist()[0]
+                for i in range(0,len(taucolstoadd)):
+                    outputdf.at[index,taucolstoadd[i]] = tau_rowtouse_values[i]
+                
+                if len(mrimatch) != 0:
+                    ##Find closest MRI date; add that row's data to outputdf
+                    mri_diffs=[abs(x-taudate_dt).total_seconds() for x in mridates_formatted]
+                    mri_datetouse=mridates[mri_diffs.index(min(mri_diffs))]
+                    mri_rowtouse = mrimatch.loc[mrimatch['SMARTDATE'] == mri_datetouse]
+                    mri_rowtouse_small=mri_rowtouse.drop(columns=['ID','RID'])
+                    mri_rowtouse_values = mri_rowtouse_small.values.tolist()[0]
+                    for i in range(0,len(mricolstoadd)):
+                        outputdf.at[index,mricolstoadd[i]] = mri_rowtouse_values[i]
+                    outputdf.at[index,'tau_datediff_seconds.mri'] = min(mri_diffs)
+                    outputdf.at[index,'tau_datediff_days.mri'] = ((min(mri_diffs) / 60 ) / 60 ) / 24
+
+                if len(amymatch) != 0:
+                    ##Find closest amyloid date; add that data to outputdf
+                    amy_diffs=[abs(x-taudate_dt).total_seconds() for x in amydates_formatted]
+                    amy_datetouse=amydates[amy_diffs.index(min(amy_diffs))]
+                    amy_rowtouse = amymatch.loc[amymatch['SMARTDATE'] == amy_datetouse]
+                    amy_rowtouse_small=amy_rowtouse.drop(columns=['ID','RID'])
+                    amy_rowtouse_values = amy_rowtouse_small.values.tolist()[0]
+                    for i in range(0,len(amycolstoadd)):
+                        outputdf.at[index,amycolstoadd[i]] = amy_rowtouse_values[i]
+                    outputdf.at[index,'tau_datediff_seconds.amy'] = min(amy_diffs)
+                    outputdf.at[index,'tau_datediff_days.amy'] = ((min(amy_diffs) / 60 ) / 60 ) / 24
+                
+                index +=1  
+    
+    print(outputdf.head())
+    # outputdf.to_csv('',index=False,header=True)
+
+
+
+
 def identify_new_scans(new_uids_csv,old_filelocs_csv):
     #compare output of create_mri_uid_list function to previous mri_uid list
     new_uids_df = pd.read_csv(new_uids_csv)
@@ -420,14 +502,15 @@ def main():
 
     # create_mri_uid_list(csvs_mri_merge)
     # create_pet_uid_list(pet_meta_list) #function goes through all 3 pet types
+    create_tau_anchored_uid_list()
 
     # for file in 
     # identify_new_scans(mri_uids, previous_mri_filelocs)
     # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/mri_uids.csv",\
     #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/MRI3TListWithNIFTIPath_10172022.tsv")
 
-    identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/tau_uids.csv",\
-        "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/taulist_dec15_2022_fileloc_2022-12-20.tsv")
+    # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/tau_uids.csv",\
+    #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/taulist_dec15_2022_fileloc_2022-12-20.tsv")
 
 
 main()
