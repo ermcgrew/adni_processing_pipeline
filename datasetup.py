@@ -301,29 +301,6 @@ def create_mri_uid_list(mri_csvs):
     return
 
 
-def reformat_date_slash_to_dash(df):
-    # M/D/YY to YYYY-MM-DD
-    for index, row in df.iterrows():
-        if "/" in row['SMARTDATE']:
-            MDYlist=row['SMARTDATE'].split('/')
-            
-            if len(MDYlist[0]) == 1:
-                month = "0" + MDYlist[0]
-            else:
-                month = MDYlist[0]
-
-            if  len(MDYlist[1]) == 1:
-                day = "0" + MDYlist[1]
-            else:
-                day=MDYlist[1]
-
-            year="20" + MDYlist[2]
-
-            newdate=year + "-" + month + "-" + day
-            df.at[index,'SMARTDATE']=newdate
-    return df 
-
-
 def create_pet_uid_list(petmeta):
     petmeta_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],petmeta))
     # print(petmeta_df.head())
@@ -352,24 +329,21 @@ def create_pet_uid_list(petmeta):
         querymergedf.to_csv(os.path.join(datasetup_directories_path["merged_data_uids"],pet_uid_csv_list[i]),header=True,index=False)
 
 
-def create_tau_anchored_uid_list():
-    pass
+def create_tau_anchored_uid_list(mricsv,petcsvslist):
     #need tau, amy, mri uid csvs
-    taus = pd.read_csv('')
-    amys = pd.read_csv("")
-    mris = pd.read_csv("")
-
-    tau_subjects=taus['ID']
-    tau_subjects.drop_duplicates(keep='first',inplace=True)
-    tau_subjects.reset_index(drop=True,inplace=True)
-    tau_subjects.keys()
+    mris = pd.read_csv(os.path.join(datasetup_directories_path['merged_data_uids'],mricsv))
+    amys = pd.read_csv(os.path.join(datasetup_directories_path['merged_data_uids'],petcsvslist[1]))
+    taus = pd.read_csv(os.path.join(datasetup_directories_path['merged_data_uids'],petcsvslist[2]))
 
     taucolstoadd = [col + ".tau" for col in taus.columns if col != "ID" and col != "RID"]
     amycolstoadd = [col + ".amy" for col in amys.columns if col != "ID" and col != "RID"]
     mricolstoadd = [col + ".mri" for col in mris.columns if col != "ID" and col != "RID"]
 
+    tau_subjects=taus['ID'].unique()
+
     outputdf=pd.DataFrame()
     index = 0
+
     for subject in tau_subjects:
         ##find subject rows in tau, use to create a date list
         taumatch=taus.loc[taus['ID'] == subject] 
@@ -427,16 +401,36 @@ def create_tau_anchored_uid_list():
                 
                 index +=1  
     
-    print(outputdf.head())
-    # outputdf.to_csv('',index=False,header=True)
+    outputdf.to_csv(os.path.join(datasetup_directories_path["merged_data_uids"],tau_anchored_csv),index=False,header=True)
 
 
+def reformat_date_slash_to_dash(df):
+    # M/D/YY to YYYY-MM-DD
+    for index, row in df.iterrows():
+        if "/" in row['SMARTDATE']:
+            MDYlist=row['SMARTDATE'].split('/')
+            
+            if len(MDYlist[0]) == 1:
+                month = "0" + MDYlist[0]
+            else:
+                month = MDYlist[0]
+
+            if  len(MDYlist[1]) == 1:
+                day = "0" + MDYlist[1]
+            else:
+                day=MDYlist[1]
+
+            year="20" + MDYlist[2]
+
+            newdate=year + "-" + month + "-" + day
+            df.at[index,'SMARTDATE']=newdate
+    return df
 
 
 def identify_new_scans(new_uids_csv,old_filelocs_csv):
-    #compare output of create_mri_uid_list function to previous mri_uid list
-    new_uids_df = pd.read_csv(new_uids_csv)
-    old_filelocs_df = pd.read_csv(old_filelocs_csv,sep="\t")
+    #compare output of create_{scantype}_uid_list function to previous fileloc list
+    new_uids_df = pd.read_csv(os.path.join(datasetup_directories_path['merged_data_uids'],new_uids_csv))
+    old_filelocs_df = pd.read_csv(os.path.join(fileloc_directory_previousrun,old_filelocs_csv),sep="\t")
     # print(new_uids_df.info())
     # print(old_filelocs_df.info())
 
@@ -502,10 +496,19 @@ def main():
 
     # create_mri_uid_list(csvs_mri_merge)
     # create_pet_uid_list(pet_meta_list) #function goes through all 3 pet types
-    create_tau_anchored_uid_list()
+    # create_tau_anchored_uid_list(mri_uids,pet_uid_csv_list)
 
-    # for file in 
-    # identify_new_scans(mri_uids, previous_mri_filelocs)
+    for current_uid_csv in os.listdir(datasetup_directories_path['merged_data_uids']):
+        if 'anchored' in current_uid_csv or "smalltest" in current_uid_csv:
+            continue
+        else:
+            matchon = current_uid_csv.split('_')[0]
+            previous_fileloc_csv = [x for x in previous_filelocs_csvs if matchon in x]
+            # print(f"{current_uid_csv}:{previous_fileloc_csv}")
+            if previous_fileloc_csv: #in case of no match
+                identify_new_scans(current_uid_csv, previous_fileloc_csv[0])
+
+
     # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/mri_uids.csv",\
     #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/MRI3TListWithNIFTIPath_10172022.tsv")
 
