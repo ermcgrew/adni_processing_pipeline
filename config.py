@@ -37,6 +37,7 @@ mri_uids_processing = "mri_uids_processing_status.csv"
 tau_uids_processing = "tau_uids_processing_status.csv"
 amy_uids_processing = "amy_uids_processing_status.csv"
 fdg_uids_processing = "fdg_uids_processing_status.csv"
+processing_status_csvs = ["amy_uids_processing_status.csv","fdg_uids_processing_status.csv", "tau_uids_processing_status.csv", "mri_uids_processing_status.csv"]
 
 #File location csv names, join with datasetup_directories_path["filelocs"]
 mri_filelocations = "mri_filelocations.csv"

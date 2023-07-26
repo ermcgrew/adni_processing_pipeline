@@ -85,6 +85,7 @@ class MRI:
     def __init__(self, subject, mridate):
         self.id = subject
         self.mridate = mridate
+        self.scandate = mridate
         self.filepath=f"{adni_data_dir}/{self.id}/{self.mridate}"
         self.date_id_prefix = f"{self.mridate}_{self.id}"
         
@@ -127,8 +128,8 @@ class MRI:
 
 
         self.log_output_dir = f"{self.filepath}/logs_{current_date}"
-        if not os.path.exists(self.log_output_dir):
-            os.system(f"mkdir {self.log_output_dir}")
+        # if not os.path.exists(self.log_output_dir):
+        #     os.system(f"mkdir {self.log_output_dir}")
         self.bsub_output = f"-o {self.log_output_dir}"
 
 
@@ -294,6 +295,7 @@ class AmyloidPET:
     def __init__(self, subject, amydate):
         self.id = subject
         self.amydate = amydate
+        self.scandate = amydate
         self.filepath=f"{adni_data_dir}/{self.id}/{self.amydate}"
         self.date_id_prefix = f"{self.amydate}_{self.id}"
         self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet.nii.gz"        
@@ -304,6 +306,7 @@ class TauPET:
     def __init__(self, subject, taudate):
         self.id = subject
         self.taudate = taudate
+        self.scandate = taudate
         self.filepath = f"{adni_data_dir}/{self.id}/{self.taudate}"
         self.date_id_prefix = f"{self.taudate}_{self.id}"
         self.tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet.nii.gz"
