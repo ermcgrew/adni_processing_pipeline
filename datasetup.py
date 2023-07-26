@@ -432,7 +432,9 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv):
     new_uids_df = pd.read_csv(os.path.join(datasetup_directories_path['merged_data_uids'],new_uids_csv))
     old_filelocs_df = pd.read_csv(os.path.join(fileloc_directory_previousrun,old_filelocs_csv),sep="\t")
     # print(new_uids_df.info())
+    # print(new_uids_df.head())
     # print(old_filelocs_df.info())
+    # print(old_filelocs_df.head())
 
     #pet fileloc tsv's made by Long & Sandy use M/D/YY dates, convert to dash
     old_filelocs_df = reformat_date_slash_to_dash(old_filelocs_df)
@@ -446,46 +448,60 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv):
         id = row['ID']
         scandate = row['SMARTDATE']
         columns = row.keys().tolist()
-
-        #find each row from newuid.csv in olduid.csv
-        match_in_old = old_filelocs_df.loc[(old_filelocs_df['ID'] == id) & (old_filelocs_df['SMARTDATE'] == scandate)]
-        # print(len(match_in_old))
-        if len(match_in_old) == 1: #this id,scandate already processed
-            
-            if 'T1ISACCE' in columns: #mri csvs
-                newuid = str(row['IMAGUID_T1']).split('.')[0]
-                olduid = match_in_old['IMAGEUID_T1'].values.tolist()[0]
-                filepath_from_old = match_in_old['FINALT1NIFTI'].values.tolist()[0]
-
-        #     #mri has to check both t1 and t2?
-        #         #either both will be new or both will be old, not one old, one new?
-        #     if str(row['IMAGUID_T2']).split('.')[0] == match_in_old['IMAGEUID_T2'].values.tolist()[0].split(".")[0]:
-        #         if match_in_old['FINALT2NIFTI'].values.tolist()[0]:
-
-            elif 'STUDYID' in columns: #PET csvs
-                newuid = str(row['IMAGEID']).split('.')[0]
-                olduid = match_in_old['IMAGEID'].values.tolist()[0]
-                filepath_from_old = match_in_old["FILELOC"].values.tolist()[0]
-
-            if newuid == olduid:
-                if filepath_from_old:
-                    new_uids_df.at[index,'NEW'] = 0 
-                else:
-                    logging.debug(f"{id}:{scandate}:Previous nifti conversion failed")
-                    new_uids_df.at[index,'NEW'] = 2
-            else:
-                logging.debug(f"{id}:{scandate}:Different uid selected from adni csv data")
-                new_uids_df.at[index,'NEW'] = 2
-  
-        elif len(match_in_old) < 1 and scandate > "2022-01-01": 
-            ##TODO:check for dicom? scandate clause holding for now;; some dicoms aren't downloaded?
-            logging.info(f"{id}:{scandate}:New scan to process")
-            new_uids_df.at[index,'NEW'] = 1
+        if row['FIELD_STRENGTH'] != "3T":
+            continue
         else:
-            logging.debug(f"{id}:{scandate}:Duplicate entries in previous uid.csv")
-            new_uids_df.at[index,'NEW'] = 2
+            # print(f"ID: {id}, date: {scandate}")
+            #find each row from newuid.csv in olduid.csv
+            match_in_old = old_filelocs_df.loc[(old_filelocs_df['ID'] == id) & (old_filelocs_df['SMARTDATE'] == scandate)]
+            
+            if 'T1ISACCE' in columns: #MRI csvs
+                uid_comparison_data = {"T1":[],"T2":[]}    
+            elif 'STUDYID' in columns: #PET csvs
+                uid_comparison_data = {"PET":[]}
+            
+            for key in uid_comparison_data:
+                if len(match_in_old) == 1: 
+                #this id,scandate already has processing record, double-check the UIDs are the same in old & new 
+                    if key == "T1":
+                        newuid = str(row['IMAGUID_T1']).split('.')[0]
+                        olduid = match_in_old['IMAGEUID_T1'].values.tolist()[0].split(".")[0]
+                        filepath_from_old = match_in_old['FINALT1NIFTI'].values.tolist()[0]
+                        uid_comparison_data['T1'] = [newuid,olduid,filepath_from_old]
+                    elif key == "T2":
+                        newuid = str(row['IMAGUID_T2']).split('.')[0]
+                        olduid = match_in_old['IMAGEUID_T2'].values.tolist()[0].split(".")[0]
+                        filepath_from_old = match_in_old['FINALT2NIFTI'].values.tolist()[0]
+                        uid_comparison_data['T2'] = [newuid,olduid,filepath_from_old]
+                    elif key == "PET":
+                        newuid = str(row['IMAGEID']).split('.')[0]
+                        olduid = str(match_in_old['IMAGEID'].values.tolist()[0])
+                        filepath_from_old = match_in_old["FILELOC"].values.tolist()[0]
+                        uid_comparison_data['PET'] = [newuid,olduid,filepath_from_old]
 
-    # new_uids_df.to_csv(os.path.join(datasetup_directories_path["uids_process_status"], mri_uids_processing), index=False, header=True)
+                    # print(uid_comparison_data)
+                    if uid_comparison_data[key][0] == uid_comparison_data[key][1]:
+                        if uid_comparison_data[key][2]:
+                            new_uids_df.at[index,f"NEW_{key}"] = 0 
+                            # print("already processed")
+                        else:
+                            logging.debug(f"{id}:{scandate}:{key}:Previous nifti conversion failed")
+                            new_uids_df.at[index,f"NEW_{key}"] = 2
+                    else:
+                        logging.debug(f"{id}:{scandate}:{key}:Different uid selected from adni csv data")
+                        new_uids_df.at[index,f"NEW_{key}"] = 3
+    
+                elif len(match_in_old) < 1:# and scandate > "2022-01-01": 
+                    ##TODO:check for dicom? scandate clause holding for now;; some dicoms aren't downloaded?
+                    logging.info(f"{id}:{scandate}:{key}:New scan to process")
+                    new_uids_df.at[index,f"NEW_{key}"] = 1
+                else:
+                    logging.debug(f"{id}:{scandate}:{key}:Duplicate entries in previous uid.csv")
+                    new_uids_df.at[index,f"NEW_{key}"] = 4
+            
+    print(new_uids_df.head())
+    ##TODO: csv name
+    new_uids_df.to_csv(os.path.join(datasetup_directories_path["uids_process_status"], mri_uids_processing), index=False, header=True)
 
 
 def main():
@@ -498,19 +514,19 @@ def main():
     # create_pet_uid_list(pet_meta_list) #function goes through all 3 pet types
     # create_tau_anchored_uid_list(mri_uids,pet_uid_csv_list)
 
-    for current_uid_csv in os.listdir(datasetup_directories_path['merged_data_uids']):
-        if 'anchored' in current_uid_csv or "smalltest" in current_uid_csv:
-            continue
-        else:
-            matchon = current_uid_csv.split('_')[0]
-            previous_fileloc_csv = [x for x in previous_filelocs_csvs if matchon in x]
-            # print(f"{current_uid_csv}:{previous_fileloc_csv}")
-            if previous_fileloc_csv: #in case of no match
-                identify_new_scans(current_uid_csv, previous_fileloc_csv[0])
+    # for current_uid_csv in os.listdir(datasetup_directories_path['merged_data_uids']):
+    #     if 'anchored' in current_uid_csv or "smalltest" in current_uid_csv:
+    #         continue ##skipping test data and tau-anchored data for now
+    #     else:
+    #         matchon = current_uid_csv.split('_')[0]
+    #         previous_fileloc_csv = [x for x in previous_filelocs_csvs if matchon in x]
+    #         print(f"{current_uid_csv}:{previous_fileloc_csv}")
+    #         if previous_fileloc_csv: #in case of no match
+    #             identify_new_scans(current_uid_csv, previous_fileloc_csv[0])
 
 
-    # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/mri_uids.csv",\
-    #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/MRI3TListWithNIFTIPath_10172022.tsv")
+    identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/mri_uids.csv",\
+        "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/mri3TListWithNIFTIPath_10172022.tsv")
 
     # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/tau_uids.csv",\
     #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/taulist_dec15_2022_fileloc_2022-12-20.tsv")

@@ -30,7 +30,7 @@ def main():
     
     for file in processing_lists:
         df=pd.read_csv(file)
-        df_newscans = df.loc[df["NEW"] == 1]
+        df_newscans = df.loc[df["NEW"] == 1] ##TODO: NEW_T1, NEW_T2, NEW_PET
         for index,row in df_newscans.iterrows():
             subject = str(row['ID'])
             scandate = str(row['SMARTDATE'])  ##TODO: all use same date col name?
