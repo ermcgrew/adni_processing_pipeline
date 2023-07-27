@@ -1,5 +1,4 @@
 import argparse
-import datetime
 import logging
 import os
 import pandas as pd
@@ -7,10 +6,7 @@ import subprocess
 # Classes
 from processing import MRI, AmyloidPET, TauPET, MRIPetReg
 #variables
-from processing import wblabel_file, cleanup_dir, analysis_output_dir, current_date, pmtau_template_dir
 from config import *
-
-this_output_dir = f"{analysis_output_dir}/{current_date}"
 
 
 def main():
@@ -22,79 +18,83 @@ def main():
     # os.system(python datasetup.py) to get UID & fileloc lists 
     print(f"python datasetup.py --cleans ADNI csvs, merges data and selects correct UIDs")
 
-    ##TODO: make a dictionary of scantype keys: filepaths to csvs
-    for file in processing_status_csvs:
-        logging.info(f"Now processing {file}")
-        df=pd.read_csv(os.path.join(datasetup_directories_path["uids_process_status"],file))
-        # print(df.head())
-        col_with_new = [x for x in df.columns if "NEW" in x]
-        if len(col_with_new) > 1:
-            df_newscans = df.loc[(df['NEW_T1'] == 1) | (df['NEW_T2'] == 1)]
+    ## Do dicom-nifti conversion for new amy, fdg, tau, mri scans & do additional mri processing
+    for scantype in scantypes:
+        if scantype == "anchored":
+            continue
         else:
-            df_newscans = df.loc[(df['NEW_PET'] == 1)]
+            logging.info(f"Now processing csv for {scantype}")
+            df=pd.read_csv(os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status'][scantype]))
+            # print(df.head())
 
-        for index,row in df_newscans.iterrows():
-            subject = str(row['ID'])
-            scandate = str(row['SMARTDATE'])
-            if 'tau' in file:
-                scan_to_process = TauPET(subject,scandate)
-                uids = {'tau_uid':str(row["IMAGEID"])}
-            elif "amy" in file:
-                scan_to_process = AmyloidPET(subject,scandate)
-                uids = {'amy_uid':str(row["IMAGEID"])}
-            elif 'mri' in file:
-                scan_to_process = MRI(subject,scandate)
-                uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
-            
-            logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}: Now processing")
+            if scantype == 'mri':
+                df_newscans = df.loc[(df['NEW_T1'] == 1) | (df['NEW_T2'] == 1)]
+            else:
+                df_newscans = df.loc[(df['NEW_PET'] == 1)]
 
-            for key in uids:
-                result = subprocess.run(
-                        ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
-                        scan_to_process.id,scan_to_process.scandate,uids[key],scan_to_process.__class__.__name__], 
-                        capture_output=True, text=True)
-                ##TODO: handle any errors 
-                result_list = result.stdout.split("\n")
-                status = result_list[0]
-                logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
+            for index,row in df_newscans.iterrows():
+                subject = str(row['ID'])
+                scandate = str(row['SMARTDATE'])
+                if scantype == 'tau':
+                    scan_to_process = TauPET(subject,scandate)
+                    uids = {'tau_uid':str(row["IMAGEID"])}
+                elif scantype == "amy":
+                    scan_to_process = AmyloidPET(subject,scandate)
+                    uids = {'amy_uid':str(row["IMAGEID"])}
+                elif scantype == 'mri':
+                    scan_to_process = MRI(subject,scandate)
+                    uids={"t1_uid": str(row['IMAGUID_T1']),"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
+                
+                # logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}: Now processing")
+                df_newscans.loc[index,'TESTCOLUMN'] ='testdata'
 
-                if status == "conversion to nifti sucessful":
-                    nifti_file_loc_public = result_list[1]
-                    print(f"Nifti filepath: {nifti_file_loc_public}")
-                    if key == "t1_uid":
-                        df_newscans.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
-                        df_newscans.at[index,'T1_PROCESS_STATUS'] = 1
-                    elif key == "t2_uid":
-                        df_newscans.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
-                        df_newscans.at[index,'T2_PROCESS_STATUS'] = 1
-                    ##TODO: add PET fileloc data to df
+                # for key in uids:
+                #     result = subprocess.run(
+                #             ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
+                #             scan_to_process.id,scan_to_process.scandate,uids[key],scan_to_process.__class__.__name__], 
+                #             capture_output=True, text=True)
+                #     ##TODO: handle any errors 
+                #     result_list = result.stdout.split("\n")
+                #     status = result_list[0]
+                #     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
+
+                #     if status == "conversion to nifti sucessful":
+                #         nifti_file_loc_public = result_list[1]
+                #         print(f"Nifti filepath: {nifti_file_loc_public}")
+                #         if key == "t1_uid":
+                #             df_newscans.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
+                #             df_newscans.at[index,'T1_PROCESS_STATUS'] = 1
+                #         elif key == "t2_uid":
+                #             df_newscans.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
+                #             df_newscans.at[index,'T2_PROCESS_STATUS'] = 1
+                #         ##TODO: add PET fileloc data to df
                     
-                    ##TODO: create var for each scantype for dataset location of nifti file--use class.
-                    dataset_nifti = ''
-                    # make sym link between /PUBLIC and /dataset
-                    print(f"ln -sf {nifti_file_loc_public} {dataset_nifti}") 
-                    # os.system(f"ln -sf {nifti_file_loc_public} {dataset_nifti}")
+                #         ##TODO: create var for each scantype for dataset location of nifti file--use class.
+                #         dataset_nifti = ''
+                #         # make sym link between /PUBLIC and /dataset
+                #         print(f"ln -sf {nifti_file_loc_public} {dataset_nifti}") 
+                #         # os.system(f"ln -sf {nifti_file_loc_public} {dataset_nifti}")
 
-        #             ##Additional information for MRI fileloc csv
-        #             if file == "mri":
-        #                 #fill in site vendor & model info
-        #                 site = id.split("_")[0]
-        #                 siteinfo_result = subprocess.run(
-        #                     ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
-        #                     capture_output=True, text=True)
-        #                 siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
-        #                 siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
-        #                 for i in range(0,len(siteinfo_result_list)):
-        #                     df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
+                # ##Additional information for MRI fileloc csv
+                # if scantype == "mri":
+                #     #fill in site vendor & model info
+                #     site = id.split("_")[0]
+                #     siteinfo_result = subprocess.run(
+                #         ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
+                #         capture_output=True, text=True)
+                #     siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
+                #     siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
+                #     for i in range(0,len(siteinfo_result_list)):
+                #         df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
 
-        #                 #baseline scan date
-        #                 alldates = df_newscans.loc[df_newscans['ID'] == id]['SMARTDATE'].values.tolist()
-        #                 alldates.sort()
-        #                 df_newscans.at[index,"BLSCANDATE"] = alldates[0]
+                #     #baseline scan date
+                #     alldates = df_newscans.loc[df_newscans['ID'] == id]['SMARTDATE'].values.tolist()
+                #     alldates.sort()
+                #     df_newscans.at[index,"BLSCANDATE"] = alldates[0]
 
-        #     if file == 'mri':
-        #         print('do mri processing if MRI')
-        #         ##TODO: make sure this doesn't break if t1 or t2 is missing
+            if scantype == 'mri':
+                print('do mri processing if MRI')
+                 ##TODO: make sure this doesn't break if t1 or t2 is missing
         #             # ants_job_name = mri_to_process.do_ants()
         #             # wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
         #             # mri_to_process.do_wbsegqc(wbseg_job_name)
@@ -108,13 +108,17 @@ def main():
         #             # mri_to_process.do_t1mtthk(t1ashs_job_name) 
         #             # mri_to_process.do_pmtau(ants_job_name)
             
-        print(f"Save off all fileloc data for sheet {file}")
-        ##TODO: all_filelocs = pd.merge(df_newscans, old_filelocs)
-        # all_filelocs.to_csv(os.path.join(adni_data_dir,mri_uids_filelocs),index=False,header=True)
+        print(f"Save off all fileloc data for sheet {scantype}")
+        #match scantype to fileloc_directory_previousrun file with same scantype
+        old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in os.listdir(fileloc_directory_previousrun) if scantype in x][0]
+        # old_filelocs = pd.read_csv(old_fileloc_path)
+        # all_filelocs = pd.concat([df_newscans, old_filelocs], on=['RID','SMARTDATE'])
+        # all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last',inplace=True) #keep most recent (updated) if any duplicates
+        # print(all_filelocs.to_csv(os.path.join(datasetup_directories_path["filelocations"],filenames['filelocations'][scantype]),index=False,header=True))
 
 
     print("Do MRI-only stats here")
-    ##TODO: have I written this yet??
+    ##TODO: write this
 
     print("Doing tau-anchored processing:")
     # ##TODO: grab tau-anchored csv
@@ -159,10 +163,10 @@ def main():
 
 
 #Arguments
-ap = argparse.ArgumentParser()
-ap.add_argument('-m', '--mode', required=False,  action='store', help='Options: mri, pet, or both')
-ap.add_argument('-s', '--steps', required=False,  action='store', help='only run particular processing step')
-args = ap.parse_args()
+# ap = argparse.ArgumentParser()
+# ap.add_argument('-m', '--mode', required=False,  action='store', help='Options: mri, pet, or both')
+# ap.add_argument('-s', '--steps', required=False,  action='store', help='only run particular processing step')
+# args = ap.parse_args()
 # mode=args.mode
 # main(mode)
 
