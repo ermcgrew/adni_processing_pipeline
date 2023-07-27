@@ -93,8 +93,8 @@ def main():
                 #     df_newscans.at[index,"BLSCANDATE"] = alldates[0]
 
             if scantype == 'mri':
-                print('do mri processing if MRI')
-                 ##TODO: make sure this doesn't break if t1 or t2 is missing
+                print('do mri processing')
+                ##TODO: make sure this doesn't break if t1 or t2 is missing
         #             # ants_job_name = mri_to_process.do_ants()
         #             # wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
         #             # mri_to_process.do_wbsegqc(wbseg_job_name)
