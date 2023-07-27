@@ -1,40 +1,10 @@
 #!/usr/bin/env python3
 
-import datetime
 import logging
 import os
 import time
 import pandas as pd
 from config import *
-
-#Cluster filepaths called in processing functions
-ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
-wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
-wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly"
-segqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
-wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
-ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
-ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
-long_scripts = "/home/lxie/ADNI2018/scripts"
-icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
-ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
-t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
-t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh"
-pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
-
-
-#main file directories in cluster
-analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
-analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
-cleanup_dir = f"{analysis_input_dir}/cleanup"
-
-# adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
-
-
-#other variables
-sides = ["left", "right"]
-current_date = datetime.datetime.now().strftime("%Y_%m_%d")
 
 
 #common functions
@@ -432,5 +402,3 @@ class MRIPetReg:
 # t1_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
 # mri_tau_reg_to_process.do_pet_reg_qc(t1_pet_reg_job)
 # mri_tau_reg_to_process.do_t2_pet_reg(t1_pet_reg_job)
-
-

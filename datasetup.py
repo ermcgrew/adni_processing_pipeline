@@ -7,9 +7,10 @@ import pandas as pd
 import os
 from config import *
 
-#from vergnet_db/csv_preprocessing.py
-# Helper function to set rid, viscode, phase in MRI/PET tables
+
 def fixup_imaging_csv(df):
+    #from vergnet_db/csv_preprocessing.py
+    # Helper function to set rid, viscode, phase in MRI/PET tables
     # Replacement of strings with VISCODE
     repdic = {
         "ADNI Baseline": "bl",
@@ -60,9 +61,10 @@ def fixup_imaging_csv(df):
 
     return df
 
-#from vergnet_db/csv_preprocessing.py
-# Helper function to set RID, phase for MRI/PET tables
+
 def set_rid_and_phase(df, i, row):
+    #from vergnet_db/csv_preprocessing.py
+    # Helper function to set RID, phase for MRI/PET tables
     # Assign the phase
     visit = row['VISIT']
     df.at[i, 'PHASE'] = \
@@ -75,8 +77,9 @@ def set_rid_and_phase(df, i, row):
     if df.at[i, 'RID'] > 5999:
         df.at[i, 'PHASE'] = "ADNI3"
 
-#from vergnet_db/csv_preprocessing.py
+
 def preprocess_new(csvfilename, registry=None):
+    #from vergnet_db/csv_preprocessing.py
     # If registry passed in, encapsulate its data in a dictionary
     reg_vc_vc2_dict = {}
     reg_vc2_date_dict = {}
@@ -297,23 +300,24 @@ def create_mri_uid_list(mri_csvs):
     alloutput['RID'] = alloutput['RID'].astype(int)
     alloutput.info()
 
-    alloutput.to_csv(os.path.join(datasetup_directories_path["merged_data_uids"],mri_uids),header=True,index=False)
+    alloutput.to_csv(os.path.join(datasetup_directories_path["uids"],filenames['uids']['mri']),header=True,index=False)
     return
 
 
 def create_pet_uid_list(petmeta):
     petmeta_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],petmeta))
     # print(petmeta_df.head())
-    for i in range(0,len(pet_uid_csv_list)):
-        logging.info(f"Datasetup.py/function create_pet_uid_list is collating data for {pet_uid_csv_list[i]}")
+    pettype_column_dict = {0:'fdg', 1:'amy', 2:'tau'}
+    for key in pettype_column_dict:
+        logging.info(f"Datasetup.py/function create_pet_uid_list is collating data for {pettype_column_dict[key]}")
         outputdf=pd.DataFrame()
-        meta_typex = petmeta_df.loc[petmeta_df['PETTYPE'] == i]
+        petmeta_one_scantype = petmeta_df.loc[petmeta_df['PETTYPE'] == key]
 
-        for subject in meta_typex['RID'].unique():
-            this_subject = meta_typex.loc[meta_typex['RID'] == subject]
+        for subject in petmeta_one_scantype['RID'].unique():
+            this_subject = petmeta_one_scantype.loc[petmeta_one_scantype['RID'] == subject]
             dates = this_subject['SMARTDATE'].unique()
             for date in dates: 
-                match = meta_typex.loc[(meta_typex['RID']== subject) & (meta_typex['SMARTDATE'] == date) & (meta_typex['RIGHTONE'] == 1)]
+                match = petmeta_one_scantype.loc[(petmeta_one_scantype['RID']== subject) & (petmeta_one_scantype['SMARTDATE'] == date) & (petmeta_one_scantype['RIGHTONE'] == 1)]
                 if len(match) == 0:
                     continue
                 else:
@@ -326,14 +330,14 @@ def create_pet_uid_list(petmeta):
                                 'STUDYID', 'SERIESID', 'IMAGEID']]
         # print(querymergedf.info())
         # print(querymergedf.head())
-        querymergedf.to_csv(os.path.join(datasetup_directories_path["merged_data_uids"],pet_uid_csv_list[i]),header=True,index=False)
+        querymergedf.to_csv(os.path.join(datasetup_directories_path["uids"],filenames["uids"][pettype_column_dict[key]]),header=True,index=False)
 
 
-def create_tau_anchored_uid_list(mricsv,petcsvslist):
+def create_tau_anchored_uid_list():
     #need tau, amy, mri uid csvs
-    mris = pd.read_csv(os.path.join(datasetup_directories_path['merged_data_uids'],mricsv))
-    amys = pd.read_csv(os.path.join(datasetup_directories_path['merged_data_uids'],petcsvslist[1]))
-    taus = pd.read_csv(os.path.join(datasetup_directories_path['merged_data_uids'],petcsvslist[2]))
+    mris = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["mri"]))
+    amys = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["amy"]))
+    taus = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["tau"]))
 
     taucolstoadd = [col + ".tau" for col in taus.columns if col != "ID" and col != "RID"]
     amycolstoadd = [col + ".amy" for col in amys.columns if col != "ID" and col != "RID"]
@@ -401,7 +405,7 @@ def create_tau_anchored_uid_list(mricsv,petcsvslist):
                 
                 index +=1  
     
-    outputdf.to_csv(os.path.join(datasetup_directories_path["merged_data_uids"],tau_anchored_csv),index=False,header=True)
+    outputdf.to_csv(os.path.join(datasetup_directories_path["uids"],filenames["uids"]["anchored"]),index=False,header=True)
 
 
 def reformat_date_slash_to_dash(df):
@@ -427,9 +431,9 @@ def reformat_date_slash_to_dash(df):
     return df
 
 
-def identify_new_scans(new_uids_csv,old_filelocs_csv,processing_status_csv_name):
+def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
     #compare output of create_{scantype}_uid_list function to previous fileloc list
-    new_uids_df = pd.read_csv(os.path.join(datasetup_directories_path['merged_data_uids'],new_uids_csv))
+    new_uids_df = pd.read_csv(os.path.join(datasetup_directories_path['uids'],new_uids_csv))
     old_filelocs_df = pd.read_csv(os.path.join(fileloc_directory_previousrun,old_filelocs_csv),sep="\t")
     # print(new_uids_df.info())
     # print(new_uids_df.head())
@@ -440,14 +444,13 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,processing_status_csv_name)
     old_filelocs_df = reformat_date_slash_to_dash(old_filelocs_df)
 
     #fix MRI uid col data types
-    if "IMAGEUID_T1" in old_filelocs_df.columns:
+    if scantype == 'mri':
         old_filelocs_df['IMAGEUID_T1'] =  old_filelocs_df['IMAGEUID_T1'].astype(str)
         old_filelocs_df['IMAGEUID_T2'] =  old_filelocs_df['IMAGEUID_T2'].astype(str)
     
     for index,row in new_uids_df.iterrows():
         id = row['ID']
         scandate = row['SMARTDATE']
-        columns = row.keys().tolist()
         # if "FIELD_STRENGTH" in columns:
         #     if row['FIELD_STRENGTH'] != "3T":
         #         continue
@@ -456,9 +459,9 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,processing_status_csv_name)
             #find each row from newuid.csv in olduid.csv
         match_in_old = old_filelocs_df.loc[(old_filelocs_df['ID'] == id) & (old_filelocs_df['SMARTDATE'] == scandate)]
         
-        if 'T1ISACCE' in columns: #MRI csvs
+        if scantype == 'mri': #MRI csvs
             uid_comparison_data = {"T1":[],"T2":[]}    
-        elif 'STUDYID' in columns: #PET csvs
+        else: #PET csvs
             uid_comparison_data = {"PET":[]}
         
         for key in uid_comparison_data:
@@ -502,7 +505,7 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,processing_status_csv_name)
         
     # print(new_uids_df.head())
     # print(new_uids_df.info())
-    new_uids_df.to_csv(os.path.join(datasetup_directories_path["uids_process_status"], processing_status_csv_name), index=False, header=True)
+    new_uids_df.to_csv(os.path.join(datasetup_directories_path["processing_status"], filenames['processing_status'][scantype]), index=False, header=True)
 
 
 def main():
@@ -512,25 +515,20 @@ def main():
     #     preprocess_new(csvfile, registry=registry_df)
 
     # create_mri_uid_list(csvs_mri_merge)
-    # create_pet_uid_list(pet_meta_list) #function goes through all 3 pet types
-    # create_tau_anchored_uid_list(mri_uids,pet_uid_csv_list)
+    # create_pet_uid_list(pet_meta_list) 
+    # create_tau_anchored_uid_list()
 
-    for current_uid_csv in os.listdir(datasetup_directories_path['merged_data_uids']):
-        if 'anchored' in current_uid_csv or "smalltest" in current_uid_csv:
+    for key in filenames["uids"]:
+        if 'anchored' in filenames["uids"][key] or "smalltest" in filenames["uids"][key]:
             continue ##skipping test data and tau-anchored data for now
         else:
-            matchon = current_uid_csv.split('_')[0]
-            previous_fileloc_csv = [x for x in previous_filelocs_csvs if matchon in x]
-            processing_status_filename = [y for y in processing_status_csvs if matchon in y]
-            # print(f"{current_uid_csv}:{previous_fileloc_csv}: {processing_status_filename}")
+            previous_fileloc_csv = [x for x in previous_filelocs_csvs if key in x]
             if previous_fileloc_csv: #in case of no match
-                identify_new_scans(current_uid_csv, previous_fileloc_csv[0],processing_status_filename[0])
+                identify_new_scans(filenames['uids'][key], previous_fileloc_csv[0], key)
 
-    # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/mri_uids.csv",\
+    # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_uids/mri_uids.csv",\
     #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/mri3TListWithNIFTIPath_10172022.tsv")
 
-    # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_merged_data_uids/tau_uids.csv",\
-    #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/taulist_dec15_2022_fileloc_2022-12-20.tsv")
 
 
 main()
