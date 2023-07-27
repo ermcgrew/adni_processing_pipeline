@@ -221,9 +221,9 @@ def sort_uids(dataframe, which="smallest"):
         return
     
 
-def create_mri_uid_list(mri_csvs):
-    meta_csv = [file for file in mri_csvs if "META" in file][0]
-    mrilist_csv = [file for file in mri_csvs if "LIST" in file][0]
+def create_mri_uid_list():
+    meta_csv = [file for file in csvs_mri_merge if "META" in file][0]
+    mrilist_csv = [file for file in csvs_mri_merge if "LIST" in file][0]
     mrimeta_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],meta_csv))
     mrilist_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],mrilist_csv))
 
@@ -304,8 +304,8 @@ def create_mri_uid_list(mri_csvs):
     return
 
 
-def create_pet_uid_list(petmeta):
-    petmeta_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],petmeta))
+def create_pet_uid_list():
+    petmeta_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],pet_meta_list))
     # print(petmeta_df.head())
     pettype_column_dict = {0:'fdg', 1:'amy', 2:'tau'}
     for key in pettype_column_dict:
@@ -448,60 +448,95 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
         old_filelocs_df['IMAGEUID_T1'] =  old_filelocs_df['IMAGEUID_T1'].astype(str)
         old_filelocs_df['IMAGEUID_T2'] =  old_filelocs_df['IMAGEUID_T2'].astype(str)
     
-    for index,row in new_uids_df.iterrows():
-        id = row['ID']
-        scandate = row['SMARTDATE']
-        # if "FIELD_STRENGTH" in columns:
-        #     if row['FIELD_STRENGTH'] != "3T":
-        #         continue
-        # else:
-            # print(f"ID: {id}, date: {scandate}")
-            #find each row from newuid.csv in olduid.csv
-        match_in_old = old_filelocs_df.loc[(old_filelocs_df['ID'] == id) & (old_filelocs_df['SMARTDATE'] == scandate)]
-        
-        if scantype == 'mri': #MRI csvs
-            uid_comparison_data = {"T1":[],"T2":[]}    
-        else: #PET csvs
-            uid_comparison_data = {"PET":[]}
-        
-        for key in uid_comparison_data:
-            if len(match_in_old) == 1: 
-            #this id,scandate already has processing record, double-check the UIDs are the same in old & new 
-                if key == "T1":
-                    newuid = str(row['IMAGUID_T1']).split('.')[0]
-                    olduid = match_in_old['IMAGEUID_T1'].values.tolist()[0].split(".")[0]
-                    filepath_from_old = match_in_old['FINALT1NIFTI'].values.tolist()[0]
-                    uid_comparison_data['T1'] = [newuid,olduid,filepath_from_old]
-                elif key == "T2":
-                    newuid = str(row['IMAGUID_T2']).split('.')[0]
-                    olduid = match_in_old['IMAGEUID_T2'].values.tolist()[0].split(".")[0]
-                    filepath_from_old = match_in_old['FINALT2NIFTI'].values.tolist()[0]
-                    uid_comparison_data['T2'] = [newuid,olduid,filepath_from_old]
-                elif key == "PET":
-                    newuid = str(row['IMAGEID']).split('.')[0]
-                    olduid = str(match_in_old['IMAGEID'].values.tolist()[0])
-                    filepath_from_old = match_in_old["FILELOC"].values.tolist()[0]
-                    uid_comparison_data['PET'] = [newuid,olduid,filepath_from_old]
+    if scantype == 'anchored':
+        print("do anchored comparison")
+        for index,row in new_uids_df.iterrows():
+            id = row['ID']
+            taudate_new = row['SMARTDATE.tau']
+            amydate_new = row['SMARTDATE.amy']
+            mridate_new = row['SMARTDATE.mri']
 
-                # print(uid_comparison_data)
-                if uid_comparison_data[key][0] == uid_comparison_data[key][1]:
-                    if uid_comparison_data[key][2]:
-                        new_uids_df.at[index,f"NEW_{key}"] = 0 
-                        # print("already processed")
-                    else:
-                        logging.debug(f"{id}:{scandate}:{key}:Previous nifti conversion failed")
-                        new_uids_df.at[index,f"NEW_{key}"] = 2
+            match_in_old = old_filelocs_df.loc[(old_filelocs_df['ID'] == id) & (old_filelocs_df['SMARTDATE.tau'] == taudate_new) 
+                                               & (old_filelocs_df['SMARTDATE.amy'] == amydate_new)
+                                               & (old_filelocs_df['SMARTDATE.mri'] == mridate_new)]
+
+            if len(match_in_old) == 1:
+                tauuid_new = str(row['IMAGEID.tau']).split('.')[0]
+                tauuid_old = str(match_in_old['IMAGEID.tau'].values.tolist()[0])
+                amyuid_new = str(row['IMAGEID.amy']).split('.')[0]
+                amyuid_old = str(match_in_old['IMAGEID.amy'].values.tolist()[0])
+                mriuid_new = str(row['IMAGUID_T1.mri']).split('.')[0]
+                mriuid_old = str(match_in_old['IMAGUID_T1.mri'].values.tolist()[0])
+
+                if tauuid_new == tauuid_old & amyuid_new == amyuid_old & mriuid_new == mriuid_old:
+                    new_uids_df.at[index,f"NEW_{scantype}"] = 0 
+                    # print("already processed")
                 else:
-                    logging.debug(f"{id}:{scandate}:{key}:Different uid selected from adni csv data")
-                    new_uids_df.at[index,f"NEW_{key}"] = 3
+                    logging.debug(f"{id}:{scandate}:{scantype}:Different uid selected from adni csv data")
+                    new_uids_df.at[index,f"NEW_{scantype}"] = 3
 
-            elif len(match_in_old) < 1:# and scandate > "2022-01-01": 
-                ##TODO:check for dicom? scandate clause holding for now;; some dicoms aren't downloaded?
-                logging.info(f"{id}:{scandate}:{key}:New scan to process")
-                new_uids_df.at[index,f"NEW_{key}"] = 1
+            elif len(match_in_old) < 1:
+                logging.info(f"{id}:{scandate}:{scantype}:New scan to process")
+                new_uids_df.at[index,f"NEW_{scantype}"] = 1
             else:
-                logging.debug(f"{id}:{scandate}:{key}:Duplicate entries in previous uid.csv")
-                new_uids_df.at[index,f"NEW_{key}"] = 4
+                logging.debug(f"{id}:{scandate}:{scantype}:Duplicate entries in previous uid.csv")
+                new_uids_df.at[index,f"NEW_{scantype}"] = 4
+    
+    else:
+        for index,row in new_uids_df.iterrows():
+            id = row['ID']
+            scandate = row['SMARTDATE']
+            # if "FIELD_STRENGTH" in columns:
+            #     if row['FIELD_STRENGTH'] != "3T":
+            #         continue
+            # else:
+                # print(f"ID: {id}, date: {scandate}")
+                #find each row from newuid.csv in olduid.csv
+            match_in_old = old_filelocs_df.loc[(old_filelocs_df['ID'] == id) & (old_filelocs_df['SMARTDATE'] == scandate)]
+            
+            if scantype == 'mri': #MRI csvs
+                uid_comparison_data = {"T1":[],"T2":[]}    
+            else: #PET csvs
+                uid_comparison_data = {"PET":[]}
+            
+            for key in uid_comparison_data:
+                if len(match_in_old) == 1: 
+                #this id,scandate already has processing record, double-check the UIDs are the same in old & new 
+                    if key == "T1":
+                        newuid = str(row['IMAGUID_T1']).split('.')[0]
+                        olduid = match_in_old['IMAGEUID_T1'].values.tolist()[0].split(".")[0]
+                        filepath_from_old = match_in_old['FINALT1NIFTI'].values.tolist()[0]
+                        uid_comparison_data['T1'] = [newuid,olduid,filepath_from_old]
+                    elif key == "T2":
+                        newuid = str(row['IMAGUID_T2']).split('.')[0]
+                        olduid = match_in_old['IMAGEUID_T2'].values.tolist()[0].split(".")[0]
+                        filepath_from_old = match_in_old['FINALT2NIFTI'].values.tolist()[0]
+                        uid_comparison_data['T2'] = [newuid,olduid,filepath_from_old]
+                    elif key == "PET":
+                        newuid = str(row['IMAGEID']).split('.')[0]
+                        olduid = str(match_in_old['IMAGEID'].values.tolist()[0])
+                        filepath_from_old = match_in_old["FILELOC"].values.tolist()[0]
+                        uid_comparison_data['PET'] = [newuid,olduid,filepath_from_old]
+
+                    # print(uid_comparison_data)
+                    if uid_comparison_data[key][0] == uid_comparison_data[key][1]:
+                        if uid_comparison_data[key][2]:
+                            new_uids_df.at[index,f"NEW_{key}"] = 0 
+                            # print("already processed")
+                        else:
+                            logging.debug(f"{id}:{scandate}:{key}:Previous nifti conversion failed")
+                            new_uids_df.at[index,f"NEW_{key}"] = 2
+                    else:
+                        logging.debug(f"{id}:{scandate}:{key}:Different uid selected from adni csv data")
+                        new_uids_df.at[index,f"NEW_{key}"] = 3
+
+                elif len(match_in_old) < 1:# and scandate > "2022-01-01": 
+                    ##TODO:check for dicom? scandate clause holding for now;; some dicoms aren't downloaded?
+                    logging.info(f"{id}:{scandate}:{key}:New scan to process")
+                    new_uids_df.at[index,f"NEW_{key}"] = 1
+                else:
+                    logging.debug(f"{id}:{scandate}:{key}:Duplicate entries in previous uid.csv")
+                    new_uids_df.at[index,f"NEW_{key}"] = 4
         
     # print(new_uids_df.head())
     # print(new_uids_df.info())
@@ -514,13 +549,13 @@ def main():
     # for csvfile in csvlist:
     #     preprocess_new(csvfile, registry=registry_df)
 
-    # create_mri_uid_list(csvs_mri_merge)
-    # create_pet_uid_list(pet_meta_list) 
+    # create_mri_uid_list()
+    # create_pet_uid_list() 
     # create_tau_anchored_uid_list()
 
     for key in filenames["uids"]:
-        if 'anchored' in filenames["uids"][key] or "smalltest" in filenames["uids"][key]:
-            continue ##skipping test data and tau-anchored data for now
+        if "smalltest" in filenames["uids"][key]:
+            continue ##skipping test data csv for now
         else:
             previous_fileloc_csv = [x for x in previous_filelocs_csvs if key in x]
             if previous_fileloc_csv: #in case of no match
@@ -528,7 +563,6 @@ def main():
 
     # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_uids/mri_uids.csv",\
     #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/mri3TListWithNIFTIPath_10172022.tsv")
-
 
 
 main()
