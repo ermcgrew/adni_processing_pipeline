@@ -360,8 +360,8 @@ def create_tau_anchored_uid_list():
         
         ## match to subject rows in amy uids list
         amymatch = amys.loc[amys['ID'] == subject]
-        amydates=amymatch['SMARTDATE'].values.tolist()
-        amydates_formatted=[datetime.strptime(x,"%Y-%m-%d") for x in amydates]
+        amydates = amymatch['SMARTDATE'].values.tolist()
+        amydates_formatted = [datetime.strptime(x,"%Y-%m-%d") for x in amydates]
 
         ## if subject not found in either sheet
         if len(mrimatch) == 0 and len(amymatch) == 0:  
@@ -369,7 +369,7 @@ def create_tau_anchored_uid_list():
         else:
             for taudate in taudates:
                 ##add RID,ID to new outputdf
-                outputdf.loc[index,['RID','ID']] = [subject, subject[-4:]]
+                outputdf.loc[index,['ID','RID']] = [subject, subject[-4:]]
                 taudate_dt=datetime.strptime(taudate,"%Y-%m-%d")
                 
                 ##Add rest of the tau data to new outputdf as colname.tau
@@ -431,6 +431,15 @@ def reformat_date_slash_to_dash(df):
     return df
 
 
+def reformat_date_datetime_to_dash(df):
+    # YYYY-MM-DDTHH:MM:SSZ to M/D/YY
+    datecols = [col for col in df.columns if 'DATE.' in col]
+    for index, row in df.iterrows():
+        for column in datecols:
+            YMDlist=row[column].split('-')
+            df.at[index,column]=YMDlist[0] + "-" + YMDlist[1] + "-" + YMDlist[2][0:2]
+    return df
+
 def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
     #compare output of create_{scantype}_uid_list function to previous fileloc list
     new_uids_df = pd.read_csv(os.path.join(datasetup_directories_path['uids'],new_uids_csv))
@@ -441,7 +450,11 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
     # print(old_filelocs_df.head())
 
     #pet fileloc tsv's made by Long & Sandy use M/D/YY dates, convert to dash
-    old_filelocs_df = reformat_date_slash_to_dash(old_filelocs_df)
+    if scantype == 'amy' or scantype == 'fdg' or scantype == 'tau':
+        old_filelocs_df = reformat_date_slash_to_dash(old_filelocs_df)
+
+    if scantype == 'anchored':
+        old_filelocs_df = reformat_date_datetime_to_dash(old_filelocs_df)
 
     #fix MRI uid col data types
     if scantype == 'mri':
@@ -449,37 +462,39 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
         old_filelocs_df['IMAGEUID_T2'] =  old_filelocs_df['IMAGEUID_T2'].astype(str)
     
     if scantype == 'anchored':
-        print("do anchored comparison")
         for index,row in new_uids_df.iterrows():
             id = row['ID']
             taudate_new = row['SMARTDATE.tau']
             amydate_new = row['SMARTDATE.amy']
             mridate_new = row['SMARTDATE.mri']
 
-            match_in_old = old_filelocs_df.loc[(old_filelocs_df['ID'] == id) & (old_filelocs_df['SMARTDATE.tau'] == taudate_new) 
-                                               & (old_filelocs_df['SMARTDATE.amy'] == amydate_new)
-                                               & (old_filelocs_df['SMARTDATE.mri'] == mridate_new)]
+            match_in_old = old_filelocs_df.loc[(old_filelocs_df['ID'] == id) 
+                                                & (old_filelocs_df['SMARTDATE.tau'] == taudate_new)
+                                                & (old_filelocs_df['SMARTDATE.amy'] == amydate_new)
+                                                & (old_filelocs_df['SMARTDATE.mri'] == mridate_new)]
+            # print(len(match_in_old))
 
             if len(match_in_old) == 1:
+                # print("One match")
                 tauuid_new = str(row['IMAGEID.tau']).split('.')[0]
                 tauuid_old = str(match_in_old['IMAGEID.tau'].values.tolist()[0])
                 amyuid_new = str(row['IMAGEID.amy']).split('.')[0]
                 amyuid_old = str(match_in_old['IMAGEID.amy'].values.tolist()[0])
                 mriuid_new = str(row['IMAGUID_T1.mri']).split('.')[0]
-                mriuid_old = str(match_in_old['IMAGUID_T1.mri'].values.tolist()[0])
+                mriuid_old = str(match_in_old['IMAGEUID_T1.mri'].values.tolist()[0])
 
-                if tauuid_new == tauuid_old & amyuid_new == amyuid_old & mriuid_new == mriuid_old:
+                if tauuid_new == tauuid_old and amyuid_new == amyuid_old and mriuid_new == mriuid_old:
                     new_uids_df.at[index,f"NEW_{scantype}"] = 0 
                     # print("already processed")
                 else:
-                    logging.debug(f"{id}:{scandate}:{scantype}:Different uid selected from adni csv data")
+                    logging.debug(f"{id}:{taudate_new}:{scantype}:Different uid selected from adni csv data")
                     new_uids_df.at[index,f"NEW_{scantype}"] = 3
 
             elif len(match_in_old) < 1:
-                logging.info(f"{id}:{scandate}:{scantype}:New scan to process")
+                logging.info(f"{id}:{taudate_new}:{scantype}:New scan to process")
                 new_uids_df.at[index,f"NEW_{scantype}"] = 1
             else:
-                logging.debug(f"{id}:{scandate}:{scantype}:Duplicate entries in previous uid.csv")
+                logging.debug(f"{id}:{taudate_new}:{scantype}:Duplicate entries in previous uid.csv")
                 new_uids_df.at[index,f"NEW_{scantype}"] = 4
     
     else:
@@ -546,9 +561,10 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
 def main():
     registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
 
-    # for csvfile in csvlist:
+    # for csvfile in original_ida_datasheets:
     #     preprocess_new(csvfile, registry=registry_df)
 
+    ##TODO:fix IMAGUID_ spelling error in mri sheets
     # create_mri_uid_list()
     # create_pet_uid_list() 
     # create_tau_anchored_uid_list()
