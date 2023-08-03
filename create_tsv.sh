@@ -30,22 +30,22 @@ function create_tsv_header()
   done
   # echo "last bit done"
 
-  # echo -e "${HEADER}\t$(cat $PETFILE | sed -n "1p")" > $analysis_output_dir/stats_lr_cleanup_corr_nogray_$date.tsv
+  # echo -e "${HEADER}\t$(cat $PETFILE | sed -n "1p")" > $this_run_analysis_output_dir/stats_lr_cleanup_corr_nogray_$date.tsv
     #cat PETFILE print out the header from petfile as the last part of the created header string
 }
 
 function collate_new_data ()
 {
-  for file in $(ls $cleanup_file_dir/*whole.txt | cut -f 3 -d "/"); do
-    cat $cleanup_file_dir/$file | tee -a $analysis_output_dir/stats_lr_cleanup_corr_nogray_$date.tsv
+  for file in $(ls $stats_output_dir/*whole.txt | cut -f 3 -d "/"); do
+    cat $stats_output_dir/$file | tee -a $this_run_analysis_output_dir/stats_lr_cleanup_corr_nogray_$date.tsv
     #tee splits output so it's saved to file (-a is append) and also goes to stdout--unecessary?
   done
 }
 
 wblabels=$1
-cleanup_file_dir=$2
-analysis_output_dir=$3
-date=$(echo $analysis_output_dir | cut -f 6 -d "/")
+stats_output_dir=$2
+this_run_analysis_output_dir=$3
+date=$(echo $this_run_analysis_output_dir | cut -f 6 -d "/")
 
 echo "Writing tsv header"
 # create_tsv_header
