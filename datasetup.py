@@ -332,13 +332,19 @@ def create_pet_uid_list():
         # print(querymergedf.head())
         querymergedf.to_csv(os.path.join(datasetup_directories_path["uids"],filenames["uids"][pettype_column_dict[key]]),header=True,index=False)
 
+    return
+
 
 def create_tau_anchored_uid_list():
     #need tau, amy, mri uid csvs
-    mris = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["mri"]))
-    amys = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["amy"]))
-    taus = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["tau"]))
-
+    mris = pd.read_csv("/project/wolk/ADNI2018/analysis_input/20230731_processing_status/mri_processing_status.csv")
+    amys = pd.read_csv("/project/wolk/ADNI2018/analysis_input/20230731_processing_status/amy_processing_status.csv")
+    taus = pd.read_csv("/project/wolk/ADNI2018/analysis_input/20230731_processing_status/tau_processing_status.csv")
+    
+    # mris = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["mri"]))
+    # amys = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["amy"]))
+    # taus = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["tau"]))
+    
     taucolstoadd = [col + ".tau" for col in taus.columns if col != "ID" and col != "RID"]
     amycolstoadd = [col + ".amy" for col in amys.columns if col != "ID" and col != "RID"]
     mricolstoadd = [col + ".mri" for col in mris.columns if col != "ID" and col != "RID"]
@@ -405,7 +411,8 @@ def create_tau_anchored_uid_list():
                 
                 index +=1  
     
-    outputdf.to_csv(os.path.join(datasetup_directories_path["uids"],filenames["uids"]["anchored"]),index=False,header=True)
+    outputdf.to_csv("/project/wolk/ADNI2018/analysis_input/20230731_processing_status/anchored_uids.csv",index=False,header=True)
+    # outputdf.to_csv(os.path.join(datasetup_directories_path["uids"],filenames["uids"]["anchored"]),index=False,header=True)
 
 
 def reformat_date_slash_to_dash(df):
@@ -439,6 +446,7 @@ def reformat_date_datetime_to_dash(df):
             YMDlist=row[column].split('-')
             df.at[index,column]=YMDlist[0] + "-" + YMDlist[1] + "-" + YMDlist[2][0:2]
     return df
+
 
 def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
     #compare output of create_{scantype}_uid_list function to previous fileloc list
@@ -567,15 +575,15 @@ def main():
     ##TODO:fix IMAGUID_ spelling error in mri sheets
     # create_mri_uid_list()
     # create_pet_uid_list() 
-    # create_tau_anchored_uid_list()
+    create_tau_anchored_uid_list()
 
-    for key in filenames["uids"]:
-        if "smalltest" in filenames["uids"][key]:
-            continue ##skipping test data csv for now
-        else:
-            previous_fileloc_csv = [x for x in previous_filelocs_csvs if key in x]
-            if previous_fileloc_csv: #in case of no match
-                identify_new_scans(filenames['uids'][key], previous_fileloc_csv[0], key)
+    # for key in filenames["uids"]:
+    #     if "smalltest" in filenames["uids"][key]:
+    #         continue ##skipping test data csv for now
+    #     else:
+    #         previous_fileloc_csv = [x for x in previous_filelocs_csvs if key in x]
+    #         if previous_fileloc_csv: #in case of no match
+    #             identify_new_scans(filenames['uids'][key], previous_fileloc_csv[0], key)
 
     # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_uids/mri_uids.csv",\
     #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/mri3TListWithNIFTIPath_10172022.tsv")

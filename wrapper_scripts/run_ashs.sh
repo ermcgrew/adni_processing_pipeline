@@ -11,7 +11,7 @@ m_opt=$8
 
 export ASHS_ROOT=$ashs_root
 module load ImageMagick
-module unload matlab/2023a
+module unload matlab/2023a 
 
 #standard options
 options="-a $atlas -g $t1trim -f $(readlink -f $t2link) \

@@ -14,6 +14,7 @@ analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
 cleanup_dir = f"{analysis_input_dir}/cleanup"
 analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
+stats_output_dir = f"{analysis_output_dir}/stats"
 this_output_dir = f"{analysis_output_dir}/{current_date}"
 
 #Cluster filepaths called in processing functions
