@@ -4,6 +4,7 @@ id=$1
 scandate=$2
 uid=$3
 type=$4
+outputlog_dir=$5
 raw_dicom_dir="/project/wolk/PUBLIC/dicom"
 
 # echo $id
@@ -33,6 +34,9 @@ else
 
     if [[ ! -f $nifti_file ]] ; then
         # mkdir -p $nifti_dir
+        # echo bsub -J dcmtonii_${id}_${scandate}_${type} -o ${outputlog_dir} c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
+        bsub -J dcmtonii_${id}_${scandate}_${type} -o ${outputlog_dir} c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file &
+
         ##TODO: make this a bsub call, make sure script waits for job to complete before continuing
         # c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
         purple='this is a placeholder'
