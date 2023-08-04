@@ -15,13 +15,16 @@ module unload matlab/2023a
 
 #standard options
 options="-a $atlas -g $t1trim -f $(readlink -f $t2link) \
-          -w $output_directory -d -T -I ${id}"
+          -w $output_directory -T -I ${id}\
+          -N -t 1"
+        #   -d
 
 #addtional options for T1, ICV ASHS only
 if [[ $t2link =~ "T2w" ]] ; then 
     echo "skip t2"
 else
-    options="$options -l -s 1-7 -z $z_opt -m $m_opt -M"
+    options="$options -m $m_opt -M"
+    # -z $z_opt -l -s 1-7
 fi
 
 #For ICV ASHS only

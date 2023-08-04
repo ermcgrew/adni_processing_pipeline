@@ -75,15 +75,23 @@ class MRI:
         
         self.t1ashs_seg_left = f"{self.filepath}/ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
         self.t1ashs_seg_right = f"{self.filepath}/ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
+        self.t1ashs_seg_prefix = f"{self.filepath}/ASHST1/final/{self.id}"
+        self.t1ashs_seg_suffix = "lfseg_heur.nii.gz"
         
         self.t1mtthk_left = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_left_thickness.csv"
         self.t1mtthk_right = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_right_thickness.csv"   
+        self.t1mtthk_prefix = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}"
+        self.t1mtthk_suffix = "thickness.csv"   
         
         self.t1icv_seg = f"{self.filepath}/ASHSICV/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
 
         self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
         self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
         self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
+        # self.t2ashs_seg_tocleanup_left = f"{self.filepath}/sfsegnibtend/boostrap/fusion/lfseg_corr_nogray_left.nii.gz"
+        # self.t2ashs_seg_tocleanup_right = f"{self.filepath}/sfsegnibtend/boostrap/fusion/lfseg_corr_nogray_right.nii.gz"
+        
+
         self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
         self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
         self.icv_file = f"{self.filepath}/sfsegnibtend/final/{self.id}_icv.txt"
@@ -161,6 +169,9 @@ class MRI:
         if ready_to_process("t1ashs", self.id, self.mridate, input_files=[self.t1trim, self.superres], 
                             output_files=[self.t1ashs_seg_left, self.t1ashs_seg_right], parent_job = parent_job_name):
             os.system(f"mkdir {self.filepath}/ASHST1")
+            # print(f"bsub {submit_options} \
+            #           ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres}\
+            #           {self.filepath}/ASHST1 {self.id} {long_scripts}/ashs-fast-z.sh {long_scripts}/identity.mat")
             os.system(f"bsub {submit_options} \
                       ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres}\
                       {self.filepath}/ASHST1 {self.id} {long_scripts}/ashs-fast-z.sh {long_scripts}/identity.mat")
@@ -259,6 +270,24 @@ class MRI:
                             output_files=[self.pmtau_output]):
             os.system(f"bsub {submit_options} ./wrapper_scripts/pmtau.sh {self.id} {self.mridate} {self.filepath}/thickness")
             return
+
+    def do_ashs_stats(self, parent_job_name = ""):
+        this_job_name=f"ashs_stats{self.date_id_prefix}"
+        submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
+        if ready_to_process("ashs_stats", self.id, self.mridate, \
+                            input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
+                                         self.t1mtthk_left,self.t1mtthk_right,self.icv_file], \
+                            output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_mrionly.txt"]):
+            # print(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
+            #            {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
+            #            {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_file}")
+            os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
+                      {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
+                        {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_file}") 
+                        ##TODO:icv file--t2 or icv dir version? asking Sandy
+                        ##TODO:just t1, call after t1 ashs runs? or add t2 stats?
+            return
+
 
 class AmyloidPET:
     # strings for Amyloid PET filepaths
@@ -359,8 +388,10 @@ class MRIPetReg:
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
-# mri_to_process = MRI("099_S_6175", "2020-06-03")
+mri_to_process = MRI("099_S_6175", "2020-06-03")
 
+# print(f"./wrapper_scripts/mri_ashs_stats.sh \
+#     {mri_to_process.id} {mri_to_process.mridate} {stats_output_dir} {mri_to_process.t1ashs_seg_prefix} {mri_to_process.t1ashs_seg_suffix} {mri_to_process.t1mtthk_prefix} {mri_to_process.t1mtthk_suffix}")
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")

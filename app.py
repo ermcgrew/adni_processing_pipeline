@@ -139,44 +139,56 @@ def main():
     #     taudate = str(row['TAUDATE'])
     #     amydate = str(row['AMYDATE'])
 
-    subject = "114_S_6917"
-    mridate = "2021-04-16"
-    taudate = "2021-08-11"
-    amydate = "2021-06-02"
+    # subject = "114_S_6917"
+    # mridate = "2021-04-16"
+    # taudate = "2021-08-11"
+    # amydate = "2021-06-02"
+
+    # subject = "141_S_6779"
+    # mridate = "2020-10-27"
+    subject = "126_S_6721"
+    mridate = "2021-05-05"
+    
+    
     mri_to_process = MRI(subject,mridate)
+    mri_to_process.do_ashs_stats()
+    # mri_to_process.do_t1ashs()
     # mri_to_process.prc_cleanup()
     # mri_to_process.do_wbseg()
-    tau_to_process = TauPET(subject, taudate)
-    mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process)
+    # tau_to_process = TauPET(subject, taudate)
+    # mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process)
     #     logging.info(f"{mri_tau_reg_to_process.id}:{mri_tau_reg_to_process.mridate}:{mri_tau_reg_to_process.petdate}: Now processing")
         # t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
         # mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
         # mri_tau_reg_to_process.do_t2_pet_reg(t1_tau_pet_reg_job)      
 
-    amy_to_process = AmyloidPET(subject, amydate)
-    mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
-    logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
+    # amy_to_process = AmyloidPET(subject, amydate)
+    # mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
+    # logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
     # t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
     # mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
     # mri_amy_reg_to_process.do_t2_pet_reg(t1_amy_pet_reg_job)
 
     ##TODO: bsub this so it runs after all processing steps
-    print(f"run stats.sh for this set of tau/mri/amy dates")
-    print(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
-            {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
-            {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
-            {mri_to_process.t2ahs_cleanup_left} {mri_to_process.t2ahs_cleanup_right} \
-            {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mri_to_process.icv_file} \
-            'pet' {wblabel_file} {pmtau_template_dir} {stats_output_dir}") 
+    # print(f"run stats.sh for this set of tau/mri/amy dates")
+    # print(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
+    #         {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
+    #         {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
+    #         {mri_to_process.t2ahs_cleanup_left} {mri_to_process.t2ahs_cleanup_right} \
+    #         {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mri_to_process.icv_file} \
+    #         'pet' {wblabel_file} {pmtau_template_dir} {stats_output_dir}") 
             ##TODO: remove mode from stats.sh file??
        ########end of dfiterrows for loop 
 
     ##TODO: bsub to run after all tau-anchored processing completed
     print(f"now running create_tsv.sh with all info from completed processing")
-    print(f"mkdir {this_output_dir}")
-    print(f"bash create_tsv.sh {wblabel_file} {stats_output_dir} {this_output_dir}")
+    # print(f"mkdir {this_output_dir}")
+    # print(f"bash create_tsv.sh {wblabel_file} {stats_output_dir} {this_output_dir}")
     # os.system(f"mkdir {this_output_dir}")
     # os.system(f"bash create_tsv.sh {wblabel_file} {cleanup_dir} {this_output_dir}")
+    ##TODO: Do one more step: python pandas merge with qc, demographic data off of stats sheets?
+        ## $ROW,$ICV,$RATERS,$QCINFO,$T1VOL,$THK3TT1,$THKFITQUALITY,$blscandate,$date_diff,$AnalysisType,$DEMOGROW,-1
+        ##TODO: raters& qc info ; baseline scan info; demographic info; Row--info from where?
 
 
 #Arguments
