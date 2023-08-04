@@ -91,7 +91,6 @@ class MRI:
         # self.t2ashs_seg_tocleanup_left = f"{self.filepath}/sfsegnibtend/boostrap/fusion/lfseg_corr_nogray_left.nii.gz"
         # self.t2ashs_seg_tocleanup_right = f"{self.filepath}/sfsegnibtend/boostrap/fusion/lfseg_corr_nogray_right.nii.gz"
         
-
         self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
         self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
         self.icv_file = f"{self.filepath}/sfsegnibtend/final/{self.id}_icv.txt"
@@ -104,11 +103,12 @@ class MRI:
         self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
         self.t1flair = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_to_flair.mat"
 
-
         self.log_output_dir = f"{self.filepath}/logs_{current_date}"
-        # if not os.path.exists(self.log_output_dir):
-        #     os.system(f"mkdir {self.log_output_dir}")
-        self.bsub_output = f"-o {self.log_output_dir}"
+        self.bsub_output = f"-o {self.log_output_dir}"       
+
+        ##Make folders as needed
+        if not os.path.exists(self.log_output_dir):
+            os.system(f"mkdir -p {self.log_output_dir}")
 
 
     def neck_trim(self, parent_job_name = ""):
@@ -169,12 +169,9 @@ class MRI:
         if ready_to_process("t1ashs", self.id, self.mridate, input_files=[self.t1trim, self.superres], 
                             output_files=[self.t1ashs_seg_left, self.t1ashs_seg_right], parent_job = parent_job_name):
             os.system(f"mkdir {self.filepath}/ASHST1")
-            # print(f"bsub {submit_options} \
-            #           ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres}\
-            #           {self.filepath}/ASHST1 {self.id} {long_scripts}/ashs-fast-z.sh {long_scripts}/identity.mat")
             os.system(f"bsub {submit_options} \
-                      ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres}\
-                      {self.filepath}/ASHST1 {self.id} {long_scripts}/ashs-fast-z.sh {long_scripts}/identity.mat")
+                      ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres}\
+                      {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
         return(this_job_name)
     
     def do_t1mtthk(self, parent_job_name = ""):
@@ -203,8 +200,8 @@ class MRI:
                             output_files=[self.t1icv_seg]):
             os.system(f"mkdir {self.filepath}/ASHSICV")
             os.system(f"bsub {submit_options} \
-                  ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
-                      {self.filepath}/ASHSICV {self.id} {long_scripts}/ashs-fast-z.sh {long_scripts}/identity.mat")
+                  ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
+                      {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
             return   
 
     def do_t2ashs(self, parent_job_name = ""):
@@ -213,7 +210,7 @@ class MRI:
         if ready_to_process("t2ashs", self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
                             output_files=[self.t2ashs_seg_left, self.t2ashs_seg_right]):
             os.system(f"mkdir {self.filepath}/sfsegnibtend")
-            os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs.sh \
+            os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs_testcopy.sh run_ashs \
                       {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
                       {self.filepath}/sfsegnibtend {self.id}")
             return
@@ -243,6 +240,7 @@ class MRI:
                 os.system(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ahs_cleanup_left} \
                           -interp NN -reslice-identity -push A {self.t2ahs_cleanup_right} \
                           -interp NN -reslice-identity -add -o {self.t2ahs_cleanup_both}")
+                return
 
 
     def do_t1flair(self, parent_job_name = ""):
@@ -278,12 +276,9 @@ class MRI:
                             input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
                                          self.t1mtthk_left,self.t1mtthk_right,self.icv_file], \
                             output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_mrionly.txt"]):
-            # print(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
-            #            {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
-            #            {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_file}")
             os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
-                      {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
-                        {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_file}") 
+                    {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
+                    {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_file}") 
                         ##TODO:icv file--t2 or icv dir version? asking Sandy
                         ##TODO:just t1, call after t1 ashs runs? or add t2 stats?
             return
@@ -293,23 +288,29 @@ class AmyloidPET:
     # strings for Amyloid PET filepaths
     def __init__(self, subject, amydate):
         self.id = subject
-        self.amydate = amydate
+        # self.amydate = amydate
         self.scandate = amydate
-        self.filepath=f"{adni_data_dir}/{self.id}/{self.amydate}"
-        self.date_id_prefix = f"{self.amydate}_{self.id}"
+        self.filepath=f"{adni_data_dir}/{self.id}/{self.scandate}"
+        self.date_id_prefix = f"{self.scandate}_{self.id}"
         self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet.nii.gz"        
 
+        self.log_output_dir = f"{self.filepath}/logs_{current_date}"
+        if not os.path.exists(self.log_output_dir):
+            os.system(f"mkdir -p {self.log_output_dir}")
 
 class TauPET:
     # strings for Tau PET filepaths
     def __init__(self, subject, taudate):
         self.id = subject
-        self.taudate = taudate
+        # self.taudate = taudate
         self.scandate = taudate
-        self.filepath = f"{adni_data_dir}/{self.id}/{self.taudate}"
-        self.date_id_prefix = f"{self.taudate}_{self.id}"
+        self.filepath = f"{adni_data_dir}/{self.id}/{self.scandate}"
+        self.date_id_prefix = f"{self.scandate}_{self.id}"
         self.tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet.nii.gz"
         
+        self.log_output_dir = f"{self.filepath}/logs_{current_date}"
+        if not os.path.exists(self.log_output_dir):
+            os.system(f"mkdir -p {self.log_output_dir}")
 
 class MRIPetReg:
     #strings for filepaths from MRI and PET class instances and function to do MRI-PET registrations and QC
@@ -340,7 +341,7 @@ class MRIPetReg:
 
         self.log_output_dir = f"{self.filepath}/logs_{current_date}"
         if not os.path.exists(self.log_output_dir):
-            os.system(f"mkdir {self.log_output_dir}")
+            os.system(f"mkdir -p {self.log_output_dir}")
         self.bsub_output = f"-o {self.log_output_dir}"
 
 
@@ -388,10 +389,7 @@ class MRIPetReg:
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
-mri_to_process = MRI("099_S_6175", "2020-06-03")
-
-# print(f"./wrapper_scripts/mri_ashs_stats.sh \
-#     {mri_to_process.id} {mri_to_process.mridate} {stats_output_dir} {mri_to_process.t1ashs_seg_prefix} {mri_to_process.t1ashs_seg_suffix} {mri_to_process.t1mtthk_prefix} {mri_to_process.t1mtthk_suffix}")
+# mri_to_process = MRI("099_S_6175", "2020-06-03")
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")

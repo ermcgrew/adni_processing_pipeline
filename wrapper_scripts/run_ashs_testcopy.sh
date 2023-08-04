@@ -12,8 +12,7 @@ function run_ashs()
     t2link=$4
     output_directory=$5
     id=$6
-    z_opt=$7
-    m_opt=$8
+    m_opt=$7
     export ASHS_ROOT=$ashs_root
 
     #standard options
@@ -47,8 +46,6 @@ if [[ ! $NOCMD ]]; then
     $CMD "$@"
 fi
 
-##Remove z opt from script, calls, config
-##change calls to include function name
 
 
 <<OPTIONS NOTES
