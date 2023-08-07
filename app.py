@@ -96,7 +96,7 @@ def main():
 
                         # make symlink for nifti file between /PUBLIC and /dataset
                         print(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}") 
-                #         # os.system(f"ln -sf {nifti_file_loc_public} {dataset_nifti}")
+                        # os.system(f"ln -sf {nifti_file_loc_public} {dataset_nifti}")
 
                 # ##Additional information for MRI fileloc csv
                 # if scantype == "mri":
@@ -117,19 +117,22 @@ def main():
 
             # if scantype == 'mri':
             #     print('do mri processing')
-                ##TODO: make sure this doesn't break if t1 or t2 is missing
+                # if os.path.exists(scan_to_process.t1nifti):
                     # ants_job_name = scan_to_process.do_ants()
                     # scan_to_process.do_pmtau(ants_job_name)
                     # wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
                     # scan_to_process.do_wbsegqc(wbseg_job_name)
                     # scan_to_process.do_t1icv() 
-                    # t2_ashs_job_name = scan_to_process.do_t2ashs() 
-                    # scan_to_process.prc_cleanup(t2_ashs_job_name)
                     # superres_job_name = scan_to_process.do_superres() 
                     # t1ashs_job_name = scan_to_process.do_t1ashs(superres_job_name) 
-                    # t1mtthk_job_name =scan_to_process.do_t1mtthk(t1ashs_job_name) 
+                    # t1mtthk_job_name = scan_to_process.do_t1mtthk(t1ashs_job_name) 
                     # scan_to_process.do_ashs_stats(t1mtthk_job_name)
 
+                # if os.path.exists(scan_to_process.t2nifti):
+                    # t2_ashs_job_name = scan_to_process.do_t2ashs() 
+                    # scan_to_process.prc_cleanup(t2_ashs_job_name)
+                
+                # if os.path.exists(scan_to_process.flair):
                     ##Flair dicom processing not yet included in pipeline
                     ## scan_to_process.do_t1flair() 
                     ## scan_to_process.do_wmh_prep() 
