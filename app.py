@@ -27,7 +27,7 @@ def main():
         else:
             logging.info(f"Now processing csv for {scantype}")
             df=pd.read_csv(os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status'][scantype]))
-            print(df.head())
+            # print(df.head())
 
             if scantype == 'mri':
                 df_newscans = df.loc[(df['NEW_T1'] == 1) | (df['NEW_T2'] == 1)]
@@ -38,46 +38,64 @@ def main():
             for index,row in df_newscans.iterrows():
                 subject = str(row['ID'])
                 scandate = str(row['SMARTDATE'])
-                if scantype == 'tau':
-                    scan_to_process = TauPET(subject,scandate)
-                    uids = {'tau_uid':str(row["IMAGEID"])}
+                if scantype == 'mri':
+                    scan_to_process = MRI(subject,scandate)
+                    uids={"t1_uid": str(row['IMAGUID_T1']).split(".")[0],"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
                 elif scantype == "amy":
                     scan_to_process = AmyloidPET(subject,scandate)
                     uids = {'amy_uid':str(row["IMAGEID"])}
-                elif scantype == 'mri':
-                    scan_to_process = MRI(subject,scandate)
-                    uids={"t1_uid": str(row['IMAGUID_T1']).split(".")[0],"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
-                
-                logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Now converting dicom to nifti")
+                elif scantype == 'tau':
+                    scan_to_process = TauPET(subject,scandate)
+                    uids = {'tau_uid':str(row["IMAGEID"])}
+
+                logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Checking for nifti file.")
 
                 for key in uids:
-                    print(scan_to_process.id,scan_to_process.scandate,uids[key],\
-                                scan_to_process.__class__.__name__,scan_to_process.log_output_dir)
-                    # result = subprocess.run(
-                    #         ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
-                    #         scan_to_process.id,scan_to_process.scandate,uids[key],\
-                    #             scan_to_process.__class__.__name__,scan_to_process.log_output_dir], 
-                    #         capture_output=True, text=True)
-                #     ##TODO: handle any errors 
-                #     result_list = result.stdout.split("\n")
-                #     status = result_list[0]
-                #     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
+                    # print(scan_to_process.id,scan_to_process.scandate,uids[key],\
+                    #             scan_to_process.__class__.__name__,scan_to_process.log_output_dir)
+                    result = subprocess.run(
+                            ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
+                            scan_to_process.id,scan_to_process.scandate,uids[key],\
+                                scan_to_process.__class__.__name__,scan_to_process.log_output_dir], 
+                            capture_output=True, text=True)
+                    if result.returncode != 0:
+                        logging.warning(f"{scan_to_process.id}:{scan_to_process.scandate}:\
+                                        dicom_to_nifti.sh error {result.returncode}:{result.stderr}")
+                        continue
 
-                #     if status == "conversion to nifti sucessful":
-                #         nifti_file_loc_public = result_list[1]
-                #         print(f"Nifti filepath: {nifti_file_loc_public}")
-                #         if key == "t1_uid":
-                #             df_newscans.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
-                #             df_newscans.at[index,'T1_PROCESS_STATUS'] = 1
-                #         elif key == "t2_uid":
-                #             df_newscans.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
-                #             df_newscans.at[index,'T2_PROCESS_STATUS'] = 1
-                #         ##TODO: add PET fileloc data to df
+                    result_list = result.stdout.split("\n")
+                    if len(result_list) > 3:
+                        #first item is "Job <> submitted to queue..."
+                        status = result_list[1]
+                    else:
+                        status = result_list[0]
                     
-                #         ##TODO: create var for each scantype for dataset location of nifti file--use class.
-                #         dataset_nifti = ''
-                #         # make sym link between /PUBLIC and /dataset
-                #         print(f"ln -sf {nifti_file_loc_public} {dataset_nifti}") 
+                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
+
+                    if status == "conversion to nifti sucessful":
+                        nifti_file_loc_public = result_list[2]
+                        # print(f"Nifti filepath: {nifti_file_loc_public}")
+                        if key == "t1_uid":
+                            nifti_file_loc_dataset = scan_to_process.t1nifti
+                            df_newscans.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
+                            df_newscans.at[index,'T1_CONVERT_STATUS'] = 1
+                        elif key == "t2_uid":
+                            nifti_file_loc_dataset = scan_to_process.t2nifti
+                            df_newscans.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
+                            df_newscans.at[index,'T2_CONVERT_STATUS'] = 1
+                        elif key == "amy_uid":
+                            nifti_file_loc_dataset = scan_to_process.amy_nifti
+                            df_newscans.at[index,'FILELOC'] = nifti_file_loc_public
+                            df_newscans.at[index,'AMYNIFTI'] = nifti_file_loc_dataset
+                            df_newscans.at[index,'AMY_CONVERT_STATUS'] = 1
+                        elif key == "tau_uid":
+                            nifti_file_loc_dataset = scan_to_process.tau_nifti
+                            df_newscans.at[index,'FILELOC'] = nifti_file_loc_public
+                            df_newscans.at[index,'TAUNIFTI'] = nifti_file_loc_dataset
+                            df_newscans.at[index,'TAU_CONVERT_STATUS'] = 1
+
+                        # make symlink for nifti file between /PUBLIC and /dataset
+                        print(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}") 
                 #         # os.system(f"ln -sf {nifti_file_loc_public} {dataset_nifti}")
 
                 # ##Additional information for MRI fileloc csv

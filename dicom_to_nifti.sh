@@ -33,18 +33,22 @@ else
     fi
 
     if [[ ! -f $nifti_file ]] ; then
-        # mkdir -p $nifti_dir
+        outputlogfile="${outputlog_dir}/dcmtonii_${uid}.txt"
+        mkdir -p $nifti_dir
         # echo bsub -J dcmtonii_${id}_${scandate}_${type} -o ${outputlog_dir} c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
-        bsub -J dcmtonii_${id}_${scandate}_${type} -o ${outputlog_dir} c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file &
+        bsub -J dcmtonii_${id}_${scandate}_${type} -o ${outputlogfile} c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
+        # sleep 5 #enough time for bsub job to process
 
-        ##TODO: make this a bsub call, make sure script waits for job to complete before continuing
-        # c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
-        purple='this is a placeholder'
+        while [[ ! -f $outputlogfile ]]; do
+            sleep 2
+        done 
+
         if [[ -f $nifti_file ]] ; then
             status="conversion to nifti sucessful"
         else
             status="conversion to nifti failed"
         fi
+        
     else
         status="nifti file already exists"
     fi
