@@ -3,6 +3,10 @@
 from datetime import datetime
 import logging
 import os
+import pandas as pd
+
+#suppresses setting with copy warning 
+pd.options.mode.chained_assignment = None
 
 current_date = datetime.now().strftime("%Y_%m_%d")
 
