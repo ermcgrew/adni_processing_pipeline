@@ -292,7 +292,7 @@ def create_mri_uid_list():
 
             outputdf.loc[
                 (outputdf['RID'] == subject) & (outputdf['SMARTDATE'] == date),
-                    ['IMAGUID_T1','T1ISACCE', 'IMAGUID_T2', 'NT1NONEACCE','IMAGEUID_T1NONEACCE', 
+                    ['IMAGEUID_T1','T1ISACCE', 'IMAGEUID_T2', 'NT1NONEACCE','IMAGEUID_T1NONEACCE', 
                     'NT1ACCE', 'IMAGEUID_T1ACCE', 'NT2','IMAGEUID_T2ALL']
                         ] = datalisttoadd
 
@@ -488,7 +488,7 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
                 tauuid_old = str(match_in_old['IMAGEID.tau'].values.tolist()[0])
                 amyuid_new = str(row['IMAGEID.amy']).split('.')[0]
                 amyuid_old = str(match_in_old['IMAGEID.amy'].values.tolist()[0])
-                mriuid_new = str(row['IMAGUID_T1.mri']).split('.')[0]
+                mriuid_new = str(row['IMAGEUID_T1.mri']).split('.')[0]
                 mriuid_old = str(match_in_old['IMAGEUID_T1.mri'].values.tolist()[0])
 
                 if tauuid_new == tauuid_old and amyuid_new == amyuid_old and mriuid_new == mriuid_old:
@@ -526,12 +526,12 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
                 if len(match_in_old) == 1: 
                 #this id,scandate already has processing record, double-check the UIDs are the same in old & new 
                     if key == "T1":
-                        newuid = str(row['IMAGUID_T1']).split('.')[0]
+                        newuid = str(row['IMAGEUID_T1']).split('.')[0]
                         olduid = match_in_old['IMAGEUID_T1'].values.tolist()[0].split(".")[0]
                         filepath_from_old = match_in_old['FINALT1NIFTI'].values.tolist()[0]
                         uid_comparison_data['T1'] = [newuid,olduid,filepath_from_old]
                     elif key == "T2":
-                        newuid = str(row['IMAGUID_T2']).split('.')[0]
+                        newuid = str(row['IMAGEUID_T2']).split('.')[0]
                         olduid = match_in_old['IMAGEUID_T2'].values.tolist()[0].split(".")[0]
                         filepath_from_old = match_in_old['FINALT2NIFTI'].values.tolist()[0]
                         uid_comparison_data['T2'] = [newuid,olduid,filepath_from_old]
@@ -572,7 +572,7 @@ def main():
     # for csvfile in original_ida_datasheets:
     #     preprocess_new(csvfile, registry=registry_df)
 
-    ##TODO:fix IMAGUID_ spelling error in mri sheets
+    ##TODO:fix IMAGEUID_ spelling error in old mri sheets
     # create_mri_uid_list()
     # create_pet_uid_list() 
     create_tau_anchored_uid_list()
