@@ -17,7 +17,7 @@ def main():
     print(f"bash organize_files.sh --symlink, unzip, rsync")
 
     #### already have adni spreadsheets saved in clustr
-    # os.system(python datasetup.py) to get UID & fileloc lists 
+    # os.system(python datasetup.py) #to get UID & processing status lists 
     print(f"python datasetup.py --cleans ADNI csvs, merges data and selects correct UIDs")
 
     ## Do dicom-nifti conversion for new amy, fdg, tau, mri scans & do mri image processing
@@ -40,7 +40,7 @@ def main():
                 scandate = str(row['SMARTDATE'])
                 if scantype == 'mri':
                     scan_to_process = MRI(subject,scandate)
-                    uids={"t1_uid": str(row['IMAGUID_T1']).split(".")[0],"t2_uid": str(row['IMAGUID_T2']).split('.')[0]}
+                    uids={"t1_uid": str(row['IMAGEUID_T1']).split(".")[0],"t2_uid": str(row['IMAGEUID_T2']).split('.')[0]}
                 elif scantype == "amy":
                     scan_to_process = AmyloidPET(subject,scandate)
                     uids = {'amy_uid':str(row["IMAGEID"])}
@@ -68,8 +68,7 @@ def main():
                     else:
                         status = result_list[0]
                     
-                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion \
-                                 status for {key} is:{status}")
+                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
 
                     if status == "conversion to nifti sucessful":
                         nifti_file_loc_public = result_list[2]
@@ -96,7 +95,7 @@ def main():
                         # make symlink for nifti file between /PUBLIC and /dataset
                         # print(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}") 
                         os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
-
+                        
                 ##Additional information for MRI fileloc csv
                 if scantype == "mri":
                     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
@@ -115,87 +114,83 @@ def main():
                     alldates.sort()
                     df_newscans.at[index,"BLSCANDATE"] = alldates[0]
 
-            ###MRI Image processing (ANTS, ASHS, etc.)
-            if scantype == 'mri':
-                if os.path.exists(scan_to_process.t1nifti):
-                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T1 image processing.")
-                    # ants_job_name = scan_to_process.do_ants()
-                    # scan_to_process.do_pmtau(ants_job_name)
-                    # wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
-                    # scan_to_process.do_wbsegqc(wbseg_job_name)
-                    # scan_to_process.do_t1icv() 
-                    # superres_job_name = scan_to_process.do_superres() 
-                    # t1ashs_job_name = scan_to_process.do_t1ashs(superres_job_name) 
-                    # t1mtthk_job_name = scan_to_process.do_t1mtthk(t1ashs_job_name) 
-                    # scan_to_process.do_ashs_stats(t1mtthk_job_name)
+                    ###MRI Image processing (ANTS, ASHS, etc.)
+                    if os.path.exists(scan_to_process.t1nifti):
+                        logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T1 image processing.")
+                        # ants_job_name = scan_to_process.do_ants()
+                        # scan_to_process.do_pmtau(ants_job_name)
+                        # wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
+                        # scan_to_process.do_wbsegqc(wbseg_job_name)
+                        # scan_to_process.do_t1icv() 
+                        # superres_job_name = scan_to_process.do_superres() 
+                        # t1ashs_job_name = scan_to_process.do_t1ashs(superres_job_name) 
+                        # t1mtthk_job_name = scan_to_process.do_t1mtthk(t1ashs_job_name) 
+                        # scan_to_process.do_ashs_stats(t1mtthk_job_name)
 
-                if os.path.exists(scan_to_process.t2nifti):
-                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T2 image processing.")
-                    # t2_ashs_job_name = scan_to_process.do_t2ashs() 
-                    # scan_to_process.prc_cleanup(t2_ashs_job_name)
-                
-                if os.path.exists(scan_to_process.flair):
-                    ##TODO: Flair dicom processing not yet included in pipeline??
-                    scan_to_process.do_t1flair() 
-                    scan_to_process.do_wmh_prep() 
+                    if os.path.exists(scan_to_process.t2nifti):
+                        logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T2 image processing.")
+                        # t2_ashs_job_name = scan_to_process.do_t2ashs() 
+                        # scan_to_process.prc_cleanup(t2_ashs_job_name)
+                    
+                    if os.path.exists(scan_to_process.flair):
+                        ##TODO: Flair dicom processing not yet included in pipeline--should it be?
+                        scan_to_process.do_t1flair() 
+                        scan_to_process.do_wmh_prep() 
 
-
-        logging.info(f"{scantype}:Saving file location csv with new data")
-        old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in \
-                            os.listdir(fileloc_directory_previousrun) if scantype in x][0]
-        old_filelocs = pd.read_csv(old_fileloc_path)
-        all_filelocs = pd.concat([df_newscans, old_filelocs], on=['RID','SMARTDATE'])
-        #keep most recent (e.g. updated) if any duplicates
-        all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last',inplace=True) 
-        all_filelocs.to_csv(os.path.join(datasetup_directories_path["filelocations"],\
-                                               filenames['filelocations'][scantype]),index=False,header=True)
+            ##after all rows in iterrows
+            logging.info(f"{scantype}:Saving file location csv with new data")
+            old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in \
+                                os.listdir(fileloc_directory_previousrun) if scantype in x][0]
+            old_filelocs = pd.read_csv(old_fileloc_path)
+            all_filelocs = pd.concat([df_newscans, old_filelocs], ignore_index=True)
+            #keep most recent (e.g. updated) if any duplicates
+            all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last', inplace=True) 
+            all_filelocs.sort_values(by=["RID","SMARTDATE"], ignore_index=True, inplace=True)
+            all_filelocs.to_csv(os.path.join(datasetup_directories_path["filelocations"],\
+                                                filenames['filelocations'][scantype]),index=False,header=True)
 
     
     ##TODO: bsub to continue running from here after all mri processing done
-    # print("Collate MRI-only stats here")
+    ##bsub -w {what's the wait code--last subject processed?} create_tsv.sh function
+    print("Collate MRI-only stats here")
     ##TODO: create_tsv.sh additional functions for mri header & mri stats collate; & mode
     
     
-    # print("Doing tau-anchored processing:")
-    # ##TODO: grab tau-anchored csv
-    # tau_anchored_csv = ""
-    # tau_anchored_df = pd.read_csv(tau_anchored_csv)
-    # for index,row in tau_anchored_df.iterrows():
+    logging.info(f"Starting anchored processing for PET & MRI matches.")
+    # anchored_df=pd.read_csv(os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status']["anchored"]))
+    # print(anchored_df.head())
+
+    # for index,row in anchored_df.iterrows():
     #     subject = str(row['ID'])
-    #     mridate = str(row['MRIDATE']) ##TODO: make sure column names are correct
-    #     taudate = str(row['TAUDATE'])
-    #     amydate = str(row['AMYDATE'])
-
-    # subject = "114_S_6917"
-    # mridate = "2021-04-16"
-    # taudate = "2021-08-11"
-    # amydate = "2021-06-02" 
+    #     mridate = str(row['SMARTDATE.mri'])
+    #     taudate = str(row['SMARTDATE.tau'])
+    #     amydate = str(row['SMARTDATE.amy'])
     
-    # mri_to_process = MRI(subject,mridate)
-    # tau_to_process = TauPET(subject, taudate)
-    # mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process)
+    #     mri_to_process = MRI(subject,mridate)
+    #     tau_to_process = TauPET(subject, taudate)
+    #     mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process)
     #     logging.info(f"{mri_tau_reg_to_process.id}:{mri_tau_reg_to_process.mridate}:{mri_tau_reg_to_process.petdate}: Now processing")
-        # t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
-        # mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
-        # mri_tau_reg_to_process.do_t2_pet_reg(t1_tau_pet_reg_job)      
+    #     t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
+    #     mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
+    #     mri_tau_reg_to_process.do_t2_pet_reg(t1_tau_pet_reg_job)      
 
-    # amy_to_process = AmyloidPET(subject, amydate)
-    # mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
-    # logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
-    # t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
-    # mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
-    # mri_amy_reg_to_process.do_t2_pet_reg(t1_amy_pet_reg_job)
+    #     amy_to_process = AmyloidPET(subject, amydate)
+    #     mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
+    #     logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
+    #     t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
+    #     mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
+    #     mri_amy_reg_to_process.do_t2_pet_reg(t1_amy_pet_reg_job)
 
-    ##TODO: bsub this so it runs after all processing steps
-    # print(f"run stats.sh for this set of tau/mri/amy dates")
-    # print(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
-    #         {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
-    #         {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
-    #         {mri_to_process.t2ahs_cleanup_left} {mri_to_process.t2ahs_cleanup_right} \
-    #         {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mri_to_process.icv_file} \
-    #         'pet' {wblabel_file} {pmtau_template_dir} {stats_output_dir}") 
-            ##TODO: remove mode from stats.sh file??
-    ########end of dfiterrows for loop 
+        ##TODO: rename stats.sh
+        # print(f'do petreg stats')
+        # print(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
+        #         {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
+        #         {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
+        #         {mri_to_process.t2ahs_cleanup_left} {mri_to_process.t2ahs_cleanup_right} \
+        #         {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mri_to_process.icv_file} \
+        #         'pet' {wblabel_file} {pmtau_template_dir} {stats_output_dir}") 
+                ##TODO: remove mode from stats.sh file??
+        ########end of dfiterrows for loop 
 
     ##TODO: bsub to run after all tau-anchored processing completed
     # print(f"now running create_tsv.sh with all info from completed processing")
