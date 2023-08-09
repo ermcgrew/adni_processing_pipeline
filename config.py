@@ -20,6 +20,8 @@ cleanup_dir = f"{analysis_input_dir}/cleanup"
 analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
 stats_output_dir = f"{analysis_output_dir}/stats"
 this_output_dir = f"{analysis_output_dir}/{current_date}"
+if not os.path.exists(this_output_dir):
+    os.system(f"mkdir -p {this_output_dir}")
 
 #Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
@@ -32,6 +34,8 @@ ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
 ashs_mopt_mat_file = "/home/lxie/ADNI2018/scripts/identity.mat"
 icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
 ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
+#drwxr-sr-x 6 holder bsc-admin 199 Feb 19  2019 ashs_atlas_upennpmc_20170810
+
 t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
 t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh"
 pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
