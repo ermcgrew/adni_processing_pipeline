@@ -191,7 +191,7 @@ class MRI:
                 os.system(f"bsub {submit_options} -M 12G -n 1 \
                             ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
                             {side} {ashs_seg} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
-        return
+        return this_job_name
             
     def do_t1icv(self, parent_job_name = ""):
         this_job_name=f"t1icv_{self.date_id_prefix}"
@@ -213,7 +213,7 @@ class MRI:
             os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs_testcopy.sh run_ashs \
                       {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
                       {self.filepath}/sfsegnibtend {self.id}")
-            return
+            return this_job_name
 
     def prc_cleanup(self, parent_job_name = ""):
         for side in sides:
@@ -265,7 +265,7 @@ class MRI:
         this_job_name=f"pmtau_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process("pmtau", self.id, self.mridate, input_files=[self.thickness], \
-                            output_files=[self.pmtau_output]):
+                            output_files=[self.pmtau_output], parent_job=parent_job_name):
             os.system(f"bsub {submit_options} ./wrapper_scripts/pmtau.sh {self.id} {self.mridate} {self.filepath}/thickness")
             return
 
@@ -275,7 +275,8 @@ class MRI:
         if ready_to_process("ashs_stats", self.id, self.mridate, \
                             input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
                                          self.t1mtthk_left,self.t1mtthk_right,self.icv_file], \
-                            output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_mrionly.txt"]):
+                            output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_mrionly.txt"],\
+                            parent_job=parent_job_name):
             os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
                     {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
                     {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_file}") 

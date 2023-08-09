@@ -34,11 +34,11 @@ else
     fi
 
     if [[ ! -f $nifti_file ]] ; then
-        outputlogfile="${outputlog_dir}/dcmtonii_${uid}.txt"
+        now=$(date '+%F_%T')
+        outputlogfile="${outputlog_dir}/dcmtonii_${uid}_${now}.txt"
         mkdir -p $nifti_dir
         # echo bsub -J dcmtonii_${id}_${scandate}_${type} -o ${outputlog_dir} c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
         bsub -J dcmtonii_${id}_${scandate}_${type} -o ${outputlogfile} c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
-        # sleep 5 #enough time for bsub job to process
 
         while [[ ! -f $outputlogfile ]]; do
             sleep 2

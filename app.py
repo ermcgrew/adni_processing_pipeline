@@ -96,7 +96,7 @@ def main():
                         # print(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}") 
                         os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
                         
-                ##Additional information for MRI fileloc csv
+                ##MRI only steps:
                 if scantype == "mri":
                     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
                     #site's vendor & model info
@@ -117,23 +117,23 @@ def main():
                     ###MRI Image processing (ANTS, ASHS, etc.)
                     if os.path.exists(scan_to_process.t1nifti):
                         logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T1 image processing.")
-                        # ants_job_name = scan_to_process.do_ants()
-                        # scan_to_process.do_pmtau(ants_job_name)
-                        # wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
-                        # scan_to_process.do_wbsegqc(wbseg_job_name)
-                        # scan_to_process.do_t1icv() 
-                        # superres_job_name = scan_to_process.do_superres() 
-                        # t1ashs_job_name = scan_to_process.do_t1ashs(superres_job_name) 
-                        # t1mtthk_job_name = scan_to_process.do_t1mtthk(t1ashs_job_name) 
-                        # scan_to_process.do_ashs_stats(t1mtthk_job_name)
+                        ants_job_name = scan_to_process.do_ants()
+                        scan_to_process.do_pmtau(ants_job_name)
+                        wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
+                        scan_to_process.do_wbsegqc(wbseg_job_name)
+                        scan_to_process.do_t1icv() 
+                        superres_job_name = scan_to_process.do_superres() 
+                        t1ashs_job_name = scan_to_process.do_t1ashs(superres_job_name) 
+                        t1mtthk_job_name = scan_to_process.do_t1mtthk(t1ashs_job_name) 
+                        scan_to_process.do_ashs_stats(t1mtthk_job_name)
 
                     if os.path.exists(scan_to_process.t2nifti):
                         logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T2 image processing.")
-                        # t2_ashs_job_name = scan_to_process.do_t2ashs() 
-                        # scan_to_process.prc_cleanup(t2_ashs_job_name)
+                        t2_ashs_job_name = scan_to_process.do_t2ashs() 
+                        scan_to_process.prc_cleanup(t2_ashs_job_name)
                     
                     if os.path.exists(scan_to_process.flair):
-                        ##TODO: Flair dicom processing not yet included in pipeline--should it be?
+                        ##TODO: Flair dicom to nifti processing
                         scan_to_process.do_t1flair() 
                         scan_to_process.do_wmh_prep() 
 
@@ -152,11 +152,11 @@ def main():
     
     ##TODO: bsub to continue running from here after all mri processing done
     ##bsub -w {what's the wait code--last subject processed?} create_tsv.sh function
-    print("Collate MRI-only stats here")
+    # print("Collate MRI-only stats here")
     ##TODO: create_tsv.sh additional functions for mri header & mri stats collate; & mode
     
     
-    logging.info(f"Starting anchored processing for PET & MRI matches.")
+    # logging.info(f"Starting anchored processing for PET & MRI matches.")
     # anchored_df=pd.read_csv(os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status']["anchored"]))
     # print(anchored_df.head())
 
