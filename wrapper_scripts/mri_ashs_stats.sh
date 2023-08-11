@@ -13,8 +13,6 @@ icv_txt=$8
 ################ICV VOL#############
 # icv_txt=/project/wolk/ADNI2018/dataset/067_S_6117/2021-08-04/ASHSICV/final/067_S_6117_left_corr_nogray_volumes.txt
 ICV=$(cat $icv_txt | cut -d " " -f 5)
-#if using t2/final version, it's 
-# ICV=$(cat $icv_txt | cut -d " " -f 2)
 # echo $ICV
 
 ################T1 ASHS: Volumes#############

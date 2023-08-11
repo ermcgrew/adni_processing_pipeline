@@ -134,6 +134,13 @@ def preprocess_new(csvfilename, registry=None):
             else:
                 df.at[i, 'T1ACCE'] = 0
 
+            # Preprocess Flair
+            # if "FLAIR" in seq:
+            #     df.at[i, 'FLAIR'] = 1
+            # else:
+            #     df.at[i, 'FLAIR'] = 0
+
+
     elif csvfilename.startswith('PET_META_LIST'):
         # Rename the columns
         df.rename(columns={"Scan Date": "SCANDATE"})

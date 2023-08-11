@@ -68,7 +68,7 @@ class MRI:
 
         self.brainx_thickness_dir = f"{self.filepath}/thickness/{self.id}ExtractedBrain0N4.nii.gz"
         self.brainx = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
-        self.wbseg= f"{self.filepath}/{self.date_id_prefix}_wholebrainseg/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
+        self.wbseg = f"{self.filepath}/{self.date_id_prefix}_wholebrainseg/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
         self.wbsegqc = f"{self.filepath}/{self.date_id_prefix}_wbseg_qa.png"
         
         self.superres = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_denoised_SR.nii.gz"
@@ -84,20 +84,18 @@ class MRI:
         self.t1mtthk_suffix = "thickness.csv"   
         
         self.t1icv_seg = f"{self.filepath}/ASHSICV/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
+        self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_corr_nogray_volumes.txt"
 
         self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
         self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
         self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
-        # self.t2ashs_seg_tocleanup_left = f"{self.filepath}/sfsegnibtend/boostrap/fusion/lfseg_corr_nogray_left.nii.gz"
-        # self.t2ashs_seg_tocleanup_right = f"{self.filepath}/sfsegnibtend/boostrap/fusion/lfseg_corr_nogray_right.nii.gz"
-        
+             
         self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
         self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
-        self.icv_file = f"{self.filepath}/sfsegnibtend/final/{self.id}_icv.txt"
 
-        self.t2ahs_cleanup_left=f"{cleanup_dir}/{self.id}_{self.mridate}_seg_left.nii.gz"
-        self.t2ahs_cleanup_right=f"{cleanup_dir}/{self.id}_{self.mridate}_seg_right.nii.gz"
-        self.t2ahs_cleanup_both=f"{cleanup_dir}/{self.id}_{self.mridate}_seg_both.nii.gz"
+        self.t2ahs_cleanup_left = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_left.nii.gz"
+        self.t2ahs_cleanup_right = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_right.nii.gz"
+        self.t2ahs_cleanup_both = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_both.nii.gz"
 
         self.flair = f"{self.filepath}/{self.date_id_prefix}_flair.nii.gz"
         self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
@@ -123,15 +121,16 @@ class MRI:
 
     def do_ants(self, parent_job_name = ""):
         this_job_name=f"ants_{self.date_id_prefix}"
+        brainx_job_name = f"copybrainx_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process('ants', self.id, self.mridate, input_files=[self.t1nifti], output_files=[self.t1trim]):
             os.system(f"bsub {submit_options} -n 2 {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
-            os.system(f"bsub {self.bsub_output} -w 'done({this_job_name})' cp {self.brainx_thickness_dir} {self.brainx}")
+            os.system(f"bsub {self.bsub_output} -J {brainx_job_name} -w 'done({this_job_name})' cp {self.brainx_thickness_dir} {self.brainx}")
         # T1 trim file created in about 30 seconds, wait for it, 
         # then copy it to main folder so other processing steps can start using it while the rest of ants is still running.
         wait_for_file(self.t1trim_thickness_dir)
         os.system(f"cp {self.t1trim_thickness_dir} {self.t1trim}")
-        return this_job_name
+        return brainx_job_name
 
     def do_wbseg(self, parent_job_name = ""):
         this_job_name=f"wbseg_{self.date_id_prefix}"
@@ -274,12 +273,12 @@ class MRI:
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process("ashs_stats", self.id, self.mridate, \
                             input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
-                                         self.t1mtthk_left,self.t1mtthk_right,self.icv_file], \
+                                         self.t1mtthk_left,self.t1mtthk_right,self.icv_volumes_file], \
                             output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_mrionly.txt"],\
                             parent_job=parent_job_name):
             os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
                     {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
-                    {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_file}") 
+                    {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
                         ##TODO:icv file--t2 or icv dir version? asking Sandy
                         ##TODO:just t1, call after t1 ashs runs? or add t2 stats?
             return
