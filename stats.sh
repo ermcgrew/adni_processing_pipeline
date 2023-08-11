@@ -3,7 +3,7 @@
 
 # Usage:
 # ./stats.sh id wholebrainseg corticalthickness t1taureg t2taureg t1amyreg t2amyreg \
-# cleanup/seg_left cleanup/seg_right cleanup/seg_both t1trim t2ashs/final/icv.txt mode
+# cleanup/seg_left cleanup/seg_right cleanup/seg_both t1trim icv.txt mode
 
 
 export DOERODE=true
@@ -36,7 +36,7 @@ stats_output_dir=${16}
 
 #determine first values to be added to stats
 RID=$(echo $id | cut -f 3 -d "_")
-ICV=$( printf %10.2f $(cat $icvfile | awk '{print $2}'))
+ICV=$( printf %10.2f $(cat $icvfile | awk '{print $5}'))
 thick=$(c3d $cleanup_left -info-full | grep Spacing | \
   sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" | awk '{print $3}')
 statline="$RID\t$id\t$ICV\t$thick"

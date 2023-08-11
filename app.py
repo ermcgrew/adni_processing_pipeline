@@ -30,7 +30,7 @@ def main():
             # print(df.head())
 
             if scantype == 'mri':
-                df_newscans = df.loc[(df['NEW_T1'] == 1) | (df['NEW_T2'] == 1)]
+                df_newscans = df.loc[(df['NEW_T1'] == 1) | (df['NEW_T2'] == 1)] # | df['NEW_FLAIR'] == 1
             else:
                 df_newscans = df.loc[(df['NEW_PET'] == 1)]
 
@@ -40,7 +40,7 @@ def main():
                 scandate = str(row['SMARTDATE'])
                 if scantype == 'mri':
                     scan_to_process = MRI(subject,scandate)
-                    uids={"t1_uid": str(row['IMAGEUID_T1']).split(".")[0],"t2_uid": str(row['IMAGEUID_T2']).split('.')[0]}
+                    uids={"t1_uid": str(row['IMAGEUID_T1']).split(".")[0],"t2_uid": str(row['IMAGEUID_T2']).split('.')[0]} #'flair_uid': str(row['IMAGEUID_FLAIR'])
                 elif scantype == "amy":
                     scan_to_process = AmyloidPET(subject,scandate)
                     uids = {'amy_uid':str(row["IMAGEID"])}
@@ -81,6 +81,10 @@ def main():
                             nifti_file_loc_dataset = scan_to_process.t2nifti
                             df_newscans.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
                             df_newscans.at[index,'T2_CONVERT_STATUS'] = 1
+                        #elif key == "flair_uid":
+                            # nifti_file_loc_dataset = scan_to_process.flair
+                            # df_newscans.at[index,'FINALFLAIRNIFTI'] = nifti_file_loc_public
+                            # df_newscans.at[index,'FLAIR_CONVERT_STATUS'] = 1
                         elif key == "amy_uid":
                             nifti_file_loc_dataset = scan_to_process.amy_nifti
                             df_newscans.at[index,'FILELOC'] = nifti_file_loc_public
@@ -117,10 +121,10 @@ def main():
                     ###MRI Image processing (ANTS, ASHS, etc.)
                     if os.path.exists(scan_to_process.t1nifti):
                         logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T1 image processing.")
-                        ants_job_name = scan_to_process.do_ants()
-                        scan_to_process.do_pmtau(ants_job_name)
-                        wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
-                        scan_to_process.do_wbsegqc(wbseg_job_name)
+                        # ants_job_name = scan_to_process.do_ants()
+                        # scan_to_process.do_pmtau(ants_job_name)
+                        # wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
+                        # scan_to_process.do_wbsegqc(wbseg_job_name)
                         scan_to_process.do_t1icv() 
                         superres_job_name = scan_to_process.do_superres() 
                         t1ashs_job_name = scan_to_process.do_t1ashs(superres_job_name) 
@@ -187,7 +191,7 @@ def main():
         #         {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
         #         {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
         #         {mri_to_process.t2ahs_cleanup_left} {mri_to_process.t2ahs_cleanup_right} \
-        #         {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mri_to_process.icv_file} \
+        #         {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mri_to_process.icv_volumes_file} \
         #         'pet' {wblabel_file} {pmtau_template_dir} {stats_output_dir}") 
                 ##TODO: remove mode from stats.sh file??
         ########end of dfiterrows for loop 
@@ -200,7 +204,7 @@ def main():
     # os.system(f"bash create_tsv.sh {wblabel_file} {cleanup_dir} {this_output_dir}")
     ##TODO: Do one more step: python pandas merge with qc, demographic data off of stats sheets?
         ## $ROW,$ICV,$RATERS,$QCINFO,$T1VOL,$THK3TT1,$THKFITQUALITY,$blscandate,$date_diff,$AnalysisType,$DEMOGROW,-1
-        ##TODO: raters& qc info ; baseline scan info; demographic info; Row--info from where?
+        ##TODO: raters& qc info ; baseline scan date & diff from current row; demographic info; Row--info from where?
 
 
 #Arguments

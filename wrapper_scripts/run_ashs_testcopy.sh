@@ -48,7 +48,7 @@ fi
 
 
 
-<<OPTIONS NOTES
+: '
 Options:
 
 for T1, T2, and ICV:
@@ -70,13 +70,15 @@ ICV only:
 
 
 ****UPDATE 7/4/2023********
-    - removed -z opt: updates to bsc cluster means that z opt will keep ashs_main from creating all required QC pngs.
-        -z {long_scripts}/ashs-fast-z.sh (Provide a path to an executable script that will be used to retrieve SGE, LSF, SLURM or
-                    GNU parallel opts for different stages of ASHS.)
+    - removed -z opt: updates to bsc cluster means that z opt will keep ashs_main 
+                        from creating all required QC pngs.
+        -z {long_scripts}/ashs-fast-z.sh (Provide a path to an executable script that 
+                                            will be used to retrieve SGE, LSF, SLURM or
+                                            GNU parallel opts for different stages of ASHS.)
     - removed -s 1-7 opt: unnecessary, default runs all 7 steps
     - removed -d opt: debugging log unnecessary
     - removed -l opt:    
         -l  (Use LSF instead of SGE, SLURM or GNU parallel)
-    - added -t 1 and -N opts: per Paul's working script
-    - moved ashs call into function: per Paul's working script
-OPTIONS NOTES
+    - added -t 1 and -N opts: per Pauls working script
+    - moved ashs call into function: per Pauls working script
+'
