@@ -84,7 +84,8 @@ class MRI:
         self.t1mtthk_suffix = "thickness.csv"   
         
         self.t1icv_seg = f"{self.filepath}/ASHSICV/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
-        self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_corr_nogray_volumes.txt"
+        self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_multiatlas_corr_nogray_volumes.txt"
+
 
         self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
         self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
@@ -197,6 +198,9 @@ class MRI:
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process("t1icv", self.id, self.mridate, input_files=[self.t1trim], \
                             output_files=[self.t1icv_seg]):
+        # print(f"bsub {submit_options} \
+        #         ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
+        #             {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
             os.system(f"mkdir {self.filepath}/ASHSICV")
             os.system(f"bsub {submit_options} \
                   ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
@@ -279,9 +283,27 @@ class MRI:
             os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
                     {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
                     {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
-                        ##TODO:icv file--t2 or icv dir version? asking Sandy
                         ##TODO:just t1, call after t1 ashs runs? or add t2 stats?
             return
+
+    def testallstats(self, wait_code="",t1tau="",t2tau="",t1amy="",t2amy=""):
+        # print(wait_code)
+        # print(t1tau)
+        # print(t2tau)
+        ##if t1t1/pets are null, set mode to mri, else mode pet
+        if t1tau == "":
+            mode = "mri"
+        else:
+            mode="pet"
+        this_job_name=f"allstats_{mode}_{self.date_id_prefix}"
+        submit_options = set_submit_options(this_job_name, self.bsub_output, wait_code)
+        #skip ready_to_process
+        print(f"./stats.sh {self.id} {self.wbseg} {self.thickness} \
+                {t1tau} {t2tau} {t1amy} {t2amy} \
+                {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
+                {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
+                {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir}") 
+        return
 
 
 class AmyloidPET:
@@ -390,6 +412,7 @@ class MRIPetReg:
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
+# mri_to_process = MRI("033_S_0734", "2018-10-10")
 
 # amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
@@ -402,21 +425,25 @@ class MRIPetReg:
 
 
 ##MRI processing
+# mri_to_process.testallstats(parent_job_name='purple',t1tau=mri_tau_reg_to_process.t1_reg_nifti)
+
+
+# mri_to_process.do_t1icv()
+# t1ashs_job_name = mri_to_process.do_t1ashs()
+# mri_to_process.do_t1mtthk(t1ashs_job_name) 
+# mri_to_process.do_ashs_stats(f"*{mri_to_process.id}")
+# mri_to_process.do_ashs_stats()
+
 # ants_job_name = mri_to_process.do_ants()
- 
 # wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 
 # mri_to_process.do_wbsegqc(wbseg_job_name)
-
 # mri_to_process.do_t1icv() 
 # mri_to_process.do_t2ashs() 
 # mri_to_process.do_t1flair() 
 # mri_to_process.do_wmh_prep() 
-
-# mri_to_process.neck_trim()
 # superres_job_name = mri_to_process.do_superres() 
 # t1ashs_job_name = mri_to_process.do_t1ashs(superres_job_name) 
 # mri_to_process.do_t1mtthk(t1ashs_job_name) 
-
 # mri_to_process.do_pmtau()
 
 

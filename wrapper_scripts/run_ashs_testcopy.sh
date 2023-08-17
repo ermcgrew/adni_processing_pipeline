@@ -30,6 +30,9 @@ function run_ashs()
     #For ICV ASHS only
     if [[ $t2link == $t1trim ]] ; then 
         options="$options -B"
+        # options="$options -s 1-7" #test1
+        # options="$options -B -s 1-7"  #test2
+
     fi
 
     #run ASHS
