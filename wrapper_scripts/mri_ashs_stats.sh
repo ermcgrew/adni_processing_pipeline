@@ -20,7 +20,7 @@ ASHST13TLABELNUMS=(1     2      10  11   12   13) #AHippo PHippo ERC BA35 BA36 P
 for side in left right; do
     t1_ashs_seg="${t1_ashs_seg_prefix}_${side}_${t1_ashs_seg_suffix}"
     # t1_ashs_seg=/project/wolk/ADNI2018/scripts/pipeline_test_data/114_S_6917/2021-04-16/ASHST1/final/114_S_6917_${side}_lfseg_heur.nii.gz
-    STATS=rawvols_ASHST1_3T.txt
+    STATS=${stats_output_dir}/rawvols_ASHST1_3T.txt
     c3d $t1_ashs_seg -dup -lstat > $STATS
     for i in "${ASHST13TLABELNUMS[@]}" ; do
         VOL="$VOL,$(cat $STATS | awk -v id=$i '$1 == id {print $7}')" #get values for labels we use 
@@ -47,7 +47,7 @@ done
 THK=""
 for side in left right; do
     thickness_csv="${thickness_csv_prefix}_${side}_${thickness_csv_suffix}"
-# thickness_csv=/project/wolk/ADNI2018/dataset/067_S_6117/2021-08-04/ASHST1_MTLCORTEX_MSTTHK/067_S_6117_2021-08-04_${side}_thickness.csv
+    # thickness_csv=/project/wolk/ADNI2018/dataset/067_S_6117/2021-08-04/ASHST1_MTLCORTEX_MSTTHK/067_S_6117_2021-08-04_${side}_thickness.csv
     if [[ -f $thickness_csv ]]; then
         THKTMP=$(cat $thickness_csv | grep MultiTemp | cut -d , -f 5-14)
         len=$(echo $THKTMP | sed 's/[^,]//g'  | awk '{ print length }')

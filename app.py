@@ -121,15 +121,16 @@ def main():
                     ###MRI Image processing (ANTS, ASHS, etc.)
                     if os.path.exists(scan_to_process.t1nifti):
                         logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T1 image processing.")
-                        # ants_job_name = scan_to_process.do_ants()
-                        # scan_to_process.do_pmtau(ants_job_name)
-                        # wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
-                        # scan_to_process.do_wbsegqc(wbseg_job_name)
+                        ants_job_name = scan_to_process.do_ants()
+                        scan_to_process.do_pmtau(ants_job_name)
+                        wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
+                        scan_to_process.do_wbsegqc(wbseg_job_name)
                         scan_to_process.do_t1icv() 
                         superres_job_name = scan_to_process.do_superres() 
                         t1ashs_job_name = scan_to_process.do_t1ashs(superres_job_name) 
                         t1mtthk_job_name = scan_to_process.do_t1mtthk(t1ashs_job_name) 
-                        scan_to_process.do_ashs_stats(t1mtthk_job_name)
+                        scan_to_process.do_ashs_stats(f"*{scan_to_process.id}") 
+                            #so stats only runs once all the other image processing for this subject is done
 
                     if os.path.exists(scan_to_process.t2nifti):
                         logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T2 image processing.")
@@ -154,13 +155,7 @@ def main():
                                                 filenames['filelocations'][scantype]),index=False,header=True)
 
     
-    ##TODO: bsub to continue running from here after all mri processing done
-    ##bsub -w {what's the wait code--last subject processed?} create_tsv.sh function
-    # print("Collate MRI-only stats here")
-    ##TODO: create_tsv.sh additional functions for mri header & mri stats collate; & mode
-    
-    
-    # logging.info(f"Starting anchored processing for PET & MRI matches.")
+    logging.info(f"Starting anchored processing for PET & MRI matches.")
     # anchored_df=pd.read_csv(os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status']["anchored"]))
     # print(anchored_df.head())
 
@@ -185,26 +180,38 @@ def main():
     #     mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
     #     mri_amy_reg_to_process.do_t2_pet_reg(t1_amy_pet_reg_job)
 
-        ##TODO: rename stats.sh
-        # print(f'do petreg stats')
+
+        ##TODO: bsub this to run after all pet reg jobs
+        ##make running stats an mri class method, pass the method the values for t1t2tauamy reg
+        #pass without petreg values to have it run as mri only
+        # -w "done(*{self.id}_*_to_{self.mridate})" #part of petreg job names
+        # job_wait_code = f"*{mri_to_process.id}_*_to_{mri_to_process.mridate}"
+        # mri_to_process.testallstats(wait_code=job_wait_code,
+        #         t1tau=mri_tau_reg_to_process.t1_reg_nifti, 
+        #         t2tau = mri_tau_reg_to_process.t2_reg_nifti,
+        #         t1amy = mri_amy_reg_to_process.t1_reg_nifti,
+        #         t2amy = mri_amy_reg_to_process.t2_reg_nifti
+        #         )
+
         # print(f"./stats.sh {mri_to_process.id} {mri_to_process.wbseg} {mri_to_process.thickness} \
         #         {mri_tau_reg_to_process.t1_reg_nifti} {mri_tau_reg_to_process.t2_reg_nifti} \
         #         {mri_amy_reg_to_process.t1_reg_nifti} {mri_amy_reg_to_process.t2_reg_nifti} \
         #         {mri_to_process.t2ahs_cleanup_left} {mri_to_process.t2ahs_cleanup_right} \
         #         {mri_to_process.t2ahs_cleanup_both} {mri_to_process.t1trim} {mri_to_process.icv_volumes_file} \
         #         'pet' {wblabel_file} {pmtau_template_dir} {stats_output_dir}") 
-                ##TODO: remove mode from stats.sh file??
-        ########end of dfiterrows for loop 
+    ########end of dfiterrows for loop 
 
-    ##TODO: bsub to run after all tau-anchored processing completed
-    # print(f"now running create_tsv.sh with all info from completed processing")
-    # print(f"mkdir {this_output_dir}")
-    # print(f"bash create_tsv.sh {wblabel_file} {stats_output_dir} {this_output_dir}")
-    # os.system(f"mkdir {this_output_dir}")
-    # os.system(f"bash create_tsv.sh {wblabel_file} {cleanup_dir} {this_output_dir}")
-    ##TODO: Do one more step: python pandas merge with qc, demographic data off of stats sheets?
-        ## $ROW,$ICV,$RATERS,$QCINFO,$T1VOL,$THK3TT1,$THKFITQUALITY,$blscandate,$date_diff,$AnalysisType,$DEMOGROW,-1
-        ##TODO: raters& qc info ; baseline scan date & diff from current row; demographic info; Row--info from where?
+    logging.info(f"Collecting data from analysis_output/stats/ for data sheets.")
+    # print(f"bsub -J '{current_date}_datasheets' -w 'done()' -o {this_output_dir} create_stats_sheets.sh {wblabel_file} {stats_output_dir} {this_output_dir}")
+    # os.system(f"bsub -J '{current_date}_datasheets' -o {this_output_dir} -w 'done()' \
+    #           bash create_stats_sheets.sh {wblabel_file} {stats_output_dir} {this_output_dir}")
+    ##TODO: what's the wait code--last subject processed?
+        #bsub a job before this that just watches the queue: 
+        #while $(bjobs | grep "emcgrew RUN" | wc -l) > 0:
+            #sleep 8
+        #hang the stats collection off the completion of that job?
+
+    ##TODO: pandas merge stats with fileloc csvs, demographic data, baseline scan date & date diff
 
 
 #Arguments
