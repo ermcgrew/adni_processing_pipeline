@@ -275,21 +275,23 @@ class MRI:
     def do_ashs_stats(self, parent_job_name = ""):
         this_job_name=f"ashs_stats{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
-        if ready_to_process("ashs_stats", self.id, self.mridate, \
-                            input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
-                                         self.t1mtthk_left,self.t1mtthk_right,self.icv_volumes_file], \
-                            output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_mrionly.txt"],\
-                            parent_job=parent_job_name):
-            os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
-                    {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
-                    {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
-                        ##TODO:just t1, call after t1 ashs runs? or add t2 stats?
-            return
+        ##temp for tesing:
+        os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
+                {self.id} {self.mridate} {self.filepath} {self.t1ashs_seg_prefix} \
+                {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
+                        
+        # if ready_to_process("ashs_stats", self.id, self.mridate, \
+        #                     input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
+        #                                  self.t1mtthk_left,self.t1mtthk_right,self.icv_volumes_file], \
+        #                     output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_mrionly.txt"],\
+        #                     parent_job=parent_job_name):
+            # os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
+            #         {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
+            #         {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
+            #             ##TODO:just t1, call after t1 ashs runs? or add t2 stats?
+            # return
 
     def testallstats(self, wait_code="",t1tau="",t2tau="",t1amy="",t2amy=""):
-        # print(wait_code)
-        # print(t1tau)
-        # print(t2tau)
         ##if t1t1/pets are null, set mode to mri, else mode pet
         if t1tau == "":
             mode = "mri"
@@ -298,11 +300,11 @@ class MRI:
         this_job_name=f"allstats_{mode}_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.bsub_output, wait_code)
         #skip ready_to_process
-        print(f"./stats.sh {self.id} {self.wbseg} {self.thickness} \
+        os.system(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg} {self.thickness} \
                 {t1tau} {t2tau} {t1amy} {t2amy} \
                 {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
                 {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
-                {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir}") 
+                {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir}")
         return
 
 
@@ -346,10 +348,10 @@ class MRIPetReg:
         self.processing_step = f"{self.pet_type}reg"
 
         if self.pet_type == "amypet":
-            self.petdate = PET.amydate
+            self.petdate = PET.scandate
             self.pet_nifti = PET.amy_nifti
         elif self.pet_type == "taupet":
-            self.petdate = PET.taudate
+            self.petdate = PET.scandate
             self.pet_nifti = PET.tau_nifti
 
         self.filepath = f"{adni_data_dir}/{self.id}/{self.petdate}"
@@ -412,9 +414,9 @@ class MRIPetReg:
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
-# mri_to_process = MRI("033_S_0734", "2018-10-10")
+mri_to_process = MRI("033_S_0734", "2018-10-10")
 
-# amy_to_process = AmyloidPET("141_S_6779", "2020-11-11")
+# amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
 
 # tau_to_process = TauPET("114_S_6917", "2021-08-11")
@@ -425,14 +427,17 @@ class MRIPetReg:
 
 
 ##MRI processing
-# mri_to_process.testallstats(parent_job_name='purple',t1tau=mri_tau_reg_to_process.t1_reg_nifti)
+# mri_to_process.testallstats(t1tau=mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
+#                 t1amy = mri_amy_reg_to_process.t1_reg_nifti,
+#                 t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
 
 # mri_to_process.do_t1icv()
-# t1ashs_job_name = mri_to_process.do_t1ashs()
+t1ashs_job_name = mri_to_process.do_t1ashs()
+mri_to_process.do_ashs_stats(t1ashs_job_name)
+
 # mri_to_process.do_t1mtthk(t1ashs_job_name) 
 # mri_to_process.do_ashs_stats(f"*{mri_to_process.id}")
-# mri_to_process.do_ashs_stats()
 
 # ants_job_name = mri_to_process.do_ants()
 # wbseg_job_name = mri_to_process.do_wbseg(ants_job_name) 

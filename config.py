@@ -13,7 +13,12 @@ current_date = datetime.now().strftime("%Y_%m_%d")
 ###File/directory locations on the cluster
 #main file directories in cluster
 # adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/icv_paulroot"  # for testing
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/icv_longroot"  # for testing
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_pmc_long"  # for testing
+adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_pmc_paul"  # for testing
+
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/dataset_niftis"  # for testing
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/dataset_trim_test_superres"  # for testing
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/test_trim_dataset_superres"  # for testing
@@ -34,9 +39,14 @@ wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itk
 wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly"
 segqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
 wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
+
 ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
-ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
-#ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
+# ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
+
+# ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
+ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
+
+
 ashs_mopt_mat_file = "/home/lxie/ADNI2018/scripts/identity.mat"
 icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
 #icv_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_icv"
