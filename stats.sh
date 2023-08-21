@@ -4,7 +4,7 @@
 # Usage:
 # ./stats.sh id wholebrainseg corticalthickness t1taureg t2taureg t1amyreg t2amyreg \
 # cleanup/seg_left cleanup/seg_right cleanup/seg_both t1trim icv.txt mode wblabelfile \ 
-# pmtau_template_dir stats_output_dir
+# pmtau_template_dir stats_output_dir mridate taudate amydate
 
 
 export DOERODE=true
@@ -27,6 +27,9 @@ mode=${13}
 wblabelfile=${14}
 pmtau_template_dir=${15}
 stats_output_dir=${16}
+mridate=${17}
+taudate=${18}
+amydate=${19}
 
 # for file in $@ ; do
 #   # echo $file

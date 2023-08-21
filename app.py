@@ -172,34 +172,44 @@ def main():
         tau_to_process = TauPET(subject, taudate)
         mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process)
         logging.info(f"{mri_tau_reg_to_process.id}:{mri_tau_reg_to_process.mridate}:{mri_tau_reg_to_process.petdate}: Now processing")
-        # t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
+        t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
         # mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
-        # mri_tau_reg_to_process.do_t2_pet_reg(t1_tau_pet_reg_job)      
+        mri_tau_reg_to_process.do_t2_pet_reg(t1_tau_pet_reg_job)      
+        # print(mri_tau_reg_to_process.reg_prefix)
 
         amy_to_process = AmyloidPET(subject, amydate)
         mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
         logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
-        # t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
+        # print(mri_amy_reg_to_process.reg_prefix)
+        t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
         # mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
-        # mri_amy_reg_to_process.do_t2_pet_reg(t1_amy_pet_reg_job)
+        mri_amy_reg_to_process.do_t2_pet_reg(t1_amy_pet_reg_job)
 
-        job_wait_code = f"*{mri_to_process.id}_*_to_{mri_to_process.mridate}"
+        job_wait_code = f"*pet_to_{mri_to_process.mridate}"
+        #   job_wait_code = f"*{mri_to_process.id}_*_to_{mri_to_process.mridate}"
+      
+        # print(job_wait_code)
         mri_to_process.testallstats(wait_code=job_wait_code,
                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
                 t2tau = mri_tau_reg_to_process.t2_reg_nifti,
                 t1amy = mri_amy_reg_to_process.t1_reg_nifti,
-                t2amy = mri_amy_reg_to_process.t2_reg_nifti) 
+                t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
+                taudate = mri_tau_reg_to_process.petdate,
+                amydate = mri_amy_reg_to_process.petdate) 
     ########end of dfiterrows for loop 
 
-    logging.info(f"Collecting data from analysis_output/stats/ for data sheets.")
-    print(f"bsub -J '{current_date}_datasheets' -w 'done()' -o {this_output_dir} create_stats_sheets.sh {wblabel_file} {stats_output_dir} {this_output_dir}")
-    # os.system(f"bsub -J '{current_date}_datasheets' -o {this_output_dir} -w 'done()' \
-    #           bash create_stats_sheets.sh {wblabel_file} {stats_output_dir} {this_output_dir}")
+   
     ##TODO: what's the wait code--last subject processed?
-        #bsub a job before this that just watches the queue: 
-        #while $(bjobs | grep "emcgrew RUN" | wc -l) > 0:
-            #sleep 8
-        #hang the stats collection off the completion of that job?
+    #job to watch queue
+    # print(f"bsub -J '{current_date}_queuewatch' -o {this_output_dir} ./queue_watch.sh")
+    # os.system(f"bsub -J '{current_date}_queuewatch' -o {this_output_dir} ./queue_watch.sh")
+    
+    # logging.info(f"Collecting data from analysis_output/stats/ for data sheets.")
+    # print(f"bsub -J '{current_date}_datasheets' -w 'done({current_date}_queuewatch)' -o {this_output_dir} ./create_stats_sheets.sh {wblabel_file} {stats_output_dir} {this_output_dir}")
+    # os.system(f"bsub -J '{current_date}_datasheets' -o {this_output_dir} \
+    #           -w 'done({current_date}_queuewatch)' \
+    #           ./create_stats_sheets.sh {wblabel_file} {stats_output_dir} {this_output_dir}")
+    
 
     ##TODO: pandas merge stats with fileloc csvs, demographic data, baseline scan date & date diff
 

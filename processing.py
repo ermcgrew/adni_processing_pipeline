@@ -291,7 +291,7 @@ class MRI:
             #             ##TODO:just t1, call after t1 ashs runs? or add t2 stats?
             # return
 
-    def testallstats(self, wait_code="",t1tau="",t2tau="",t1amy="",t2amy=""):
+    def testallstats(self, wait_code="",t1tau="",t2tau="",t1amy="",t2amy="",taudate="",amydate=""):
         ##if t1t1/pets are null, set mode to mri, else mode pet
         if t1tau == "":
             mode = "mri"
@@ -304,7 +304,8 @@ class MRI:
                 {t1tau} {t2tau} {t1amy} {t2amy} \
                 {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
                 {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
-                {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir}")
+                {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
+                {self.mridate} {taudate} {amydate}")
         return
 
 
@@ -414,7 +415,7 @@ class MRIPetReg:
 # mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
-mri_to_process = MRI("033_S_0734", "2018-10-10")
+# mri_to_process = MRI("033_S_0734", "2018-10-10")
 
 # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
@@ -433,8 +434,8 @@ mri_to_process = MRI("033_S_0734", "2018-10-10")
 
 
 # mri_to_process.do_t1icv()
-t1ashs_job_name = mri_to_process.do_t1ashs()
-mri_to_process.do_ashs_stats(t1ashs_job_name)
+# t1ashs_job_name = mri_to_process.do_t1ashs()
+# mri_to_process.do_ashs_stats(t1ashs_job_name)
 
 # mri_to_process.do_t1mtthk(t1ashs_job_name) 
 # mri_to_process.do_ashs_stats(f"*{mri_to_process.id}")
