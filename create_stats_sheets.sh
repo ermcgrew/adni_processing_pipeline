@@ -2,7 +2,7 @@
 
 function write_header()
 {
-  HEADER="RID\tID\tICV\tSlice_Thickness"
+  HEADER="RID\tID\tMRIDATE\tAMYDATE\tTAUDATE\tICV\tSlice_Thickness"
   list=$(echo CA1 CA2 CA3 DG MISC SUB ERC BA35 BA36 PHC sulcus CA HIPP EXTHIPPO EXTHIPPOno36 MTLno36)
   for side in left right; do
     for sf in $list; do
@@ -29,7 +29,7 @@ function write_header()
 
   ##########################################
   #for ashst1 & mtthk header
-  ashsheader="RID,ID,SCANDATE,ICV_ASHSICV"
+  ashsheader="RID,ID,MRIDATE,ICV_ASHSICV"
 
   # ASHS T1 baseline volume and thickness
   for type in VOL; do

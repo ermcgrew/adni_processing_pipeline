@@ -43,7 +43,7 @@ RID=$(echo $id | cut -f 3 -d "_")
 ICV=$( printf %10.2f $(cat $icvfile | awk '{print $5}'))
 thick=$(c3d $cleanup_left -info-full | grep Spacing | \
   sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" | awk '{print $3}')
-statline="$RID\t$id\t$ICV\t$thick"
+statline="$RID\t$id\t$mridate\t$amydate\t$taudate\t$ICV\t$thick"
 
 #do stats for each hemisphere:
 for side in left right; do
