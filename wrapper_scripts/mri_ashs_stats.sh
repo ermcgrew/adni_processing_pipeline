@@ -96,6 +96,7 @@ THKFITQUALITY="${THKFITQUALITY:1}"
 # echo "Thick fit qual: $THKFITQUALITY"
 
 # echo "$ICV,$VOL,$THK,$THKFITQUALITY"
+RID=$(echo $id | cut -f 3 -d "_")
 
 # output all values
-echo "$ICV,$VOL,$THK,$THKFITQUALITY" >>  ${stats_output_dir}/stats_mri_${mridate}_${id}_mrionly.txt
+echo "$RID,$id,$mridate,$ICV,$VOL,$THK,$THKFITQUALITY" >>  ${stats_output_dir}/stats_mri_${mridate}_${id}_mrionly.txt

@@ -254,6 +254,9 @@ def create_mri_uid_list():
     for subject in newtotalsubs:
         subject_mrilist = mrilist_df_small.loc[mrilist_df_small['RID'] == subject]
         dates = subject_mrilist['SMARTDATE'].unique()
+        ##TODO: baseline
+        #id base date here
+        #calculate diff for each date and add it to list of .loc additions
         for date in dates: 
             single_date_mrilist = subject_mrilist.loc[subject_mrilist['SMARTDATE'] == date]
             t1scans=single_date_mrilist.loc[single_date_mrilist['MRITYPE']== 0]
