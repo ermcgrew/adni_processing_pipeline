@@ -13,11 +13,11 @@ current_date = datetime.now().strftime("%Y_%m_%d")
 ###File/directory locations on the cluster
 #main file directories in cluster
 # adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/icv_paulroot"  # for testing
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/icv_longroot"  # for testing
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_pmc_long"  # for testing
-adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_pmc_paul"  # for testing
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_pmc_paul"  # for testing
 
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/dataset_niftis"  # for testing
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/dataset_trim_test_superres"  # for testing
