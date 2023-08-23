@@ -122,14 +122,14 @@ def main():
     #                 ###MRI Image processing (ANTS, ASHS, etc.)
     #                 if os.path.exists(scan_to_process.t1nifti):
     #                     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T1 image processing.")
-    #                     # ants_job_name = scan_to_process.do_ants()
-    #                     # scan_to_process.do_pmtau(ants_job_name)
-    #                     # wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
-    #                     # scan_to_process.do_wbsegqc(wbseg_job_name)
-    #                     # scan_to_process.do_t1icv() 
-    #                     # superres_job_name = scan_to_process.do_superres() 
-    #                     # t1ashs_job_name = scan_to_process.do_t1ashs(superres_job_name) 
-    #                     # t1mtthk_job_name = scan_to_process.do_t1mtthk(t1ashs_job_name) 
+    #                     ants_job_name = scan_to_process.do_ants()
+    #                     scan_to_process.do_pmtau(ants_job_name)
+    #                     wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
+    #                     scan_to_process.do_wbsegqc(wbseg_job_name)
+    #                     scan_to_process.do_t1icv() 
+    #                     superres_job_name = scan_to_process.do_superres() 
+    #                     t1ashs_job_name = scan_to_process.do_t1ashs(superres_job_name) 
+    #                     t1mtthk_job_name = scan_to_process.do_t1mtthk(t1ashs_job_name) 
     #                     # scan_to_process.do_ashs_stats(f"*{scan_to_process.id}") 
     #                         #so stats only runs once all the other image processing for this subject is done
 
@@ -155,7 +155,7 @@ def main():
     #         all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last', inplace=True) 
     #         all_filelocs.sort_values(by=["RID","SMARTDATE"], ignore_index=True, inplace=True)
     #         all_filelocs.to_csv(os.path.join(datasetup_directories_path["filelocations"],\
-    #                                             filenames['filelocations'][scantype]),index=False,header=True)
+    #                                             # filenames['filelocations'][scantype]),index=False,header=True)
 
     # print(testwaitcode)
     logging.info(f"Starting anchored processing for PET & MRI matches.")
@@ -175,20 +175,16 @@ def main():
         t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
         # mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
         mri_tau_reg_to_process.do_t2_pet_reg(t1_tau_pet_reg_job)      
-        # print(mri_tau_reg_to_process.reg_prefix)
 
         amy_to_process = AmyloidPET(subject, amydate)
         mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
         logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
-        # print(mri_amy_reg_to_process.reg_prefix)
         t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
         # mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
         mri_amy_reg_to_process.do_t2_pet_reg(t1_amy_pet_reg_job)
 
-        job_wait_code = f"*pet_to_{mri_to_process.mridate}"
-        #   job_wait_code = f"*{mri_to_process.id}_*_to_{mri_to_process.mridate}"
-      
-        # print(job_wait_code)
+        job_wait_code = f"{mri_to_process.id}*"
+
         mri_to_process.testallstats(wait_code=job_wait_code,
                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
                 t2tau = mri_tau_reg_to_process.t2_reg_nifti,
