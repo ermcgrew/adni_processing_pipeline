@@ -306,6 +306,12 @@ class MRI:
                 {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
                 {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
                 {self.mridate} {taudate} {amydate}")
+        # print(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg} {self.thickness} \
+        #         {t1tau} {t2tau} {t1amy} {t2amy} \
+        #         {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
+        #         {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
+        #         {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
+        #         {self.mridate} {taudate} {amydate}")
         return
 
 
@@ -371,7 +377,9 @@ class MRIPetReg:
 
 
     def do_t1_pet_reg(self, parent_job_name = ""):
-        this_job_name=f"t1{self.processing_step}_{self.reg_prefix}"
+        # this_job_name=f"t1{self.processing_step}_{self.reg_prefix}"
+        this_job_name=f"{self.id}_{self.petdate}_t1{self.processing_step}"
+
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)
         if ready_to_process(f"t1{self.processing_step}", self.id, f"{self.mridate}:{self.petdate}", \
                             input_files = [self.t1trim, self.pet_nifti], \
@@ -379,17 +387,25 @@ class MRIPetReg:
             os.system(f"bsub {submit_options} \
                        {t1petreg_script} \
                        {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
+            # print(f"bsub {submit_options} \
+            #            {t1petreg_script} \
+            #            {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
             return (this_job_name)         
         
 
     def do_t2_pet_reg(self, parent_job_name = ""):
-        this_job_name=f"t2{self.processing_step}_{self.reg_prefix}"
+        # this_job_name=f"t2{self.processing_step}_{self.reg_prefix}"
+        this_job_name=f"{self.id}_{self.petdate}_t2{self.processing_step}"
+
         submit_options = set_submit_options(this_job_name, self.bsub_output, parent_job_name)        
         if ready_to_process(f"t2{self.processing_step}", self.id, f"{self.mridate}:{self.petdate}", \
                             input_files = [self.t2nifti, self.pet_nifti, self.t2ashs_flirt_reg, self.t1_reg_RAS], \
                             output_files = [self.t2_reg_nifti], parent_job = parent_job_name):
             os.system(f"bsub {submit_options} ./wrapper_scripts/t2_pet_registration.sh {self.t2nifti} \
                   {self.pet_nifti} {self.t2_reg_nifti} {self.t2ashs_flirt_reg} {self.t1_reg_RAS}")
+            # print(f"bsub {submit_options} ./wrapper_scripts/t2_pet_registration.sh {self.t2nifti} \
+            #       {self.pet_nifti} {self.t2_reg_nifti} {self.t2ashs_flirt_reg} {self.t1_reg_RAS}")
+            
             return(this_job_name)
 
  
