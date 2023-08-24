@@ -2,6 +2,7 @@
 
 from config import *
 
+print("Running the final merge between datasheets and fileloc sheets")
 #open up stats sheet
 anchored_stats_file = f"stats_lr_cleanup_corr_nogray_{current_date}.tsv"
 anchored_stats_df = pd.read_csv(os.path.join(this_output_dir,anchored_stats_file),sep = "\t")
