@@ -135,11 +135,11 @@ def preprocess_new(csvfilename, registry=None):
                 df.at[i, 'T1ACCE'] = 0
 
             # Preprocess Flair
-            # if "FLAIR" in seq:
-            #     print(seq)
-            #     df.at[i, 'FLAIR'] = 1
-            # else:
-            #     df.at[i, 'FLAIR'] = 0
+            if "FLAIR" in seq:
+                # print(seq)
+                df.at[i, 'FLAIR'] = 1
+            else:
+                df.at[i, 'FLAIR'] = 0
 
 
     elif csvfilename.startswith('PET_META_LIST'):
@@ -237,7 +237,7 @@ def create_mri_uid_list():
 
     #columns to use from each df:
     mrimetacols=['RID','SMARTDATE','FIELD_STRENGTH','VISCODE', 'VISCODE2']
-    mrilistcols=['RID','MRITYPE','SMARTDATE', 'IMAGEUID', 'T1ACCE', 'PHASE', 'SUBJECT']
+    mrilistcols=['RID','MRITYPE','SMARTDATE', 'IMAGEUID', 'T1ACCE', 'PHASE', 'SUBJECT', 'FLAIR'] 
     mrimeta_df_small = mrimeta_df[mrimetacols]
     mrilist_df_small = mrilist_df[mrilistcols]
 
@@ -255,14 +255,20 @@ def create_mri_uid_list():
     for subject in newtotalsubs:
         subject_mrilist = mrilist_df_small.loc[mrilist_df_small['RID'] == subject]
         dates = subject_mrilist['SMARTDATE'].unique()
-        ##TODO: baseline
-        #id base date here
-        #calculate diff for each date and add it to list of .loc additions
-        for date in dates: 
-            single_date_mrilist = subject_mrilist.loc[subject_mrilist['SMARTDATE'] == date]
-            t1scans=single_date_mrilist.loc[single_date_mrilist['MRITYPE']== 0]
-            t2scans=single_date_mrilist.loc[single_date_mrilist['MRITYPE']== 1]
+        ## baseline date 
+        dates_sorted = sorted(dates)
+        baseline_date = dates_sorted[0]
+        dates_sorted_formatted=[datetime.strptime(x,"%Y-%m-%d") for x in dates_sorted]
+        diffs=[(((abs(x-dates_sorted_formatted[0]).total_seconds() / 60 ) / 60 ) /24) for x in dates_sorted_formatted]
 
+        for date in dates: 
+            diff_to_baseline = diffs[dates_sorted.index(date)]
+            single_date_mrilist = subject_mrilist.loc[subject_mrilist['SMARTDATE'] == date]
+            t1scans = single_date_mrilist.loc[single_date_mrilist['MRITYPE'] == 0]
+            t2scans = single_date_mrilist.loc[single_date_mrilist['MRITYPE'] == 1]
+            flairs = single_date_mrilist.loc[single_date_mrilist['FLAIR'] == 1]
+
+            # print(len(flairs))
             if len(t1scans) == 0 and len(t2scans) == 0:
                 logging.info(f"{subject}:{date}:No T1 or T2 scans listed.")
                 continue
@@ -272,6 +278,14 @@ def create_mri_uid_list():
                                                         single_date_mrilist['PHASE'].tolist()[0]]
             index +=1            
 
+    ###FLAIR#######################################################################################
+            if len(flairs) > 0:
+                flair_uid = sort_uids(flairs, "biggest")
+                all_flair_uids = ";".join(map(str, flairs['IMAGEUID'].tolist()))
+            else: 
+                flair_uid, all_flair_uids = [None,None]
+            
+            # print(flair_uid, all_flair_uids)
     ###T1#################################################################################################        
             if len(t1scans) > 0:
                 notacce = t1scans.loc[t1scans['T1ACCE'] == 0]
@@ -298,18 +312,21 @@ def create_mri_uid_list():
                 t2uid, allt2uids = [None,None]
                 
     ###Add to new dataframe###############################################################################
-            datalisttoadd=[t1uid,ist1acce,t2uid,len(notacce),notacce_t1_uids,
-                        len(yesacce),yesacce_t1_uids,len(t2scans),allt2uids]
+            datalisttoadd=[t1uid, ist1acce, t2uid, len(notacce), notacce_t1_uids,
+                        len(yesacce), yesacce_t1_uids, len(t2scans), allt2uids,
+                          flair_uid, all_flair_uids, len(flairs), baseline_date, diff_to_baseline]
 
             outputdf.loc[
                 (outputdf['RID'] == subject) & (outputdf['SMARTDATE'] == date),
                     ['IMAGEUID_T1','T1ISACCE', 'IMAGEUID_T2', 'NT1NONEACCE','IMAGEUID_T1NONEACCE', 
-                    'NT1ACCE', 'IMAGEUID_T1ACCE', 'NT2','IMAGEUID_T2ALL']
+                    'NT1ACCE', 'IMAGEUID_T1ACCE', 'NT2','IMAGEUID_T2ALL', "IMAGEUID_FLAIR", 
+                      "IMAGEUID_FLAIRALL", "NFLAIR", "BASELINE_DATE", "DIFF_FROM_BASELINE_DATE_DAYS"]
                         ] = datalisttoadd
 
     alloutput = outputdf.merge(mrimeta_df_small, how='left',on=['RID','SMARTDATE'])
     alloutput['RID'] = alloutput['RID'].astype(int)
     alloutput.info()
+    print(alloutput.head())
 
     alloutput.to_csv(os.path.join(datasetup_directories_path["uids"],filenames['uids']['mri']),header=True,index=False)
     return
@@ -586,7 +603,7 @@ def main():
     ##TODO:fix IMAGEUID_ spelling error in old mri sheets
     # create_mri_uid_list()
     # create_pet_uid_list() 
-    create_tau_anchored_uid_list()
+    # create_tau_anchored_uid_list()
 
     # for key in filenames["uids"]:
     #     if "smalltest" in filenames["uids"][key]:
@@ -600,4 +617,7 @@ def main():
     #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/mri3TListWithNIFTIPath_10172022.tsv")
 
 
-main()
+# main()
+# registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
+# preprocess_new("MRILIST_12Jun2023.csv",registry=registry_df)   
+create_mri_uid_list()
