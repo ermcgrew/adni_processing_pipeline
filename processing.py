@@ -33,11 +33,11 @@ def set_submit_options(this_job_name, output_dir, parent_job_name):
     if parent_job_name:
         if len(parent_job_name) == 2: #for t2 pet reg, needs input from t1petreg and t2ashs
             wait = f'-w "done({parent_job_name[0]}) && done({parent_job_name[1]})"'
-        elif "stats" in this_job_name:  ##for stats to run after all inage processing 
-            wait = f'-w "ended({parent_job_name})'
+        elif "stats" in this_job_name:  ##for stats to run after all image processing 
+            wait = f'-w "ended({parent_job_name})"'
         else:
             wait = f'-w "done({parent_job_name})"'
-    else:
+    else:   
         wait = ""
     # print(wait)
     return f"{jobname} {output} {wait}"
@@ -294,12 +294,11 @@ class MRI:
             os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
                     {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
                     {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
-                        ##TODO:just t1, call after t1 ashs runs? or add t2 stats?
             return
 
-    def testallstats(self, wait_code="",t1tau="",t2tau="",t1amy="",t2amy="",taudate="",amydate=""):
+    def mripetstats(self, wait_code="",t1tau="null",t2tau="null",t1amy="null",t2amy="null",taudate="null",amydate="null"):
         ##if t1t1/pets are null, set mode to mri, else mode pet
-        if t1tau == "":
+        if t1tau == "null":
             mode = "mri"
         else:
             mode="pet"
@@ -448,15 +447,16 @@ class MRIPetReg:
 
 
 # ##MRI processing
-# mri_to_process.testallstats(wait_code = f"{mri_to_process.mridate}_{mri_to_process.id}*",
+# mri_to_process.mripetstats(wait_code = f"{mri_to_process.mridate}_{mri_to_process.id}*",
 #                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
 #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
+# mri_to_process.mripetstats(wait_code = f"{mri_to_process.mridate}_{mri_to_process.id}*")
 
 
 # mri_to_process.do_t1icv()
 # t1ashs_job_name = mri_to_process.do_t1ashs()
 # mri_to_process.do_ashs_stats(t1ashs_job_name)
-
+# mri_to_process.do_t1mtthk()
 # mri_to_process.do_t1mtthk(t1ashs_job_name) 
 # mri_to_process.do_ashs_stats(f"*{mri_to_process.id}")
 

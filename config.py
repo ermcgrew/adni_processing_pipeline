@@ -10,10 +10,35 @@ pd.options.mode.chained_assignment = None
 
 current_date = datetime.now().strftime("%Y_%m_%d")
 
+def reformat_date_slash_to_dash(df):
+    # M/D/YY to YYYY-MM-DD
+    for index, row in df.iterrows():
+        if "/" in row['SMARTDATE']:
+            MDYlist=row['SMARTDATE'].split('/')
+            
+            if len(MDYlist[0]) == 1:
+                month = "0" + MDYlist[0]
+            else:
+                month = MDYlist[0]
+
+            if  len(MDYlist[1]) == 1:
+                day = "0" + MDYlist[1]
+            else:
+                day=MDYlist[1]
+
+            year="20" + MDYlist[2]
+
+            newdate=year + "-" + month + "-" + day
+            df.at[index,'SMARTDATE']=newdate
+    return df
+
 ###File/directory locations on the cluster
 #main file directories in cluster
 # adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
 adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_noSRatlas_paulroot"  # for testing
+
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/icv_paulroot"  # for testing
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/icv_longroot"  # for testing
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_pmc_long"  # for testing
@@ -40,18 +65,22 @@ wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly
 segqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
 wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
 
-ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
-# ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
 
-# ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
-ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
+# ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
+ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
+
+ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
+# ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
+
+icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
+#icv_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_icv"
+
+ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
+#ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
+
 
 
 ashs_mopt_mat_file = "/home/lxie/ADNI2018/scripts/identity.mat"
-icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
-#icv_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_icv"
-ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
-#ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
 t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
 t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh"
 pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
