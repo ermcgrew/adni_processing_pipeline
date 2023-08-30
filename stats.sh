@@ -287,5 +287,8 @@ for side in left right; do
 done
 
 echo $statline
-
-echo $statline >> ${stats_output_dir}/stats_tau_${taudate}_amy_${amydate}_mri_${mridate}_${id}_whole.txt
+if [[ $mode == "mri" ]] ; then
+  echo $statline >> ${stats_output_dir}/stats_mri_${mridate}_${id}_structonly.txt
+else
+  echo $statline >> ${stats_output_dir}/stats_tau_${taudate}_amy_${amydate}_mri_${mridate}_${id}_whole.txt
+fi 

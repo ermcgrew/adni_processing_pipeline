@@ -234,6 +234,11 @@ def create_mri_uid_list():
     mrilist_csv = [file for file in csvs_mri_merge if "LIST" in file][0]
     mrimeta_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],meta_csv))
     mrilist_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],mrilist_csv))
+    # print(len(mrilist_df))
+    ##TODO: drop rows with 1.5T data (which we don't use)
+    mrilist_df = mrilist_df.loc[(mrilist_df['MAGSTRENGTH'] != 1.5) & (mrilist_df['MAGSTRENGTH'] != 1.494)]
+    # print(len(mrilist_df))
+    # print(mrilist_df.head())
 
     #columns to use from each df:
     mrimetacols=['RID','SMARTDATE','FIELD_STRENGTH','VISCODE', 'VISCODE2']
@@ -325,10 +330,10 @@ def create_mri_uid_list():
 
     alloutput = outputdf.merge(mrimeta_df_small, how='left',on=['RID','SMARTDATE'])
     alloutput['RID'] = alloutput['RID'].astype(int)
-    alloutput.info()
+    print(alloutput.info())
     print(alloutput.head())
-
-    alloutput.to_csv(os.path.join(datasetup_directories_path["uids"],filenames['uids']['mri']),header=True,index=False)
+    alloutput.to_csv("/project/wolk/ADNI2018/scripts/adni_processing_pipeline/testing/new_create_mri_list_output.csv", header = True, index=False)
+    # alloutput.to_csv(os.path.join(datasetup_directories_path["uids"],filenames['uids']['mri']),header=True,index=False)
     return
 
 

@@ -428,30 +428,32 @@ class MRIPetReg:
 
 
 # Test runs
-# mri_to_process = MRI("114_S_6917", "2021-04-16") 
+mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI('141_S_6779','2020-10-27')
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
 # mri_to_process = MRI("033_S_0734", "2018-10-10")
 
-# amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
+amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
 # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
 
-# tau_to_process = TauPET("114_S_6917", "2021-08-11")
+tau_to_process = TauPET("114_S_6917", "2021-08-11")
 # tau_to_process = TauPET("099_S_6175", "2020-07-09")
 
-# mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
-# mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
+mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
+mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
 
 
 # ##MRI processing
+mri_to_process.do_wbsegqc()
+
+
 # mri_to_process.mripetstats(wait_code = f"{mri_to_process.mridate}_{mri_to_process.id}*",
 #                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
 #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 # mri_to_process.mripetstats(wait_code = f"{mri_to_process.mridate}_{mri_to_process.id}*")
-
 
 # mri_to_process.do_t1icv()
 # t1ashs_job_name = mri_to_process.do_t1ashs()
@@ -474,6 +476,8 @@ class MRIPetReg:
 
 
 ##PET processing
+mri_tau_reg_to_process.do_pet_reg_qc()
+
 # t1_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
 # mri_tau_reg_to_process.do_pet_reg_qc(t1_pet_reg_job)
 # mri_tau_reg_to_process.do_t2_pet_reg(t1_pet_reg_job)

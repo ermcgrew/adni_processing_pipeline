@@ -25,6 +25,7 @@ function write_header()
   done
 
   echo -e "${HEADER}" > $this_run_analysis_output_dir/$tsvfilename
+  echo -e "${HEADER}" > $this_run_analysis_output_dir/$structonly
 
 
   ##########################################
@@ -65,7 +66,9 @@ function collate_new_data ()
   for file in $(find ${stats_output_dir}/*whole.txt); do
     cat $file >> $this_run_analysis_output_dir/$tsvfilename
   done
-
+  for file in $(find ${stats_output_dir}/*structonly.txt); do
+    cat $file >> $this_run_analysis_output_dir/$structonly
+  done
   for file in $(find ${stats_output_dir}/*mrionly.txt); do
     cat $file >> $this_run_analysis_output_dir/$ashst1csv
   done
@@ -79,6 +82,7 @@ this_run_analysis_output_dir=$3
 date=$(echo $this_run_analysis_output_dir | cut -f 6 -d "/")
 tsvfilename="stats_lr_cleanup_corr_nogray_${date}.tsv"
 ashst1csv="ASHS_T1MTTHK_${date}.csv"
+structonly="structonly_stats_lr_cleanup_corr_nogray_${date}.tsv"
 
 # echo "Writing tsv header"
 write_header
