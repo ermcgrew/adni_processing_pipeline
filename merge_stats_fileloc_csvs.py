@@ -2,13 +2,27 @@
 
 from config import *
 
-print("Running the final merge between datasheets and fileloc sheets")
-#open up stats sheet
+print("Running the final merge between image processing datasheets, filelocation sheets, and demographic data.")
+
+##ASHST1 data added to anchored and all mri sheets
+ashst1_stats_file = f"ASHS_T1MTTHK_{current_date}.csv"
+ashst1_stats_df = pd.read_csv(os.path.join(this_output_dir,ashst1_stats_file))
+print(ashst1_stats_df.head())
+
+
+###### ANCHORED
+##open up stats sheet
 anchored_stats_file = f"stats_lr_cleanup_corr_nogray_{current_date}.tsv"
 anchored_stats_df = pd.read_csv(os.path.join(this_output_dir,anchored_stats_file),sep = "\t")
 # print(anchored_stats_df.head())
 
-#open processing status sheet
+
+##merge anchored_stats_df with ashst1_stats_df based on mridate
+
+
+
+
+##open processing status sheet
 anchored_proc_df = pd.read_csv(os.path.join(datasetup_directories_path["processing_status"],\
       filenames['processing_status']['anchored']))
 # print(anchored_proc_df.head())
@@ -28,18 +42,21 @@ anchored_proc_df = pd.read_csv(os.path.join(datasetup_directories_path["processi
 # #TODO: save as/where
 
 
-###MRI only
-#open up stats sheet
-mri_stats_file = f"ASHS_T1MTTHK_{current_date}.csv"
-mri_stats_df = pd.read_csv(os.path.join(this_output_dir,mri_stats_file))
-print(mri_stats_df.head())
+###### ALL MRI 
+##struct only mri/pet data
+mristruct_stats_file = f"structonly_stats_lr_cleanup_corr_nogray_{current_date}.tsv"
+mristruct_stats_df = pd.read_csv(os.path.join(this_output_dir,mristruct_stats_file))
+print(mristruct_stats_df.head())
 
-#open file location sheet
+##merge with ashst1_stats_df
+
+
+##open file location sheet
 mri_fileloc_df = pd.read_csv(os.path.join(datasetup_directories_path["filelocations"],\
       filenames['filelocations']['mri']))
 print(mri_fileloc_df.head())
 
-#merge with fileloc sheet
+##merge with fileloc sheet
 # change _fileloc_df col SMARTDATE:MRIDATE
 # #TODO:how to merge--keep all info from both sheets, or left on anchored (so more stats)
 # mri_stats_df.merge(mri_fileloc_df, on = [RID, ID, MRIDATE], how='left', reset_index = True)
@@ -47,7 +64,7 @@ print(mri_fileloc_df.head())
 # column order?
 
 
-#merge with data from adnimergemaster (demos)
+##merge with data from adnimergemaster (demos)
 adnimerge_df = pd.read_csv(os.path.join(analysis_input_dir,"ADNIMERGE_master_20221231.csv"))
 # print(adnimerge_df.head())
 

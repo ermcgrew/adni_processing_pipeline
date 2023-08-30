@@ -12,7 +12,8 @@ from config import *
 
 def main():
     #### already have new scans downloaded to cluster
-    # os.system(bash organize_files.sh) 
+    ##TODO: date for dl folder as argument to this script
+    # os.system(bash organize_files.sh "Aug2023") 
     print(f"bash organize_files.sh --symlink, unzip, rsync")
 
     #### already have adni spreadsheets saved in clustr
@@ -124,20 +125,14 @@ def main():
                         ants_job_name = scan_to_process.do_ants()
                         scan_to_process.do_pmtau(ants_job_name)
                         wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
-                        scan_to_process.do_wbsegqc(wbseg_job_name)
+                        # scan_to_process.do_wbsegqc(wbseg_job_name)
                         scan_to_process.do_t1icv() 
                         superres_job_name = scan_to_process.do_superres() 
                         t1ashs_job_name = scan_to_process.do_t1ashs(superres_job_name) 
                         t1mtthk_job_name = scan_to_process.do_t1mtthk(t1ashs_job_name) 
                         scan_to_process.do_ashs_stats(f"{scan_to_process.mridate}_{scan_to_process.id}*")  
-                            #stats only runs once all the other image processing for this subject is done
+                            #ashs T1 stats only runs once all the other image processing for this subject is done
 
-                        ##some testing
-                        # scan_to_process.do_pmtau()
-                        # t1ashs_job_name = scan_to_process.do_t1ashs() 
-                        # t1mtthk_job_name = scan_to_process.do_t1mtthk(t1ashs_job_name) 
-                        # scan_to_process.do_ashs_stats(f"{scan_to_process.mridate}_{scan_to_process.id}*")  
-                    
                     if os.path.exists(scan_to_process.t2nifti):
                         logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T2 image processing.")
                         t2_ashs_job_name = scan_to_process.do_t2ashs() 
