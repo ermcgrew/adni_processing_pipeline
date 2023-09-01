@@ -122,9 +122,9 @@ def main():
                     ###MRI Image processing (ANTS, ASHS, etc.)
                     if os.path.exists(scan_to_process.t1nifti):
                         logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing MRI T1 image processing.")
-                        ants_job_name = scan_to_process.do_ants()
-                        scan_to_process.do_pmtau(ants_job_name)
-                        wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
+                        # ants_job_name = scan_to_process.do_ants()
+                        # scan_to_process.do_pmtau(ants_job_name)
+                        # wbseg_job_name = scan_to_process.do_wbseg(ants_job_name) 
                         # scan_to_process.do_wbsegqc(wbseg_job_name)
                         scan_to_process.do_t1icv() 
                         superres_job_name = scan_to_process.do_superres() 
@@ -163,43 +163,42 @@ def main():
                                                 filenames['filelocations'][scantype]),index=False,header=True)
 
 
-    logging.info(f"Starting PET/MRI image registration processing based on anchored processing_status csv.")
-    anchored_df=pd.read_csv(os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status']["anchored"]))
+    # logging.info(f"Starting PET/MRI image registration processing based on anchored processing_status csv.")
+    # anchored_df=pd.read_csv(os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status']["anchored"]))
     # print(anchored_df.head())
-
-    for index,row in anchored_df.iterrows():
-        subject = str(row['ID'])
-        mridate = str(row['SMARTDATE.mri'])
-        taudate = str(row['SMARTDATE.tau'])
-        amydate = str(row['SMARTDATE.amy'])
+    # for index,row in anchored_df.iterrows():
+    #     subject = str(row['ID'])
+    #     mridate = str(row['SMARTDATE.mri'])
+    #     taudate = str(row['SMARTDATE.tau'])
+    #     amydate = str(row['SMARTDATE.amy'])
     
-        mri_to_process = MRI(subject,mridate)
+    #     mri_to_process = MRI(subject,mridate)
 
-        tau_to_process = TauPET(subject, taudate)
-        mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process)
+    #     tau_to_process = TauPET(subject, taudate)
+    #     mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process)
         
-        logging.info(f"{mri_tau_reg_to_process.id}:{mri_tau_reg_to_process.mridate}:{mri_tau_reg_to_process.petdate}: Now processing")
-        t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
-        # mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
-        mri_tau_reg_to_process.do_t2_pet_reg([t1_tau_pet_reg_job,f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
+    #     logging.info(f"{mri_tau_reg_to_process.id}:{mri_tau_reg_to_process.mridate}:{mri_tau_reg_to_process.petdate}: Now processing")
+    #     t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
+    #     # mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
+    #     mri_tau_reg_to_process.do_t2_pet_reg([t1_tau_pet_reg_job,f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
  
-        amy_to_process = AmyloidPET(subject, amydate)
-        mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
+    #     amy_to_process = AmyloidPET(subject, amydate)
+    #     mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
         
-        logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
-        t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
-        # mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
-        mri_amy_reg_to_process.do_t2_pet_reg([t1_amy_pet_reg_job,f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
+    #     logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
+    #     t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
+    #     # mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
+    #     mri_amy_reg_to_process.do_t2_pet_reg([t1_amy_pet_reg_job,f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
 
-        jobname_prefix_this_subject = f"{mri_to_process.mridate}_{mri_to_process.id}*"
-        mri_to_process.mripetstats(wait_code=jobname_prefix_this_subject,
-                t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
-                t2tau = mri_tau_reg_to_process.t2_reg_nifti,
-                t1amy = mri_amy_reg_to_process.t1_reg_nifti,
-                t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
-                taudate = mri_tau_reg_to_process.petdate,
-                amydate = mri_amy_reg_to_process.petdate) 
-    ########end of anchored_df.iterrows for loop 
+    #     jobname_prefix_this_subject = f"{mri_to_process.mridate}_{mri_to_process.id}*"
+    #     mri_to_process.mripetstats(wait_code=jobname_prefix_this_subject,
+    #             t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
+    #             t2tau = mri_tau_reg_to_process.t2_reg_nifti,
+    #             t1amy = mri_amy_reg_to_process.t1_reg_nifti,
+    #             t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
+    #             taudate = mri_tau_reg_to_process.petdate,
+    #             amydate = mri_amy_reg_to_process.petdate) 
+    # ########end of anchored_df.iterrows for loop 
 
    
     #job to watch queue for status of all image processing & individual stats collection
