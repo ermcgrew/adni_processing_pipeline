@@ -448,27 +448,27 @@ def create_tau_anchored_uid_list():
     # outputdf.to_csv(os.path.join(datasetup_directories_path["uids"],filenames["uids"]["anchored"]),index=False,header=True)
 
 
-def reformat_date_slash_to_dash(df):
-    # M/D/YY to YYYY-MM-DD
-    for index, row in df.iterrows():
-        if "/" in row['SMARTDATE']:
-            MDYlist=row['SMARTDATE'].split('/')
+# def reformat_date_slash_to_dash(df):
+#     # M/D/YY to YYYY-MM-DD
+#     for index, row in df.iterrows():
+#         if "/" in row['SMARTDATE']:
+#             MDYlist=row['SMARTDATE'].split('/')
             
-            if len(MDYlist[0]) == 1:
-                month = "0" + MDYlist[0]
-            else:
-                month = MDYlist[0]
+#             if len(MDYlist[0]) == 1:
+#                 month = "0" + MDYlist[0]
+#             else:
+#                 month = MDYlist[0]
 
-            if  len(MDYlist[1]) == 1:
-                day = "0" + MDYlist[1]
-            else:
-                day=MDYlist[1]
+#             if  len(MDYlist[1]) == 1:
+#                 day = "0" + MDYlist[1]
+#             else:
+#                 day=MDYlist[1]
 
-            year="20" + MDYlist[2]
+#             year="20" + MDYlist[2]
 
-            newdate=year + "-" + month + "-" + day
-            df.at[index,'SMARTDATE']=newdate
-    return df
+#             newdate=year + "-" + month + "-" + day
+#             df.at[index,'SMARTDATE']=newdate
+#     return df
 
 
 def reformat_date_datetime_to_dash(df):

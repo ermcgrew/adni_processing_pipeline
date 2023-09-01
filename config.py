@@ -35,7 +35,7 @@ def reformat_date_slash_to_dash(df):
 ###File/directory locations on the cluster
 #main file directories in cluster
 # adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_noSRatlas_paulroot"  # for testing
 
@@ -47,6 +47,9 @@ adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testi
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/dataset_niftis"  # for testing
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/dataset_trim_test_superres"  # for testing
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/test_trim_dataset_superres"  # for testing
+
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_pauly"  # for testing
+adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_lxie"  # for testing
 
 
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
@@ -66,8 +69,8 @@ segqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
 wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
 
 
-# ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
-ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
+ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
+# ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 
 ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
 # ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"

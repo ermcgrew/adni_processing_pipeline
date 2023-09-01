@@ -13,8 +13,9 @@ cat $mridata | while read line ; do
     id=$( echo $line | cut -d "," -f 3 )
     date=$( echo $line | cut -d "," -f 2)
     echo $id, $date
-    if [[ $id == "ID" || $date == "2022-11-21" || $date == "2022-10-17" || $date == "2022-06-23" || $date == "2022-07-01" ]] ; then
+    if [[ $id == "ID" || $date == "2022-06-23" || $date == "2022-07-01" ]] ; then
         continue 
+        #|| $date == "2022-11-21" || $date == "2022-10-17"
     else
         tone=$testloc/${id}/${date}/${date}_${id}_T1w.nii.gz
         neckmask=$testloc/${id}/${date}/thickness/${id}NeckTrimMask.nii.gz
@@ -33,6 +34,9 @@ cat $mridata | while read line ; do
         # c3d $trimtestants -info
         # echo untrimmed T1
         # c3d $t1 -info
+        if [[ $date == "2022-11-21" || $date == "2022-10-17" ]] ; then 
+            c3d $tone $neckmask -times -o $trimtestants 
+        fi
 
         # c3d $tone $neckmask -times -o $trimtestants $originalt1trim -interp NN -reslice-identity -o $trimtestorig
         # c3d $trimtestants $trimtestorig -scale -1 -add -info
@@ -44,10 +48,11 @@ cat $mridata | while read line ; do
 
         ########
         # Call ants with default neck trim option = crop
-        # crop options for trim_neck.sh:
+        # using crop options for trim_neck.sh 
     
-        outputfile="${testloc}/ants_trim_neck_ignore.nii.gz"
-        bash testing_trim_neck_ants_gear.sh -d -c 10 -m ${neckmask}_IGNORE_TEST_NeckTrimMask.nii.gz $tone $outputfile
+        # outputfile="${testloc}/ants_trim_neck_ignore.nii.gz"
+        # bsub -o ${testloc}/necktrimcompare bash ${testloc}/necktrimcompare/testing_trim_neck_ants_gear.sh \
+            # -d -c 10 -m ${neckmask}_IGNORE_TEST_NeckTrimMask.nii.gz $tone $outputfile
         
     fi
 
