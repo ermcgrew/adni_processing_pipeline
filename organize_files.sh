@@ -14,8 +14,8 @@ echo unzip "${alldicoms_zipped}/*.zip" -d $public_dir
 unzip "${alldicoms_zipped}/*.zip" -d $public_dir
 
 #sync between PUBLIC/ADNI and PUBLIC/dicom
-echo rsync -avh --dry-run --ignore-existing ${public_dir}/ADNI/ ${public_dir}/dicom/ 
-rsync -avh --dry-run --ignore-existing ${public_dir}/ADNI/ ${public_dir}/dicom/ >> /project/wolk/PUBLIC/${date}_download_rsync_dryrun.txt
+# echo rsync -avh --dry-run --ignore-existing ${public_dir}/ADNI/ ${public_dir}/dicom/ 
+# rsync -avh --dry-run --ignore-existing ${public_dir}/ADNI/ ${public_dir}/dicom/ >> /project/wolk/PUBLIC/${date}_download_rsync_dryrun.txt
 
 echo rsync -avh --ignore-existing ${public_dir}/ADNI/ ${public_dir}/dicom/ 
 rsync -avh --ignore-existing ${public_dir}/ADNI/ ${public_dir}/dicom/ >> /project/wolk/PUBLIC/${date}_download_rsync_wetrun.txt

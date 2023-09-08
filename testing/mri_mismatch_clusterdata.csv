@@ -1,0 +1,241 @@
+RID,DATE,SOURCE,STATUS
+002_S_0559,2007-10-18,NEW,no dicom file in cluster
+133_S_0638,2009-09-18,NEW,no dicom file in cluster
+031_S_0830,2008-09-25,NEW,no dicom file in cluster
+033_S_1098,2008-12-11,NEW,no dicom file in cluster
+002_S_1280,2007-10-10,NEW,no dicom file in cluster
+020_S_1288,2007-10-10,NEW,no dicom file in cluster
+002_S_1268,2007-12-19,NEW,no dicom file in cluster
+128_S_2002,2021-09-07,NEW,nifti only in PUBLIC not dataset
+082_S_2121,2018-02-12,NEW,nifti only in PUBLIC not dataset
+073_S_2182,2022-01-26,NEW,no dicom file in cluster
+128_S_2220,2022-06-23,NEW,dicom downloaded but not converted
+018_S_2155,2022-11-21,NEW,dicom downloaded but not converted
+123_S_0072,2009-02-10,NEW,no dicom file in cluster
+068_S_2315,2022-06-01,NEW,nifti only in PUBLIC not dataset
+029_S_2395,2021-07-09,NEW,no dicom file in cluster
+037_S_4028,2017-11-06,NEW,nifti only in PUBLIC not dataset
+116_S_4043,2022-02-22,NEW,no dicom file in cluster
+023_S_4035,2011-08-18,NEW,nifti only in PUBLIC not dataset
+123_S_4127,2015-01-22,NEW,nifti only in PUBLIC not dataset
+941_S_4187,2022-10-07,NEW,nifti only in PUBLIC not dataset
+127_S_4210,2022-10-04,NEW,nifti only in PUBLIC not dataset
+082_S_4224,2022-06-30,NEW,nifti only in PUBLIC not dataset
+130_S_4343,2015-12-04,NEW,nifti only in PUBLIC not dataset
+135_S_4356,2022-09-12,NEW,nifti only in PUBLIC not dataset
+129_S_4369,2021-06-08,NEW,nifti only in PUBLIC not dataset
+018_S_4313,2021-11-18,NEW,no dicom file in cluster
+018_S_4400,2022-02-07,NEW,no dicom file in cluster
+082_S_4428,2022-09-27,NEW,nifti only in PUBLIC not dataset
+029_S_4384,2022-06-22,NEW,nifti only in PUBLIC not dataset
+941_S_4376,2011-06-01,NEW,nifti only in PUBLIC not dataset
+003_S_4354,2021-06-23,NEW,no dicom file in cluster
+130_S_4417,2016-02-19,NEW,nifti only in PUBLIC not dataset
+035_S_4464,2022-02-18,NEW,no dicom file in cluster
+137_S_4520,2022-03-07,NEW,no dicom file in cluster
+053_S_4578,2019-02-05,NEW,no dicom file in cluster
+013_S_4580,2021-08-24,NEW,nifti only in PUBLIC not dataset
+024_S_4674,2022-06-01,NEW,nifti only in PUBLIC not dataset
+100_S_4556,2021-11-18,NEW,no dicom file in cluster
+006_S_4713,2021-08-19,NEW,nifti only in PUBLIC not dataset
+128_S_4792,2012-10-09,NEW,nifti only in PUBLIC not dataset
+123_S_4806,2012-08-27,NEW,nifti only in PUBLIC not dataset
+073_S_4795,2019-11-05,NEW,no dicom file in cluster
+116_S_4855,2022-02-14,NEW,no dicom file in cluster
+003_S_4872,2022-07-21,NEW,nifti only in PUBLIC not dataset
+052_S_4885,2013-09-11,NEW,has t1 nifti in dataset
+009_S_0751,2022-06-20,NEW,nifti only in PUBLIC not dataset
+041_S_5253,2023-03-27,NEW,nifti only in PUBLIC not dataset
+100_S_5091,2022-01-26,NEW,no dicom file in cluster
+003_S_5154,2022-06-09,NEW,nifti only in PUBLIC not dataset
+127_S_5185,2021-09-17,NEW,no dicom file in cluster
+035_S_4785,2022-11-21,NEW,nifti only in PUBLIC not dataset
+126_S_5243,2022-09-30,NEW,nifti only in PUBLIC not dataset
+053_S_5272,2022-05-03,NEW,no dicom file in cluster
+057_S_0934,2022-07-26,NEW,nifti only in PUBLIC not dataset
+168_S_6065,2022-07-27,NEW,nifti only in PUBLIC not dataset
+114_S_6057,2022-01-27,NEW,no dicom file in cluster
+941_S_6094,2022-02-15,NEW,no dicom file in cluster
+141_S_6116,2019-01-02,NEW,nifti only in PUBLIC not dataset
+114_S_6063,2022-02-10,NEW,no dicom file in cluster
+100_S_6164,2022-02-02,NEW,no dicom file in cluster
+003_S_6014,2020-03-16,NEW,no dicom file in cluster
+035_S_6200,2022-03-07,NEW,no dicom file in cluster
+006_S_6209,2022-03-03,NEW,no dicom file in cluster
+006_S_6243,2022-10-19,NEW,nifti only in PUBLIC not dataset
+033_S_6266,2022-03-04,NEW,no dicom file in cluster
+114_S_6113,2022-03-18,NEW,no dicom file in cluster
+127_S_6203,2022-09-21,NEW,nifti only in PUBLIC not dataset
+131_S_6170,2018-05-14,NEW,nifti only in PUBLIC not dataset
+003_S_6259,2022-05-10,NEW,nifti only in PUBLIC not dataset
+114_S_6251,2022-05-26,NEW,nifti only in PUBLIC not dataset
+100_S_6273,2022-03-16,NEW,no dicom file in cluster
+021_S_6312,2022-09-15,NEW,nifti only in PUBLIC not dataset
+035_S_6306,2022-06-02,NEW,nifti only in PUBLIC not dataset
+129_S_6304,2022-06-02,NEW,nifti only in PUBLIC not dataset
+006_S_6291,2022-10-27,NEW,nifti only in PUBLIC not dataset
+100_S_6308,2022-03-31,NEW,no dicom file in cluster
+036_S_6316,2022-02-07,NEW,no dicom file in cluster
+027_S_6327,2022-06-02,NEW,nifti only in PUBLIC not dataset
+033_S_6352,2020-07-22,NEW,nifti only in PUBLIC not dataset
+033_S_6352,2022-09-30,NEW,nifti only in PUBLIC not dataset
+114_S_6309,2022-06-08,NEW,nifti only in PUBLIC not dataset
+135_S_6360,2022-06-06,NEW,nifti only in PUBLIC not dataset
+003_S_6260,2022-06-13,NEW,nifti only in PUBLIC not dataset
+041_S_6354,2023-01-23,NEW,nifti only in PUBLIC not dataset
+127_S_6330,2022-09-15,NEW,nifti only in PUBLIC not dataset
+005_S_6393,2022-10-14,NEW,nifti only in PUBLIC not dataset
+941_S_6422,2022-10-24,NEW,nifti only in PUBLIC not dataset
+003_S_6307,2022-11-07,NEW,nifti only in PUBLIC not dataset
+135_S_6473,2022-11-01,NEW,nifti only in PUBLIC not dataset
+129_S_6459,2022-07-20,NEW,nifti only in PUBLIC not dataset
+035_S_6488,2022-07-18,NEW,nifti only in PUBLIC not dataset
+941_S_6499,2022-09-16,NEW,nifti only in PUBLIC not dataset
+129_S_6830,2022-11-15,NEW,nifti only in PUBLIC not dataset
+099_S_6476,2023-01-17,NEW,nifti only in PUBLIC not dataset
+127_S_6357,2022-10-05,NEW,nifti only in PUBLIC not dataset
+082_S_6415,2022-04-14,NEW,no dicom file in cluster
+023_S_6535,2022-09-15,NEW,nifti only in PUBLIC not dataset
+023_S_6547,2022-09-28,NEW,nifti only in PUBLIC not dataset
+135_S_6544,2022-09-27,NEW,nifti only in PUBLIC not dataset
+941_S_6546,2022-10-03,NEW,nifti only in PUBLIC not dataset
+168_S_6541,2022-06-02,NEW,nifti only in PUBLIC not dataset
+126_S_6559,2022-11-14,NEW,nifti only in PUBLIC not dataset
+127_S_6512,2022-09-28,NEW,nifti only in PUBLIC not dataset
+941_S_6570,2022-09-20,NEW,nifti only in PUBLIC not dataset
+033_S_6572,2022-10-31,NEW,nifti only in PUBLIC not dataset
+941_S_6580,2022-09-30,NEW,nifti only in PUBLIC not dataset
+941_S_6574,2022-11-14,NEW,nifti only in PUBLIC not dataset
+941_S_6581,2022-10-17,NEW,dicom downloaded but not converted
+082_S_6564,2022-09-15,NEW,nifti only in PUBLIC not dataset
+114_S_6429,2023-02-07,NEW,nifti only in PUBLIC not dataset
+135_S_6586,2022-10-26,NEW,nifti only in PUBLIC not dataset
+053_S_6598,2022-06-20,NEW,nifti only in PUBLIC not dataset
+032_S_6602,2019-11-07,NEW,no dicom file in cluster
+114_S_6597,2021-06-21,NEW,no dicom file in cluster
+114_S_6462,2022-10-14,NEW,nifti only in PUBLIC not dataset
+082_S_6629,2022-01-25,NEW,no dicom file in cluster
+019_S_6635,2023-01-23,NEW,nifti only in PUBLIC not dataset
+027_S_0074,2021-01-21,NEW,nifti only in PUBLIC not dataset
+153_S_6679,2021-05-07,NEW,no dicom file in cluster
+006_S_6651,2022-04-28,NEW,no dicom file in cluster
+130_S_6688,2022-06-16,NEW,nifti only in PUBLIC not dataset
+023_S_6702,2022-06-23,NEW,nifti only in PUBLIC not dataset
+100_S_6713,2022-08-30,NEW,nifti only in PUBLIC not dataset
+051_S_6719,2022-06-30,NEW,nifti only in PUBLIC not dataset
+019_S_6757,2022-06-29,NEW,nifti only in PUBLIC not dataset
+012_S_6760,2021-12-06,NEW,no dicom file in cluster
+033_S_7066,2023-05-03,NEW,nifti only in PUBLIC not dataset
+051_S_6761,2022-08-19,NEW,nifti only in PUBLIC not dataset
+168_S_6754,2022-10-28,NEW,nifti only in PUBLIC not dataset
+016_S_6790,2022-03-17,NEW,no dicom file in cluster
+006_S_6770,2021-09-01,NEW,nifti only in PUBLIC not dataset
+006_S_6770,2022-09-01,NEW,nifti only in PUBLIC not dataset
+131_S_6805,2020-11-23,NEW,no dicom file in cluster
+016_S_6816,2021-11-18,NEW,no dicom file in cluster
+016_S_6839,2022-05-25,NEW,nifti only in PUBLIC not dataset
+129_S_6852,2022-02-21,NEW,no dicom file in cluster
+941_S_6854,2022-02-22,NEW,no dicom file in cluster
+168_S_6875,2023-02-15,NEW,nifti only in PUBLIC not dataset
+168_S_6874,2023-02-17,NEW,nifti only in PUBLIC not dataset
+033_S_6889,2022-10-12,NEW,nifti only in PUBLIC not dataset
+057_S_6869,2023-03-06,NEW,nifti only in PUBLIC not dataset
+168_S_6921,2022-09-21,NEW,nifti only in PUBLIC not dataset
+035_S_6927,2022-07-13,NEW,nifti only in PUBLIC not dataset
+016_S_6934,2021-04-23,NEW,no dicom file in cluster
+016_S_6941,2022-07-22,NEW,nifti only in PUBLIC not dataset
+035_S_6947,2022-06-16,NEW,nifti only in PUBLIC not dataset
+033_S_6969,2022-07-20,NEW,nifti only in PUBLIC not dataset
+941_S_6962,2022-06-29,NEW,nifti only in PUBLIC not dataset
+067_S_6980,2021-06-16,NEW,no dicom file in cluster
+021_S_6994,2022-10-06,NEW,no dicom file in cluster
+035_S_7000,2022-09-27,NEW,nifti only in PUBLIC not dataset
+035_S_6999,2022-10-12,NEW,nifti only in PUBLIC not dataset
+019_S_7016,2022-10-26,NEW,nifti only in PUBLIC not dataset
+126_S_7015,2022-11-21,NEW,nifti only in PUBLIC not dataset
+035_S_7021,2023-03-20,NEW,nifti only in PUBLIC not dataset
+016_S_7039,2022-01-20,NEW,no dicom file in cluster
+131_S_7032,2022-02-02,NEW,no dicom file in cluster
+941_S_7041,2022-02-14,NEW,no dicom file in cluster
+129_S_7042,2022-02-22,NEW,no dicom file in cluster
+035_S_7043,2022-02-25,NEW,no dicom file in cluster
+052_S_7036,2022-01-26,NEW,no dicom file in cluster
+052_S_7037,2022-01-21,NEW,no dicom file in cluster
+035_S_7050,2022-03-14,NEW,no dicom file in cluster
+073_S_7052,2022-03-17,NEW,no dicom file in cluster
+027_S_7054,2022-03-18,NEW,no dicom file in cluster
+126_S_7060,2023-04-27,NEW,nifti only in PUBLIC not dataset
+035_S_7073,2022-04-27,NEW,no dicom file in cluster
+941_S_7074,2022-05-03,NEW,nifti only in PUBLIC not dataset
+053_S_7086,2022-06-13,NEW,nifti only in PUBLIC not dataset
+941_S_7087,2022-06-15,NEW,nifti only in PUBLIC not dataset
+941_S_7085,2022-07-01,NEW,dicom downloaded but not converted
+037_S_7035,2022-06-23,NEW,nifti only in PUBLIC not dataset
+070_S_7078,2022-06-15,NEW,nifti only in PUBLIC not dataset
+073_S_7082,2022-07-20,NEW,nifti only in PUBLIC not dataset
+033_S_7100,2022-09-07,NEW,nifti only in PUBLIC not dataset
+941_S_7106,2022-09-09,NEW,nifti only in PUBLIC not dataset
+053_S_7109,2022-09-22,NEW,nifti only in PUBLIC not dataset
+035_S_7105,2022-09-23,NEW,nifti only in PUBLIC not dataset
+016_S_7014,2021-11-30,NEW,nifti only in PUBLIC not dataset
+033_S_7114,2022-10-21,NEW,nifti only in PUBLIC not dataset
+013_S_7103,2022-10-24,NEW,nifti only in PUBLIC not dataset
+011_S_7112,2022-11-04,NEW,nifti only in PUBLIC not dataset
+013_S_7097,2022-09-28,NEW,nifti only in PUBLIC not dataset
+035_S_7115,2022-11-15,NEW,nifti only in PUBLIC not dataset
+082_S_7117,2022-11-03,NEW,nifti only in PUBLIC not dataset
+035_S_7120,2023-02-08,NEW,nifti only in PUBLIC not dataset
+035_S_7121,2023-02-15,NEW,nifti only in PUBLIC not dataset
+035_S_7123,2023-03-14,NEW,nifti only in PUBLIC not dataset
+082_S_7122,2023-04-04,NEW,nifti only in PUBLIC not dataset
+123_S_0072,2011-01-11,OLD,has t1 nifti in dataset
+067_S_0284,2006-11-27,OLD,no dicom file in cluster
+067_S_0284,2007-05-02,OLD,no dicom file in cluster
+136_S_0299,2007-05-14,OLD,no dicom file in cluster
+068_S_0401,2006-12-15,OLD,no dicom file in cluster
+068_S_0401,2008-07-29,OLD,no dicom file in cluster
+068_S_0473,2009-05-06,OLD,no dicom file in cluster
+130_S_0505,2009-11-05,OLD,no dicom file in cluster
+002_S_0559,2007-07-13,OLD,no dicom file in cluster
+032_S_0677,2007-02-08,OLD,no dicom file in cluster
+136_S_0695,2010-11-16,OLD,no dicom file in cluster
+002_S_0729,2007-02-22,OLD,no dicom file in cluster
+033_S_0739,2007-02-12,OLD,no dicom file in cluster
+033_S_0739,2007-08-06,OLD,no dicom file in cluster
+033_S_0739,2008-08-25,OLD,no dicom file in cluster
+116_S_0752,2008-02-19,OLD,no dicom file in cluster
+116_S_0752,2008-08-26,OLD,no dicom file in cluster
+021_S_0753,2007-09-13,OLD,no dicom file in cluster
+016_S_0769,2009-08-24,OLD,no dicom file in cluster
+002_S_0816,2008-01-28,OLD,no dicom file in cluster
+031_S_0830,2007-04-03,OLD,no dicom file in cluster
+082_S_0832,2007-09-19,OLD,no dicom file in cluster
+082_S_0832,2008-04-07,OLD,no dicom file in cluster
+082_S_0832,2008-10-23,OLD,no dicom file in cluster
+068_S_0872,2008-07-31,OLD,no dicom file in cluster
+116_S_0890,2007-08-03,OLD,no dicom file in cluster
+068_S_1075,2008-09-09,OLD,no dicom file in cluster
+033_S_1098,2008-12-05,OLD,no dicom file in cluster
+082_S_1119,2008-01-17,OLD,no dicom file in cluster
+016_S_1121,2009-12-16,OLD,no dicom file in cluster
+051_S_1123,2010-03-22,OLD,no dicom file in cluster
+051_S_1131,2011-08-11,OLD,has t1 nifti in dataset
+128_S_1148,2008-09-05,OLD,no dicom file in cluster
+023_S_1190,2010-02-19,OLD,no dicom file in cluster
+007_S_1222,2010-02-18,OLD,no dicom file in cluster
+136_S_1227,2010-03-22,OLD,no dicom file in cluster
+094_S_1241,2009-03-10,OLD,no dicom file in cluster
+052_S_1250,2009-03-17,OLD,no dicom file in cluster
+052_S_1250,2010-05-25,OLD,no dicom file in cluster
+052_S_1251,2009-03-16,OLD,no dicom file in cluster
+052_S_1251,2010-05-11,OLD,no dicom file in cluster
+002_S_1261,2010-02-25,OLD,no dicom file in cluster
+094_S_1267,2009-06-15,OLD,no dicom file in cluster
+002_S_1280,2007-08-23,OLD,no dicom file in cluster
+002_S_1280,2010-02-18,OLD,no dicom file in cluster
+131_S_1301,2010-03-02,OLD,no dicom file in cluster
+012_S_1321,2009-03-20,OLD,no dicom file in cluster
+130_S_2391,2011-12-16,OLD,has t1 nifti in dataset
+941_S_4187,2011-06-22,OLD,has t1 nifti in dataset
+072_S_4226,2012-10-12,OLD,has t1 nifti in dataset
+016_S_4952,2019-05-23,OLD,has t1 nifti in dataset
