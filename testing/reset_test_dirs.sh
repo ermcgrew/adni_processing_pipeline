@@ -1,17 +1,32 @@
 # #!/usr/bin/bash
 cd /project/wolk/ADNI2018/scripts/pipeline_test_data/
+mridata="/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_processing_status/mri_processing_status.csv"
 
 foldertestone=necktrim_trimtestants_ashsroot_pauly
 foldertesttwo=necktrim_trimtestants_ashsroot_lxie
 # testfolder=necktrim_preprocessedInput
 
+cat $mridata | while read line ; do 
+    id=$( echo $line | cut -d "," -f 3 )
+    date=$( echo $line | cut -d "," -f 2)
+    echo $id, $date
+    if [[ $id == "ID" || $date == "2022-06-23" || $date == "2022-07-01" || $date == "2022-11-21" || $date == "2022-10-17" ]] ; then
+        continue 
+    else
+        for root in $foldertestone $foldertesttwo ; do
+            for i in {1..5} ; do 
+                # mkdir -p ./${root}_${i}/${id}/${date}
+                # cp ./${id}/${date}/*T1w_trimtestants.nii.gz ./${id}/${date}/*T1w.nii.gz ./${id}/${date}/*T2w.nii.gz ./${root}_${i}/${id}/${date}
+                ##run python?      
+            done
+        done
+    fi
+done
 
-# mkdir -p ./${foldertestone}/018_S_2155/2022-11-21
+
 # mkdir -p ./${foldertestone}/024_S_2239/2019-06-03
 # mkdir -p ./${foldertestone}/033_S_0734/2018-10-10
-# mkdir -p ./${foldertestone}/068_S_0127/2020-03-12
 # mkdir -p ./${foldertestone}/114_S_6917/2021-04-16
-# mkdir -p ./${foldertestone}/941_S_6581/2022-10-17
 # mkdir -p ./${foldertestone}/100_S_0069/2020-01-23
 
 # mkdir -p ./${foldertesttwo}/018_S_2155/2022-11-21
@@ -41,10 +56,10 @@ foldertesttwo=necktrim_trimtestants_ashsroot_lxie
 
 
 
-cp -r ./018_S_2155/2022-11-21/*T1w_trimtestants.nii.gz ./${foldertestone}/018_S_2155/2022-11-21
-cp -r ./941_S_6581/2022-10-17/*T1w_trimtestants.nii.gz ./${foldertestone}/941_S_6581/2022-10-17
-cp -r ./018_S_2155/2022-11-21/*T1w_trimtestants.nii.gz ./${foldertesttwo}/018_S_2155/2022-11-21
-cp -r ./941_S_6581/2022-10-17/*T1w_trimtestants.nii.gz ./${foldertesttwo}/941_S_6581/2022-10-17
+# cp -r ./018_S_2155/2022-11-21/*T1w_trimtestants.nii.gz ./${foldertestone}/018_S_2155/2022-11-21
+# cp -r ./941_S_6581/2022-10-17/*T1w_trimtestants.nii.gz ./${foldertestone}/941_S_6581/2022-10-17
+# cp -r ./018_S_2155/2022-11-21/*T1w_trimtestants.nii.gz ./${foldertesttwo}/018_S_2155/2022-11-21
+# cp -r ./941_S_6581/2022-10-17/*T1w_trimtestants.nii.gz ./${foldertesttwo}/941_S_6581/2022-10-17
 
 # #  ASHS mri files (ASHSICV, ASHST1, ASHST1_MTLCORTEX_MTTHK)
 # cp -r ./018_S_2155/2022-11-21/ASHS* ./${testfolder}/018_S_2155/2022-11-21

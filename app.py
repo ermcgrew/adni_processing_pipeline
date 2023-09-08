@@ -13,7 +13,7 @@ from config import *
 def main():
     #### already have new scans downloaded to cluster
     ##TODO: date for dl folder as argument to this script
-    # os.system(bash organize_files.sh "Aug2023") 
+    # os.system(bash organize_files.sh "Sep2023") 
     print(f"bash organize_files.sh --symlink, unzip, rsync")
 
     #### already have adni spreadsheets saved in clustr

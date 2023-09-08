@@ -1,6 +1,5 @@
 #!/usr/bin/bash
 
-# export ASHS_ROOT=$ashs_root
 module load ImageMagick
 module unload matlab/2023a 
 
@@ -22,7 +21,7 @@ function run_ashs()
 
     #addtional options for T1, ICV ASHS only
     if [[ $t2link =~ "T2w" ]] ; then 
-        echo "skip t2"
+        continue
     else
         options="$options -m $m_opt -M"
     fi
@@ -30,9 +29,6 @@ function run_ashs()
     #For ICV ASHS only
     if [[ $t2link == $t1trim ]] ; then 
         options="$options -B"
-        # options="$options -s 1-7" #test1
-        # options="$options -B -s 1-7"  #test2
-
     fi
 
     #run ASHS
@@ -51,37 +47,36 @@ fi
 
 
 
-: '
-Options:
 
-for T1, T2, and ICV:
--a atlas
--w {self.filepath}/ASHST1 // /sfsegnibtend // /ASHSICV
--g {self.t1trim}
--f {self.superres}/{self.t2nifti}/{self.t1trim}
--T
--I {self.id}
+# Options:
 
-T1, ICV only:
--m {long_scripts}/identity.mat  (Provide the .mat file for the transform between the T1w and T2w image.)
--M (The mat file provided with -m is used as the final T2/T1 registration.
-                    ASHS will not attempt to run registration between T2 and T2.)
+# for T1, T2, and ICV:
+# -a atlas
+# -w {self.filepath}/ASHST1 // /sfsegnibtend // /ASHSICV
+# -g {self.t1trim}
+# -f {self.superres}/{self.t2nifti}/{self.t1trim}
+# -T
+# -I {self.id}
 
-ICV only: 
--B (Do not perform the bootstrapping step, and use the output of the initial joint
-                    label fusion (in multiatlas directory) as the final output.)
+# T1, ICV only:
+# -m {long_scripts}/identity.mat  (Provide the .mat file for the transform between the T1w and T2w image.)
+# -M (The mat file provided with -m is used as the final T2/T1 registration.
+#                     ASHS will not attempt to run registration between T2 and T2.)
+
+# ICV only: 
+# -B (Do not perform the bootstrapping step, and use the output of the initial joint
+#                     label fusion (in multiatlas directory) as the final output.)
 
 
-****UPDATE 7/4/2023********
-    - removed -z opt: updates to bsc cluster means that z opt will keep ashs_main 
-                        from creating all required QC pngs.
-        -z {long_scripts}/ashs-fast-z.sh (Provide a path to an executable script that 
-                                            will be used to retrieve SGE, LSF, SLURM or
-                                            GNU parallel opts for different stages of ASHS.)
-    - removed -s 1-7 opt: unnecessary, default runs all 7 steps
-    - removed -d opt: debugging log unnecessary
-    - removed -l opt:    
-        -l  (Use LSF instead of SGE, SLURM or GNU parallel)
-    - added -t 1 and -N opts: per Pauls working script
-    - moved ashs call into function: per Pauls working script
-'
+# ************UPDATE 7/4/2023************
+#     - removed -z opt: updates to bsc cluster means that z opt will keep ashs_main 
+#                         from creating all required QC pngs.
+#         -z {long_scripts}/ashs-fast-z.sh (Provide a path to an executable script that 
+#                                             will be used to retrieve SGE, LSF, SLURM or
+#                                             GNU parallel opts for different stages of ASHS.)
+#     - removed -s 1-7 opt: unnecessary, default runs all 7 steps
+#     - removed -d opt: debugging log unnecessary
+#     - removed -l opt:    
+#         -l  (Use LSF instead of SGE, SLURM or GNU parallel)
+#     - added -t 1 and -N opts: per Pauls working script
+#     - moved ashs call into function: per Pauls working script
