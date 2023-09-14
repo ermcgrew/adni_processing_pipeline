@@ -111,7 +111,6 @@ class MRI:
         self.t1flair = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_to_flair.mat"
 
         self.log_output_dir = f"{self.filepath}/logs_{current_date}"
-        # self.log_output_dir = f"-o {self.log_output_dir}"       
 
         ##Make folders as needed
         if not os.path.exists(self.log_output_dir):
@@ -164,7 +163,7 @@ class MRI:
         return         
 
     def do_superres(self, parent_job_name = ""):
-        this_job_name=f"{self.date_id_prefix}_superres_"
+        this_job_name=f"{self.date_id_prefix}_superres"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
         if ready_to_process('superres', self.id, self.mridate, input_files=[self.t1trim], output_files=[self.superres]):
             os.system(f"bsub {submit_options} -M 4G -n 1 ./wrapper_scripts/super_resolution.sh \

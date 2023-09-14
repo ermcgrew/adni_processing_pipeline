@@ -41,11 +41,11 @@ def reformat_date_slash_to_dash(df):
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_lxie_4"  
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_lxie_5"  
 
-adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_pauly_1" 
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_pauly_1" 
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_pauly_2" 
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_pauly_3" 
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_pauly_4" 
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_pauly_5" 
+adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_pauly_5" 
 
 
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"

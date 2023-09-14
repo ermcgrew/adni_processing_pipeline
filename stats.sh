@@ -124,9 +124,9 @@ for side in left right; do
   TEMPMASKCOMM="$tempgmmask -interp NN -reslice-identity -thresh 1 1 1 0 -times"
   c3d $wholebrainseg -dup $MASKCOMM -as A $thickness -interp NN -reslice-identity -push A  -lstat > $TMPDIR/allthick.txt
 
+
   #list is label numbers in stattau.txt file: CA1 CA2 CA3 DG MISC SUB ERC BA35 BA36 PHC sulcus 
   list=$(echo 1 2 4 3 7 8 10 11 12 13 14)
-
   #cerebellem reference region to compare radiotracer uptake to
   CEREBTAU=$(cat $TMPDIR/stattaump.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
   CEREBAMY=$(cat $TMPDIR/statamymp.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')

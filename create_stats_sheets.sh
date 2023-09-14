@@ -24,6 +24,10 @@ function write_header()
     HEADER="$HEADER\t${roi}_tau\t${roi}_amy\t${roi}_thickness"
   done
 
+
+  ##TODO: add col names for PMTAU values
+
+  
   echo -e "${HEADER}" > $this_run_analysis_output_dir/$tsvfilename
   echo -e "${HEADER}" > $this_run_analysis_output_dir/$structonly
 

@@ -35,23 +35,7 @@ def reformat_date_slash_to_dash(df):
 ###File/directory locations on the cluster
 #main file directories in cluster
 # adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
-
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_noSRatlas_paulroot"  # for testing
-
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/icv_paulroot"  # for testing
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/icv_longroot"  # for testing
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_pmc_long"  # for testing
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/ashst1_pmc_paul"  # for testing
-
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/dataset_niftis"  # for testing
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/dataset_trim_test_superres"  # for testing
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/test_trim_dataset_superres"  # for testing
-
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_pauly"  # for testing
-adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/necktrim_trimtestants_ashsroot_lxie"  # for testing
-
-
+adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
 cleanup_dir = f"{analysis_input_dir}/cleanup"
@@ -69,8 +53,8 @@ segqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
 wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
 
 
-ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
-# ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
+# ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
+ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 
 ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
 # ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
@@ -82,12 +66,40 @@ ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_201
 #ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
 
 
-
 ashs_mopt_mat_file = "/home/lxie/ADNI2018/scripts/identity.mat"
 t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
 t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh"
 pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 
+
+###Steps options definition
+#{"abbreviated job name":["long job name description","required inputs"]}
+steps = {
+    "ants":["ANTS cortical thickness","T1 nifti"],
+    "wbseg":["Whole Brain Segmentation","Brain extracted from T1 nifti"],
+    "wbsegqc":["Whole Brain Segmentation QC","T1 neck trimmed nifti, whole brain segmentation nifti"],
+    "superres":["Super resolution","T1 neck trimmed nifti"],
+    "t1ashs":["T1 ASHS","T1 neck trimmed nifti, super resolution nifti"],
+    "t1icv":["T1 ICV","T1 neck trimmed nifti"],
+    "t1mtthk":["T1 Multi-template thickness","Left and right T1 ASHS segmentation niftis"],
+    "t2ashs":["T2 ASHS","T2 nifti, T1 neck trimmed nifti"],
+    "prc_cleanup":["T2 ASHS segmentation clean up", "Left and right T2 ASHS segmentation niftis"],
+    "t1flair":["T1-Flair Registration","T1 neck trimmed nifti, flair nifti"],
+    "wmh":["White Matter Hyperintensity","Flair nifti"],
+    "pmtau":"",
+    "ashs_stats":"",
+    "pet_stats":"",
+    "t1amypetreg":"",
+    "t1amypetregqc":"",
+    "t2amypetreg":"",
+    "t1taupetreg":"",
+    "t1taupetregqc":"",
+    "t2taupetreg":"",
+    "all_pet_mri_reg":"",
+    "all_mri_processing":"",
+    "all_stats":"",
+    "new_data_setup":""
+}
 
 
 ###Data sheets & derived csvs names and locations
@@ -98,7 +110,7 @@ adni_data_csvs_directories_thisrun = adni_data_csvs_directories_allruns[0:4]
 
 #Create dictionary structures to hold datasetup directory full file paths and file names
 keys = ["ida_study_datasheets", "uids", "processing_status", "filelocations"]
-scantypes = ["amy","fdg","tau","mri","anchored"]
+scantypes = ["amy","tau","mri","anchored"] #,"fdg" between amy and tau if needed in the future
 datasetup_directories_path = {}
 filenames = {}
 for key in keys:
