@@ -10,6 +10,7 @@ from processing import MRI, AmyloidPET, TauPET, MRIPetReg
 #variables
 from config import *
 
+
 def main():
     #### already have new scans downloaded to cluster
     ##TODO: date for dl folder as argument to this script
@@ -20,7 +21,7 @@ def main():
     # os.system(python datasetup.py) #to get UID & processing status lists 
     print(f"python datasetup.py --cleans ADNI csvs, merges data and selects correct UIDs")
 
-    ## Do dicom-nifti conversion for new amy, fdg, tau, mri scans & do mri image processing
+    ## Do dicom-nifti conversion for new amy, tau, mri scans & do mri image processing
     for scantype in scantypes:
         if scantype == "anchored":
             continue
@@ -150,10 +151,10 @@ def main():
                                 os.listdir(fileloc_directory_previousrun) if scantype in x][0]
             old_filelocs_df = pd.read_csv(old_fileloc_path)
 
-            ##for transition from old sheets to versions produced by this pipeline
-            if "SCANDATE" in [col for col in old_filelocs_df.columns]:
-                old_filelocs_df.rename(columns={'SCANDATE':"SMARTDATE"},inplace=True) 
-            reformat_date_slash_to_dash(old_filelocs_df)
+            # ##for transition from old sheets to versions produced by this pipeline
+            # if "SCANDATE" in [col for col in old_filelocs_df.columns]:
+            #     old_filelocs_df.rename(columns={'SCANDATE':"SMARTDATE"},inplace=True) 
+            # reformat_date_slash_to_dash(old_filelocs_df)
             
             all_filelocs = pd.concat([df_newscans, old_filelocs_df], ignore_index=True)
             #keep most recent (e.g. updated) if any duplicates
@@ -211,18 +212,24 @@ def main():
     os.system(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" -o {this_output_dir} \
               ./create_stats_sheets.sh {wblabel_file} {stats_output_dir} {this_output_dir}')
     
-    logging.info(f"Performing final merge between datasheets and fileloc csvs.")
-    # print(f'bsub -J "{current_date}_finalmerge" -o {this_output_dir} \
-    #           -w "done({current_date}_datasheets)" ./merge_stats_fileloc_csvs.py')
-    os.system(f'bsub -J "{current_date}_finalmerge" -o {this_output_dir} \
-              -w "done({current_date}_datasheets)" python merge_stats_fileloc_csvs.py')
+
+    ##This step not needed as part of this code (additional data merges done separately or as needed)
+    # logging.info(f"Performing final merge between datasheets and fileloc csvs.")
+    # # print(f'bsub -J "{current_date}_finalmerge" -o {this_output_dir} \
+    # #           -w "done({current_date}_datasheets)" ./merge_stats_fileloc_csvs.py')
+    # os.system(f'bsub -J "{current_date}_finalmerge" -o {this_output_dir} \ 
+    #           -w "done({current_date}_datasheets)" python merge_stats_fileloc_csvs.py')
+
 
 #Arguments
-# ap = argparse.ArgumentParser()
-# ap.add_argument('-m', '--mode', required=False,  action='store', help='Options: mri, pet, or both')
-# ap.add_argument('-s', '--steps', required=False,  action='store', help='only run particular processing step')
-# args = ap.parse_args()
-# mode=args.mode
-# main(mode)
+ap = argparse.ArgumentParser()
+ap.add_argument('-s', '--steps', required=False,  action='store', help='Choose particular processing steps to run.')
+ap.add_argument('-c', '--csv', required=False,  action='store', help="csv with list of sessions to process. \
+                For single scantype, column 'ID' in format 999_S_9999, column 'SMARTDATE' in format YYYY-MM-DD. \
+                For mri-pet registration, column 'ID' in format 999_S_9999, columns 'SMARTDATE.tau', 'SMARTDATE.mri', \
+                'SMARTDATE.amy', all in format YYY-MM-DD")
+args = ap.parse_args()
+
+
 
 main()

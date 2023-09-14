@@ -31,7 +31,7 @@ number_of_labels=${#ASHST13TLABELNUMS[*]} #length of array// number of labels
 for ((i=1;i<=$number_of_labels;i++)); do
     LMEAN=$(echo $VOL | cut -d, -f $i)  #grab left volume
     RMEAN=$(echo $VOL | cut -d, -f $((i+number_of_labels))) # grab right volume
-    # echo "in for loop this is lmea: $LMEAM" 
+    # echo "in for loop this is lmea: $LMEAN" 
     # echo "this is rmea: $RMEAN"
     if [[ $LMEAN != "" && $RMEAN != "" ]]; then    #if both values
         MMEAN=$(echo "scale=10;($LMEAN+$RMEAN)/2" | bc -l)  #get mean value
