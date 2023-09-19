@@ -10,6 +10,12 @@ from processing import MRI, AmyloidPET, TauPET, MRIPetReg
 #variables
 from config import *
 
+def unpack_dicoms():
+    print('this should run organize_files.sh --symlink zip folders, unzip, rsync')
+     
+def data_setup():
+    print("Run datasetup.py to create new uids, processing status csvs")
+
 
 def main():
     #### already have new scans downloaded to cluster
@@ -222,14 +228,27 @@ def main():
 
 
 #Arguments
-ap = argparse.ArgumentParser()
-ap.add_argument('-s', '--steps', required=False,  action='store', help='Choose particular processing steps to run.')
-ap.add_argument('-c', '--csv', required=False,  action='store', help="csv with list of sessions to process. \
-                For single scantype, column 'ID' in format 999_S_9999, column 'SMARTDATE' in format YYYY-MM-DD. \
-                For mri-pet registration, column 'ID' in format 999_S_9999, columns 'SMARTDATE.tau', 'SMARTDATE.mri', \
-                'SMARTDATE.amy', all in format YYY-MM-DD")
-args = ap.parse_args()
+# ap = argparse.ArgumentParser()
+# ap.add_argument('-s', '--steps', required=False, action='store_true', help='Choose particular processing steps to run.')
+# #store_true: will save value as true if provided, else False
+# ap.add_argument('-c', '--csv', required=False, help="csv with list of sessions to process. \
+#                 For single scantype, column 'ID' in format 999_S_9999, column 'SMARTDATE' in format YYYY-MM-DD. \
+#                 For mri-pet registration, column 'ID' in format 999_S_9999, columns 'SMARTDATE.tau', 'SMARTDATE.mri', \
+#                 'SMARTDATE.amy', all in format YYY-MM-DD")
+# args = ap.parse_args()
+# print(args)
 
 
+global_parser = argparse.ArgumentParser()
+subparsers = global_parser.add_subparsers(title="subcommands", help="steps to run")
 
-main()
+unpack_dicoms_parser = subparsers.add_parser("unpack_dicoms", help="Unzip dicom files and rsync to /dataset")
+unpack_dicoms_parser.set_defaults(func=unpack_dicoms)
+
+datasetup_parser = subparsers.add_parser("data_setup", help="Run datasetup.py")
+datasetup_parser.set_defaults(func=data_setup)
+
+args = global_parser.parse_args()
+args.func()
+
+# main()
