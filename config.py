@@ -95,8 +95,8 @@ steps = {
     "t1taupetreg":"",
     "t1taupetregqc":"",
     "t2taupetreg":"",
-    "all_pet_mri_reg":"",
     "all_mri_processing":"",
+    "all_pet_mri_reg":"",
     "all_stats":"",
     "new_data_setup":""
 }
