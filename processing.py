@@ -183,7 +183,9 @@ class MRI:
             # os.system(f"bsub {submit_options} \
             #           ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres}\
             #           {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
-        return this_job_name
+            return this_job_name
+        else:
+            return
     
     def t1mtthk(self, parent_job_name = ""):
         for side in sides:

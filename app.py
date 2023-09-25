@@ -47,12 +47,11 @@ def mri_image_processing(steps,csv=""):
         parent_job=''
         for step in steps_ordered:
             logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing image processing:{step}.")
-            if step == 't2ashs' or step == 'prc_cleanup':
-                if not os.path.exists(scan_to_process.t2nifti):
-                    continue
-            elif 'stats' not in step:
-                if not os.path.exists(scan_to_process.t1nifti):
-                    continue
+            if step == 't2ashs' or step == 'prc_cleanup' and not os.path.exists(scan_to_process.t2nifti):
+                print('no ')
+                continue              
+            elif 'stats' not in step and not os.path.exists(scan_to_process.t1nifti):
+                continue
             else:
                 if parent_job: 
                     # print(f"submitting {step} with parent job name {parent_job}")
@@ -303,14 +302,16 @@ convert_parser.add_argument("-c", "--csv", required=False, help="csv with ID and
 convert_parser.set_defaults(func=convert_symlink)
 
 mri_image_proc_parser = subparsers.add_parser("mri_image_processing", help="process mri images")
-mri_image_proc_parser.add_argument("-s", '--step', nargs="+", choices=processing_steps, help="Name of step to run")
+mri_image_proc_parser.add_argument("-s", '--steps', nargs="+", choices=processing_steps, help="Name of step to run")
 mri_image_proc_parser.add_argument("-c", "--csv", required=False, help="csv with ID and Date of sessions to process if not using default")
 mri_image_proc_parser.set_defaults(func=mri_image_processing)
 
 
-
 args = global_parser.parse_args()
-args.func(args.step, args.csv)
+##removes any non-kwargs values to pass to args.func()
+args_ = vars(args).copy()
+args_.pop('func', None) 
+args.func(**args_)
 
 
 # main()
