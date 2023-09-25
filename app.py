@@ -13,8 +13,58 @@ from config import *
 def unpack_dicoms():
     print('this should run organize_files.sh --symlink zip folders, unzip, rsync')
      
+
 def data_setup():
     print("Run datasetup.py to create new uids, processing status csvs")
+
+
+def convert_symlink(csv=""):
+    print("run dicom to nifti conversion")
+
+
+def mri_image_processing(steps,csv=""):
+    # print(f"Run image processing steps: {steps}")
+
+    if len(steps) == 1:
+        steps_ordered = steps
+    else:
+        ##variable processing_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
+        steps_ordered = [method for method in processing_steps for step in steps if step in method]
+
+    if csv:
+        csv_to_read = csv
+    else:
+        csv_to_read = os.path.join(datasetup_directories_path["processing_status"],"mri_processing_status.csv")
+
+    df=pd.read_csv(csv_to_read)
+    for index,row in df.iterrows():
+        subject = str(row['ID'])
+        scandate = str(row['SMARTDATE'])
+        scan_to_process = MRI(subject,scandate)
+        ##first processing step will always run without a parent job.
+        ##processing steps will return either a job name if needed for subsequent steps,
+        ##or 'None' if no other steps depend on its output
+        parent_job=''
+        for step in steps_ordered:
+            logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing image processing:{step}.")
+            if step == 't2ashs' or step == 'prc_cleanup':
+                if not os.path.exists(scan_to_process.t2nifti):
+                    continue
+            elif 'stats' not in step:
+                if not os.path.exists(scan_to_process.t1nifti):
+                    continue
+            else:
+                if parent_job: 
+                    # print(f"submitting {step} with parent job name {parent_job}")
+                    parent_job = getattr(scan_to_process,step)(parent_job)
+                else:
+                    # print(f"{step} running")
+                    parent_job = getattr(scan_to_process,step)()
+
+                    
+
+def pet_mri_registration(step,csv=""):
+    print(f"Run pet-mri registration steps: {step}")
 
 
 def main():
@@ -240,7 +290,7 @@ def main():
 
 
 global_parser = argparse.ArgumentParser()
-subparsers = global_parser.add_subparsers(title="subcommands", help="steps to run")
+subparsers = global_parser.add_subparsers(title="subcommands", help="sections of processing to run")
 
 unpack_dicoms_parser = subparsers.add_parser("unpack_dicoms", help="Unzip dicom files and rsync to /dataset")
 unpack_dicoms_parser.set_defaults(func=unpack_dicoms)
@@ -248,7 +298,19 @@ unpack_dicoms_parser.set_defaults(func=unpack_dicoms)
 datasetup_parser = subparsers.add_parser("data_setup", help="Run datasetup.py")
 datasetup_parser.set_defaults(func=data_setup)
 
+convert_parser = subparsers.add_parser("convert_symlink", help="Convert dicoms to nifti, symlink, create csv with filelocations.")
+convert_parser.add_argument("-c", "--csv", required=False, help="csv with ID and Date, UID of images of sessions to process if not using default")
+convert_parser.set_defaults(func=convert_symlink)
+
+mri_image_proc_parser = subparsers.add_parser("mri_image_processing", help="process mri images")
+mri_image_proc_parser.add_argument("-s", '--step', nargs="+", choices=processing_steps, help="Name of step to run")
+mri_image_proc_parser.add_argument("-c", "--csv", required=False, help="csv with ID and Date of sessions to process if not using default")
+mri_image_proc_parser.set_defaults(func=mri_image_processing)
+
+
+
 args = global_parser.parse_args()
-args.func()
+args.func(args.step, args.csv)
+
 
 # main()
