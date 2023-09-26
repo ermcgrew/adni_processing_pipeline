@@ -72,45 +72,17 @@ t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh
 pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 
 
-###Steps options definition
-#{"abbreviated job name":["long job name description","required inputs"]}
-# processing_steps = {
-#     "ants":["ANTS cortical thickness","T1 nifti"],
-#     "wbseg":["Whole Brain Segmentation","Brain extracted from T1 nifti"],
-#     "wbsegqc":["Whole Brain Segmentation QC","T1 neck trimmed nifti, whole brain segmentation nifti"],
-#     "superres":["Super resolution","T1 neck trimmed nifti"],
-#     "t1ashs":["T1 ASHS","T1 neck trimmed nifti, super resolution nifti"],
-#     "t1icv":["T1 ICV","T1 neck trimmed nifti"],
-#     "t1mtthk":["T1 Multi-template thickness","Left and right T1 ASHS segmentation niftis"],
-#     "t2ashs":["T2 ASHS","T2 nifti, T1 neck trimmed nifti"],
-#     "prc_cleanup":["T2 ASHS segmentation clean up", "Left and right T2 ASHS segmentation niftis"],
-#     "t1flair":["T1-Flair Registration","T1 neck trimmed nifti, flair nifti"],
-#     "wmh":["White Matter Hyperintensity","Flair nifti"],
-#     "pmtau":"",
-#     "ashs_stats":"",
-#     "struct_only_pet_stats":"",
-#     "t1amypetreg":"",
-#     "t1amypetregqc":"",
-#     "t2amypetreg":"",
-#     "t1taupetreg":"",
-#     "t1taupetregqc":"",
-#     "t2taupetreg":"",
-#     "pet_stats":"",
-#     "T1_mri":"",
-#     "T2_mri":"",
-#     "FLAIR_mri":"",
-#     "all_mri_processing":"",
-#     "all_pet_mri_reg":"",
-#     "all_stats":"",
-#     "new_data_setup":""
-# }
 
+
+###Steps for argparse choices
 ##Order matters
-processing_steps = ["ants", "wbseg", "wbsegqc", "t1icv", "superres","t1ashs", "t1mtthk",
-    "t2ashs", "prc_cleanup", "t1flair", "wmh", "pmtau", "ashs_stats", "structpetstats",
-    "t1amypetreg", "t1amypetregqc", "t2amypetreg", "t1taupetreg", "t1taupetregqc", 
-    "t2taupetreg", "pet_stats"]
-# struct_only_pet_stats
+##values match MRI.method & MRIPetReg.method names
+mri_processing_steps = ["ants", "wbseg", "wbsegqc", "t1icv", "superres","t1ashs", "t1mtthk",
+    "t2ashs", "prc_cleanup", "wmh", "pmtau", "ashst1_stats", "structpetstats", "all_mri"]
+
+registration_steps = ["t1_pet_reg", "t2_pet_reg", "pet_reg_qc", "structpetstats", "all_reg"]
+
+
 
 ###Data sheets & derived csvs names and locations
 #list all directories with data sheets, then select those for newest date
