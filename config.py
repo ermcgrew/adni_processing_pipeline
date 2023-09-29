@@ -9,6 +9,7 @@ import pandas as pd
 pd.options.mode.chained_assignment = None
 
 current_date = datetime.now().strftime("%Y_%m_%d")
+current_date_time = datetime.now().strftime("%Y_%m_%dT%H_%M_%S")
 
 def reformat_date_slash_to_dash(df):
     # M/D/YY to YYYY-MM-DD
@@ -34,8 +35,8 @@ def reformat_date_slash_to_dash(df):
 
 ###File/directory locations on the cluster
 #main file directories in cluster
-# adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
 cleanup_dir = f"{analysis_input_dir}/cleanup"
@@ -122,6 +123,6 @@ sides = ["left", "right"]
 
 
 ###Log file
-# logging.basicConfig(filename=f"{this_output_dir}/{current_date}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
+logging.basicConfig(filename=f"{this_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
 #for testing:
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)

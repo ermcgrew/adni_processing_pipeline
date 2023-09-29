@@ -448,36 +448,17 @@ def create_tau_anchored_uid_list():
     # outputdf.to_csv(os.path.join(datasetup_directories_path["uids"],filenames["uids"]["anchored"]),index=False,header=True)
 
 
-# def reformat_date_datetime_to_dash(df):
-#     # YYYY-MM-DDTHH:MM:SSZ to M/D/YY
-#     datecols = [col for col in df.columns if 'DATE.' in col]
-#     for index, row in df.iterrows():
-#         for column in datecols:
-#             YMDlist=row[column].split('-')
-#             df.at[index,column]=YMDlist[0] + "-" + YMDlist[1] + "-" + YMDlist[2][0:2]
-#     return df
-
 
 def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
     #compare output of create_{scantype}_uid_list function to previous fileloc list
     new_uids_df = pd.read_csv(os.path.join(datasetup_directories_path['uids'],new_uids_csv))
-    old_filelocs_df = pd.read_csv(os.path.join(fileloc_directory_previousrun,old_filelocs_csv),sep="\t")
+    old_filelocs_df = pd.read_csv(os.path.join(fileloc_directory_previousrun,old_filelocs_csv))
+
     # print(new_uids_df.info())
     # print(new_uids_df.head())
     # print(old_filelocs_df.info())
     # print(old_filelocs_df.head())
-
-    #pet fileloc tsv's made by Long & Sandy use M/D/YY dates, convert to dash
-    # if scantype == 'amy' or scantype == 'fdg' or scantype == 'tau':
-    #     old_filelocs_df = reformat_date_slash_to_dash(old_filelocs_df)
-
-    # if scantype == 'anchored':
-    #     old_filelocs_df = reformat_date_datetime_to_dash(old_filelocs_df)
-
-    #fix MRI uid col data types
-    # if scantype == 'mri':
-    #     old_filelocs_df['IMAGEUID_T1'] =  old_filelocs_df['IMAGEUID_T1'].astype(str)
-    #     old_filelocs_df['IMAGEUID_T2'] =  old_filelocs_df['IMAGEUID_T2'].astype(str)
+    # print(old_filelocs_df.columns)
     
     if scantype == 'anchored':
         for index,row in new_uids_df.iterrows():
@@ -516,7 +497,7 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
                 new_uids_df.at[index,f"NEW_{scantype}"] = 4
     
     else:
-        print(new_uids_df.info())
+        # print(new_uids_df.info())
         for index,row in new_uids_df.iterrows():
             id = row['ID']
             scandate = row['SMARTDATE']
@@ -557,32 +538,42 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
                         if uid_comparison_data[key][2]:
                             new_uids_df.at[index,f"NEW_{key}"] = 0 
                             # print("already processed")
+                        # elif uid_comparison_data[key][0] == "nan": #new is nan, no image
+                        #     logging.info(f"{id}:{scandate}:{key}:No image")
+                        #     new_uids_df.at[index,f"NEW_{key}"] = 5
                         else:
-                            logging.info(f"{id}:{scandate}:{key}:Previous nifti conversion failed")
+                            logging.info(f"{id}:{scandate}:{key}:Previous nifti conversion failed") # TODO: try to convert again??
                             new_uids_df.at[index,f"NEW_{key}"] = 2
-                    elif uid_comparison_data[key][1] == "nan":
+                    elif uid_comparison_data[key][1] == "nan" and row['PHASE'] == "ADNI3": # old is nan
                         logging.info(f"{id}:{scandate}:{key}:New scan to process")
-
+                        new_uids_df.at[index,f"NEW_{key}"] = 1
+                    elif uid_comparison_data[key][1] == "nan":
+                        new_uids_df.at[index,f"NEW_{key}"] = 5
                     else:
                         logging.info(f"{id}:{scandate}:{key}:Different uid selected from adni csv data")
                         print(f"New {uid_comparison_data[key][0]}, Old: {uid_comparison_data[key][1]}")
                         new_uids_df.at[index,f"NEW_{key}"] = 3
-                elif len(match_in_old) < 1:# and scandate > "2022-01-01": 
-                    ##TODO:check for dicom? scandate clause holding for now;; some dicoms aren't downloaded?
-                    ## and new_uids_df['imageuid_{key}] is not null--add new number code for this option!!!
+                elif len(match_in_old) < 1 and row['PHASE'] == "ADNI3":
+                    ##TODO:check for dicom? scandate clause holding for now;; some dicoms aren't downloaded?  and scandate > "2022-01-01":
                     logging.info(f"{id}:{scandate}:{key}:New scan to process")
                     new_uids_df.at[index,f"NEW_{key}"] = 1
+                ##TODO: if no new UID
+                # elif row[] == "nan": #new is nan, no image
+                #     logging.info(f"{id}:{scandate}:{key}:No image")
+                #     new_uids_df.at[index,f"NEW_{key}"] = 5
                 else:
                     logging.info(f"{id}:{scandate}:{key}:Duplicate entries in previous uid.csv")
                     new_uids_df.at[index,f"NEW_{key}"] = 4
         
-    print(new_uids_df.head())
-    print(new_uids_df.info())
-    #TODO: send these numbers to report
-    # new_uids_df['NEW_T1'].value_counts()
-    # new_uids_df['NEW_T2'].value_counts()
+    # print(new_uids_df.head())
+    # print(new_uids_df.info())
 
-    # new_uids_df.to_csv("/project/wolk/ADNI2018/scripts/adni_processing_pipeline/testing/mri_processing_status_test_20230911.csv",index=False, header=True)
+    #TODO: send these numbers to report
+    logging.info(f"{new_uids_df['NEW_T1'].value_counts()} new T1s identified.")
+    logging.info(f"{new_uids_df['NEW_T2'].value_counts()} new T2s identified.")
+    # logging.info(f"{new_uids_df['NEW_FLAIR'].value_counts()} new FLAIRs identified.")
+
+    new_uids_df.to_csv("/project/wolk/ADNI2018/scripts/adni_processing_pipeline/testing/mri_processing_status_test_20230928.csv",index=False, header=True)
     # new_uids_df.to_csv(os.path.join(datasetup_directories_path["processing_status"], filenames['processing_status'][scantype]), index=False, header=True)
 
 
@@ -614,5 +605,8 @@ def main():
 # create_pet_uid_list() 
 
 identify_new_scans("/project/wolk/ADNI2018/scripts/adni_processing_pipeline/testing/new_create_mri_list_output.csv",\
-        "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/mri3TListWithNIFTIPath_10172022.tsv",\
-            "mri")
+    "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/mri_filelocations_copyof_MRI3TListWithNIFTIPath_10172022.csv",\
+    "mri")
+
+#   "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/mri3TListWithNIFTIPath_10172022.tsv",\
+
