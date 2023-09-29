@@ -76,7 +76,7 @@ class MRI:
         self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
         self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trim.nii.gz"
         ####for testing--trim created from ANTS neckmask
-        self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trimtestants.nii.gz"
+        # self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trimtestants.nii.gz"
 
         self.thickness = f"{self.filepath}/thickness/{self.id}CorticalThickness.nii.gz"
         self.pmtau_output = f"{self.filepath}/thickness/ap.nii.gz"
@@ -99,7 +99,10 @@ class MRI:
         self.t1mtthk_suffix = "thickness.csv"   
         
         self.t1icv_seg = f"{self.filepath}/ASHSICV/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
-        self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_multiatlas_corr_nogray_volumes.txt"
+        ##old ASHS root:
+        self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_corr_nogray_volumes.txt"
+        ##new ASHS root:
+        # self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_multiatlas_corr_nogray_volumes.txt"
 
 
         self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
@@ -308,9 +311,9 @@ class MRI:
             os.system(f"bsub {submit_options} ./wrapper_scripts/pmtau.sh {self.id} {self.mridate} {self.filepath}/thickness")
             return
 
-    def ashst1_stats(self, parent_job_name = ""):
+    def ashst1_stats(self, wait_code = ""):
         this_job_name=f"{self.date_id_prefix}_ashs_stats"
-        submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+        submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
         ##temp for tesing:
         # os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
         #         {self.id} {self.mridate} {self.filepath} {self.t1ashs_seg_prefix} \
@@ -320,11 +323,11 @@ class MRI:
                             input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
                                          self.t1mtthk_left,self.t1mtthk_right,self.icv_volumes_file], \
                             output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_mrionly.txt"],\
-                            parent_job=parent_job_name):
-            print("ASHS T1 stats running")
-            # os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
-            #         {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
-            #         {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
+                            parent_job=wait_code):
+            # print("ASHS T1 stats running")
+            os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
+                    {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
+                    {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
             return
 
     def structpetstats(self, wait_code="",t1tau="null",t2tau="null",t1amy="null",t2amy="null",taudate="null",amydate="null"):
@@ -481,6 +484,8 @@ class MRIPetReg:
 
 
 # ##MRI processing
+# mri_to_process.structpetstats()
+
 # mri_to_process.do_wbsegqc()
 
 

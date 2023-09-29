@@ -23,7 +23,7 @@ else
     nifti_dir=$(dirname ${dicoms[0]} | sed 's/dicom/nifti/g')
 
     if [[ $type == "MRI" ]] ; then
-        series_descript=$( echo ${series_descript//(/_} ) ##some HighResHippo descripts have a "(" in them
+        series_descript=$( echo ${series_descript} | sed -E 's/\(//g;s/\)//g' ) ##some HighResHippo descripts have parentheses in them
         nifti_file=$(echo "$nifti_dir/$( echo ${scandate}_ser$(printf %02d $series_number)_${series_descript}.nii.gz | sed -e 's/ /_/g' | sed -e 's/\//_/g')")
     elif [[ $type == "AmyloidPET" ]] ; then 
         prefix="STDAMY_"

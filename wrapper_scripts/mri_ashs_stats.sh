@@ -99,4 +99,4 @@ THKFITQUALITY="${THKFITQUALITY:1}"
 RID=$(echo $id | cut -f 3 -d "_")
 
 # output all values
-echo "$RID,$id,$mridate,$ICV,$VOL,$THK,$THKFITQUALITY" >>  ${stats_output_dir}/stats_mri_${mridate}_${id}_mrionly.txt
+echo "$RID,$id,$mridate,$ICV,$VOL,$THK,$THKFITQUALITY" >>  ${stats_output_dir}/stats_mri_${mridate}_${id}_ashst1.txt

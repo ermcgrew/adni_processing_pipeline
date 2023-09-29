@@ -139,7 +139,7 @@ for side in left right; do
   done
 
   #remove leading tab
-  statline=$( echo -e "$statline" | sed -e "s/^\t//g")
+  # statline=$( echo -e "$statline" | sed -e "s/^\t//g")
 
   # CA (CA1 + CA2 + CA3)
   c3d $cleanup_seg -replace 2 1 4 1 -as A $t2tau -interp NN -reslice-identity -push A -lstat > $TMPDIR/stattau.txt
@@ -288,7 +288,7 @@ done
 
 echo $statline
 if [[ $mode == "mri" ]] ; then
-  echo $statline >> ${stats_output_dir}/stats_mri_${mridate}_${id}_structonly.txt
+  echo -e $statline >> ${stats_output_dir}/stats_mri_${mridate}_${id}_structonly.txt
 else
-  echo $statline >> ${stats_output_dir}/stats_tau_${taudate}_amy_${amydate}_mri_${mridate}_${id}_whole.txt
+  echo -e $statline >> ${stats_output_dir}/stats_tau_${taudate}_amy_${amydate}_mri_${mridate}_${id}_whole.txt
 fi 
