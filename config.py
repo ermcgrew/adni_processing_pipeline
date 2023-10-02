@@ -73,14 +73,10 @@ t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh
 pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 
 
-
-
 ###Steps for argparse choices
-##Order matters
-##values match MRI.method & MRIPetReg.method names
+##Order matters; values match MRI.method & MRIPetReg.method names
 mri_processing_steps = ["ants", "wbseg", "wbsegqc", "t1icv", "superres","t1ashs", "t1mtthk",
     "t2ashs", "prc_cleanup", "wmh", "pmtau", "ashst1_stats", "structpetstats"]
-
 registration_steps = ["t1_pet_reg", "t2_pet_reg", "pet_reg_qc", "structpetstats"]
 
 

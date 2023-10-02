@@ -31,7 +31,7 @@ def ready_to_process(processing_step, id, date, input_files = [], output_files =
 
 def set_submit_options(this_job_name, output_dir, parent_job_name):
     jobname = f"-J {this_job_name}"
-    output = f"-o {output_dir}/{this_job_name}.txt"
+    output = f"-o {output_dir}/{this_job_name}_{current_date_time}.txt"
     if parent_job_name:
         if len(parent_job_name) == 2: #for t2 pet reg, needs input from t1petreg and t2ashs
             wait = f'-w "done({parent_job_name[0]}) && done({parent_job_name[1]})"'
@@ -135,7 +135,7 @@ class MRI:
     #         os.system(f"bsub {submit_options} /home/lxie/pkg/trim_neck_rf.sh \
     #              {self.t1nifti} {self.t1trim}")
     #     return(this_job_name)
-                    #  sandy's script: /project/hippogang_1/srdas/homebin/ashsharpicvscripts/trim_neck.sh -w $(mktemp -d)
+        #  sandy's script: /project/hippogang_1/srdas/homebin/ashsharpicvscripts/trim_neck.sh -w $(mktemp -d)
 
     def ants(self, parent_job_name = ""):
         this_function = MRI.ants.__name__
@@ -184,14 +184,14 @@ class MRI:
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], \
                             output_files=[self.t1icv_seg]):
-            print("submit T1icv")
+            # print("submit T1icv")
             # print(f"bsub {submit_options} \
             #     ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
             #         {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
-            # os.system(f"mkdir {self.filepath}/ASHSICV")
-            # os.system(f"bsub {submit_options} \
-            #       ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
-            #           {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
+            os.system(f"mkdir {self.filepath}/ASHSICV")
+            os.system(f"bsub {submit_options} \
+                  ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
+                      {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
             return 
 
 
@@ -210,11 +210,11 @@ class MRI:
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
         if ready_to_process("t1ashs", self.id, self.mridate, input_files=[self.t1trim, self.superres], 
                             output_files=[self.t1ashs_seg_left, self.t1ashs_seg_right], parent_job = parent_job_name):
-            print("T1 ashs running")
-            # os.system(f"mkdir {self.filepath}/ASHST1")
-            # os.system(f"bsub {submit_options} \
-            #           ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres}\
-            #           {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
+            # print("T1 ashs running")
+            os.system(f"mkdir {self.filepath}/ASHST1")
+            os.system(f"bsub {submit_options} \
+                      ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres}\
+                      {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
             return this_job_name
         else:
             return
@@ -233,10 +233,10 @@ class MRI:
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if ready_to_process(f"t1mtthk_{side}", self.id, self.mridate, input_files=[ashs_seg], output_files=[ashs_thick], 
                                 parent_job = parent_job_name):
-                print(f"t1mtthk for {side} running")
-                # os.system(f"bsub {submit_options} -M 12G -n 1 \
-                #             ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
-                #             {side} {ashs_seg} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
+                # print(f"t1mtthk for {side} running")
+                os.system(f"bsub {submit_options} -M 12G -n 1 \
+                            ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
+                            {side} {ashs_seg} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
         
         return 
               
@@ -246,12 +246,12 @@ class MRI:
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
         if ready_to_process("t2ashs", self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
                             output_files=[self.t2ashs_seg_left, self.t2ashs_seg_right]):
-            print(f"bsub submit t2ashs")
+            # print(f"bsub submit t2ashs")
             # print(MRI.do_t2ashs.__name__)
-            # os.system(f"mkdir {self.filepath}/sfsegnibtend")
-            # os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs_testcopy.sh run_ashs \
-            #           {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
-            #           {self.filepath}/sfsegnibtend {self.id}")
+            os.system(f"mkdir {self.filepath}/sfsegnibtend")
+            os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs_testcopy.sh run_ashs \
+                      {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
+                      {self.filepath}/sfsegnibtend {self.id}")
             return this_job_name
         else:
             return
@@ -345,12 +345,13 @@ class MRI:
                 {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
                 {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
                 {self.mridate} {taudate} {amydate}")
+        # print(f"pet_stats {mode}")
         # print(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg} {self.thickness} \
-        #         {t1tau} {t2tau} {t1amy} {t2amy} \
-        #         {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
-        #         {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
-        #         {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
-        #         {self.mridate} {taudate} {amydate}")
+        #         # {t1tau} {t2tau} {t1amy} {t2amy} \
+        #         # {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
+        #         # {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
+        #         # {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
+        #         # {self.mridate} {taudate} {amydate}")
         return
 
 
@@ -428,6 +429,7 @@ class MRIPetReg:
             # print(f"bsub {submit_options} \
             #            {t1petreg_script} \
             #            {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
+            # print(this_job_name)
             return (this_job_name)    
         else:
             return     
@@ -444,7 +446,7 @@ class MRIPetReg:
                   {self.pet_nifti} {self.t2_reg_nifti} {self.t2ashs_flirt_reg} {self.t1_reg_RAS}")
             # print(f"bsub {submit_options} ./wrapper_scripts/t2_pet_registration.sh {self.t2nifti} \
             #       {self.pet_nifti} {self.t2_reg_nifti} {self.t2ashs_flirt_reg} {self.t1_reg_RAS}")
-            
+            # print(this_job_name)
             return
 
  
@@ -459,6 +461,10 @@ class MRIPetReg:
             os.system(f"bsub {submit_options} \
                   {t1petregqc_script} \
                   {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
+            # print(f"bsub {submit_options} \
+            #       {t1petregqc_script} \
+            #       {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
+            # print(this_job_name)
             return
 
  
