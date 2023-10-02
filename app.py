@@ -21,12 +21,12 @@ def data_setup():
     ### Run this to get UID & processing status lists 
     os.system("python datasetup.py") 
 
-def convert_symlink(types, csv=""):
+def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
     # print("run dicom to nifti conversion")
     for scantype in scantypes:
-        if types == scantype or types == "all" and scantype != "anchored":
-            if csv:
-                csv_to_read = csv
+        if types == scantype or all_types=True and scantype != "anchored":
+            if input_csv:
+                csv_to_read = inputcsv
             else:
                 csv_to_read = os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status'][scantype])
             
@@ -59,7 +59,6 @@ def convert_symlink(types, csv=""):
                 print(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Checking for nifti file.")
 
                 for key in uids:
-                    
                     result = subprocess.run(
                             ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
                             scan_to_process.id,scan_to_process.scandate,uids[key],\
@@ -131,29 +130,32 @@ def convert_symlink(types, csv=""):
             #keep most recent (e.g. updated) if any duplicates
             all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last', inplace=True) 
             all_filelocs.sort_values(by=["RID","SMARTDATE"], ignore_index=True, inplace=True)
-            all_filelocs.to_csv("/project/wolk/ADNI2018/scripts/adni_processing_pipeline/testing/mri_filelocations_09292029_pm.csv",index=False,header=True)
-            # all_filelocs.to_csv(os.path.join(datasetup_directories_path["filelocations"],\
-            #                                     filenames['filelocations'][scantype]),index=False,header=True)
 
+            ##output df to file 
+            if outputcsv:
+                all_filelocs.to_csv(outputcsv,index=False,header=True)
+            else:
+                all_filelocs.to_csv(os.path.join(datasetup_directories_path["filelocations"],\
+                                    filenames['filelocations'][scantype]),index=False,header=True)
+ 
 
-def mri_image_processing(steps, csv=""):
-    # print(f"Run image processing steps: {steps}")
-
-    if len(steps) == 1:
-        if steps[0] == "all_mri":
-            steps_ordered = mri_processing_steps[:-1]
-        else:
-            steps_ordered = steps
+def mri_image_processing(steps=[], all_steps=False, csv=""):
+    if all_steps:
+        steps_ordered = mri_processing_steps
     else:
-        ##variable mri_processing_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
-        steps_ordered = [method for method in mri_processing_steps for step in steps if step in method]
+        if len(steps) == 1:
+            steps_ordered = steps
+        else:
+            ##variable mri_processing_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
+            steps_ordered = [method for method in mri_processing_steps for step in steps if step in method]
+    # print(f"Run image processing steps: {steps_ordered}")
 
     if csv:
         csv_to_read = csv
     else:
         csv_to_read = os.path.join(datasetup_directories_path["processing_status"],"mri_processing_status.csv")
     
-    logging.info(f"Running MRI image processing steps for sessions in csv {csv_to_read}")
+    logging.info(f"Running MRI image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
 
     df=pd.read_csv(csv_to_read)
     # print(df.head())
@@ -193,24 +195,22 @@ def mri_image_processing(steps, csv=""):
 
                     
 
-def mri_pet_registration(step, csv=""):
-    print(f"Run pet-mri registration steps: {step}")
-
-    if len(steps) == 1:
-        if steps[0] == "all_reg":
-            steps_ordered = registration_steps[:-1]
-        else:
-            steps_ordered = steps
+def mri_pet_registration(steps=[], all_steps=False, csv=""):
+    if all_steps==True:
+        steps_ordered = registration_steps
     else:
-        ##variable registration_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
-        steps_ordered = [method for method in registration_steps for step in steps if step in method]
+        if len(steps) == 1:
+            steps_ordered = steps
+        else:
+            ##variable registration_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
+            steps_ordered = [method for method in registration_steps for step in steps if step in method]
+    print(f"Run pet-mri registration steps: {steps_ordered}")
 
     if csv:
         csv_to_read = csv
     else:
         csv_to_read = os.path.join(datasetup_directories_path["processing_status"],"anchored_processing_status.csv")
-
-    logging.info(f"Running MRI-PET registration steps for sessions in csv {csv_to_read}")
+    logging.info(f"Running MRI-PET registration steps {steps_ordered} for sessions in csv {csv_to_read}")
     
     df=pd.read_csv(csv_to_read)
     # print(df.head())
@@ -221,53 +221,74 @@ def mri_pet_registration(step, csv=""):
         amydate = str(row['SMARTDATE.amy'])
     
         mri_to_process = MRI(subject,mridate)
-
         tau_to_process = TauPET(subject, taudate)
         mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process) 
-
+        amy_to_process = AmyloidPET(subject, amydate)
+        mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
+        
         ##first processing step will always run without a parent job.
         ##processing steps will return either a job name if needed for subsequent steps, or 'None' if no other steps depend on its output
         parent_job=''
         for step in steps_ordered:
-            logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing image processing:{step}.")
+            for pettype in ['taupet','amypet']:
+                print(f"{step},{pettype}")
+                # reg_to_process = 
+                # logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing image processing:{step}.")
             # if step == "t2ashs" or step == "prc_cleanup" and not os.path.exists(scan_to_process.t2nifti):
             #     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:No T2 file.")
             #     continue              
             # elif 'stats' not in step and not os.path.exists(scan_to_process.t1nifti):
             #     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:No T1 file.")
             #     continue
-            # else:
-            #     if parent_job: 
-            #         ##Call processing step function on class instance with the parent job name
-            #         parent_job = getattr(scan_to_process,step)(parent_job)
-            #     else:
-            #         ##Call processing step function on class instance with no parent job 
-            #         parent_job = getattr(scan_to_process,step)()
+
+
+            if "stats" in step:
+                print(f"doing stats step {step}")
+            ##if only doing stats, no need to wait for image processing jobs to complete
+                if len(steps_ordered) == len([x for x in steps_ordered if "stats" in x]):
+                    print(f"submit without wait code")
+                    # getattr(mri_to_process,step)(t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
+                                                # t2tau = mri_tau_reg_to_process.t2_reg_nifti,
+                                                # t1amy = mri_amy_reg_to_process.t1_reg_nifti,
+                                                # t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
+                                                # taudate = mri_tau_reg_to_process.petdate,
+                                                # amydate = mri_amy_reg_to_process.petdate) 
+                else:
+                    print(f'submit with id date wait code')
+                    jobname_prefix_this_subject = f"{mri_to_process.mridate}_{mri_to_process.id}*"
+                    # getattr(mri_to_process,step)(wait_code=jobname_prefix_this_subject,
+                    #                             t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
+                    #                             t2tau = mri_tau_reg_to_process.t2_reg_nifti,
+                    #                             t1amy = mri_amy_reg_to_process.t1_reg_nifti,
+                    #                             t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
+                    #                             taudate = mri_tau_reg_to_process.petdate,
+                    #                             amydate = mri_amy_reg_to_process.petdate) \
+            else:
+                if parent_job: 
+                    ##Call processing step function on class instance with the parent job name
+                    print(f"submitting with parent job {parent_job}")
+                    # parent_job = getattr(scan_to_process,step)(parent_job)
+                else:
+                    ##Call processing step function on class instance with no parent job 
+                    print(f"Sumbmit without parent")
+                    # parent_job = getattr(scan_to_process,step)()
 
 
 
-        logging.info(f"{mri_tau_reg_to_process.id}:{mri_tau_reg_to_process.mridate}:{mri_tau_reg_to_process.petdate}: Now processing")
-        t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
-        # mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
-        mri_tau_reg_to_process.do_t2_pet_reg([t1_tau_pet_reg_job,f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
- 
-        amy_to_process = AmyloidPET(subject, amydate)
-        mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
+        # logging.info(f"{mri_tau_reg_to_process.id}:{mri_tau_reg_to_process.mridate}:{mri_tau_reg_to_process.petdate}: Now processing")
         
-        logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
-        t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
+        # t1_tau_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
+        # mri_tau_reg_to_process.do_pet_reg_qc(t1_tau_pet_reg_job)
+        # mri_tau_reg_to_process.do_t2_pet_reg([t1_tau_pet_reg_job,f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
+ 
+       
+        # logging.info(f"{mri_amy_reg_to_process.id}:{mri_amy_reg_to_process.mridate}:{mri_amy_reg_to_process.petdate}: Now processing")
+       
+        # t1_amy_pet_reg_job = mri_amy_reg_to_process.do_t1_pet_reg()
         # mri_amy_reg_to_process.do_pet_reg_qc(t1_amy_pet_reg_job)
-        mri_amy_reg_to_process.do_t2_pet_reg([t1_amy_pet_reg_job,f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
+        # mri_amy_reg_to_process.do_t2_pet_reg([t1_amy_pet_reg_job,f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
 
-        jobname_prefix_this_subject = f"{mri_to_process.mridate}_{mri_to_process.id}*"
-        mri_to_process.mripetstats(wait_code=jobname_prefix_this_subject,
-                t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
-                t2tau = mri_tau_reg_to_process.t2_reg_nifti,
-                t1amy = mri_amy_reg_to_process.t1_reg_nifti,
-                t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
-                taudate = mri_tau_reg_to_process.petdate,
-                amydate = mri_amy_reg_to_process.petdate) 
-
+       
 
 def final_data_sheets():
      #job to watch queue for status of all image processing & individual stats collection
@@ -494,48 +515,60 @@ def main():
 global_parser = argparse.ArgumentParser()
 subparsers = global_parser.add_subparsers(title="Subcommands", help="Sections of ADNI processing pipeline.")
 
+
+###unpack_dicoms
 unpack_dicoms_parser = subparsers.add_parser("unpack_dicoms", help="Unzip dicom files and rsync to /dataset.")
 unpack_dicoms_parser.add_argument("-d", "--date", help="Date in format three-letter abbreviationYYYY, matching the zip file name.")
 unpack_dicoms_parser.set_defaults(func=unpack_dicoms)
 
+
+###data_setup
 datasetup_parser = subparsers.add_parser("data_setup", help="Run datasetup.py.")
 datasetup_parser.set_defaults(func=data_setup)
 
+
+###convert_symlink
 convert_parser = subparsers.add_parser("convert_symlink", help="Convert dicoms to nifti, symlink, create csv with filelocations.")
-convert_parser.add_argument("-t","--types", choices=["amy","tau","mri","all"], help="Run conversion to nifti for tau, amy, \
-    or mri dicoms; or run for all three.")
-convert_parser.add_argument("-c", "--csv", required=False, help="csv with column 'ID' in format 999_S_9999, \
+convert_type_group = convert_parser.add_mutually_exclusive_group(required=True)
+convert_type_group.add_argument("-t","--types", choices=["amy","tau","mri"], help="Run conversion to nifti for tau, amy, OR mri dicoms.")
+convert_type_group.add_argument("-a", "--all_types", action = "store_true", help="Run conversion to nifti for tau, amy, AND mri dicoms.")
+convert_parser.add_argument("-i", "--inputcsv", required=False, help="csv with column 'ID' in format 999_S_9999, \
     column 'SMARTDATE' in format YYYY-MM-DD, column 'NEW_' in format 1 if true, 0 if false, and column 'IMAGEUID_T1' \
         in format '999999' \
         of sessions to process if not using default.")
         ##TODO: complete help for pet vs mri csv parameters
+convert_parser.add_argument("-o","--outputcsv", required=False, help="Full filepath and filename to save csv of filelocation information.")
 convert_parser.set_defaults(func=convert_symlink)
 
 
+###mri_image_processing
 mri_image_proc_parser = subparsers.add_parser("mri_image_processing", help="process mri images")
-##TODO:mutually exclusive options: select steps or run all (here & convert & reg)
-#mristep_or_all_group = mri_image_proc_parser.add_mutually_exclusive_group(required=True)
-mri_image_proc_parser.add_argument("-s", '--steps', nargs="+", choices=mri_processing_steps, help="Processing step(s) to run.")
+mristep_or_all_group = mri_image_proc_parser.add_mutually_exclusive_group(required=True)
+mristep_or_all_group.add_argument("-s", '--steps', nargs="+", choices=mri_processing_steps, help="Processing step(s) to run.")
+mristep_or_all_group.add_argument("-a", "--all_steps", action="store_true", help=f"Run all processing steps: {mri_processing_steps}")
 mri_image_proc_parser.add_argument("-c", "--csv", required=False, help="csv with column 'ID' in format 999_S_9999 and \
     column 'SMARTDATE' in format YYYY-MM-DD of sessions to process if not using default.")
 mri_image_proc_parser.set_defaults(func=mri_image_processing)
 
 
+###mri_pet_registration
 mri_pet_reg_parser = subparsers.add_parser("mri_pet_registration", help="Do mri-pet registration and stats.")
-mri_pet_reg_parser.add_argument("-s", '--steps', nargs="+", choices=registration_steps, help="Processing step(s) to run.")
+reg_step_or_all_group = mri_pet_reg_parser.add_mutually_exclusive_group(required=True)
+reg_step_or_all_group.add_argument("-s", '--steps', nargs="+", choices=registration_steps, help="Select processing step(s) to run.")
+reg_step_or_all_group.add_argument("-a", "--all_steps", action="store_true", help=f"Run all processing steps: {registration_steps}")
 mri_pet_reg_parser.add_argument("-c", "--csv", required=False, help="csv with column 'ID' in format 999_S_9999, columns \
     'SMARTDATE.tau', 'SMARTDATE.mri', 'SMARTDATE.amy', all in format YYY-MM-DD of sessions to process if not using default.")
 mri_pet_reg_parser.set_defaults(func=mri_pet_registration)
 
 
+###final_data_sheets
 final_data_sheet_parser = subparsers.add_parser("final_data_sheets", help="Collect individual stats into final sheets.")
 final_data_sheet_parser.set_defaults(func=final_data_sheets)
 
 
+###Parse args
 args = global_parser.parse_args()
-
 ##removes any non-kwargs values to pass to args.func()
 args_ = vars(args).copy()
 args_.pop('func', None) 
-
 args.func(**args_)
