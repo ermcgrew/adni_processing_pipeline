@@ -1,0 +1,758 @@
+INFO:Identifying new scans in /project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_uids/mri_uids.csv as compared to /project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/mri_filelocations_copyof_MRI3TListWithNIFTIPath_10172022.csv for mri
+INFO:131_S_0384:2018-01-11:T1:New scan to process
+INFO:131_S_0384:2018-01-11:T2:New scan to process
+INFO:068_S_0473:2019-12-17:T1:Different uid selected from adni csv data
+New 1267882, Old: 1267884
+INFO:002_S_0559:2007-10-18:T1:Duplicate entries in previous uid.csv
+INFO:002_S_0559:2007-10-18:T2:Duplicate entries in previous uid.csv
+INFO:133_S_0638:2009-09-18:T1:Duplicate entries in previous uid.csv
+INFO:133_S_0638:2009-09-18:T2:Duplicate entries in previous uid.csv
+INFO:031_S_0830:2008-09-25:T1:Duplicate entries in previous uid.csv
+INFO:031_S_0830:2008-09-25:T2:Duplicate entries in previous uid.csv
+INFO:033_S_1098:2008-12-11:T1:Duplicate entries in previous uid.csv
+INFO:033_S_1098:2008-12-11:T2:Duplicate entries in previous uid.csv
+INFO:130_S_0969:2017-05-22:T2:New scan to process
+INFO:023_S_1190:2019-02-25:T1:New scan to process
+INFO:023_S_1190:2019-02-25:T2:New scan to process
+INFO:002_S_1261:2011-03-14:T1:Different uid selected from adni csv data
+New 223901, Old: 223895
+INFO:002_S_1280:2007-10-10:T1:Duplicate entries in previous uid.csv
+INFO:002_S_1280:2007-10-10:T2:Duplicate entries in previous uid.csv
+INFO:002_S_1280:2011-05-04:T1:Different uid selected from adni csv data
+New 233435, Old: 233432
+INFO:020_S_1288:2007-10-10:T1:Duplicate entries in previous uid.csv
+INFO:020_S_1288:2007-10-10:T2:Duplicate entries in previous uid.csv
+INFO:002_S_1268:2007-12-19:T1:Duplicate entries in previous uid.csv
+INFO:002_S_1268:2007-12-19:T2:Duplicate entries in previous uid.csv
+INFO:128_S_2002:2021-09-07:T1:New scan to process
+INFO:128_S_2002:2021-09-07:T2:New scan to process
+INFO:031_S_2018:2019-01-24:T1:New scan to process
+INFO:031_S_2018:2019-01-24:T2:New scan to process
+INFO:082_S_2121:2018-02-12:T1:New scan to process
+INFO:082_S_2121:2018-02-12:T2:New scan to process
+INFO:073_S_2182:2022-01-26:T1:New scan to process
+INFO:073_S_2182:2022-01-26:T2:New scan to process
+INFO:128_S_2220:2022-06-23:T1:New scan to process
+INFO:128_S_2220:2022-06-23:T2:New scan to process
+INFO:011_S_0021:2010-10-08:T1:Different uid selected from adni csv data
+New 196077, Old: 196073
+INFO:018_S_2133:2019-02-11:T1:New scan to process
+INFO:018_S_2133:2019-02-11:T2:New scan to process
+INFO:068_S_2187:2019-10-09:T1:Different uid selected from adni csv data
+New 1238877, Old: 1238879
+INFO:068_S_2187:2020-11-25:T1:New scan to process
+INFO:068_S_2187:2020-11-25:T2:New scan to process
+INFO:068_S_2184:2019-11-21:T1:Different uid selected from adni csv data
+New 1259913, Old: 1259915
+INFO:068_S_2184:2022-09-06:T1:Different uid selected from adni csv data
+New 1618761, Old: 1618763
+INFO:018_S_2155:2020-10-29:T1:New scan to process
+INFO:018_S_2155:2020-10-29:T2:New scan to process
+INFO:018_S_2155:2022-11-21:T1:New scan to process
+INFO:018_S_2155:2022-11-21:T2:New scan to process
+INFO:024_S_2239:2020-10-29:T1:New scan to process
+INFO:024_S_2239:2020-10-29:T2:New scan to process
+INFO:027_S_2219:2019-02-07:T1:New scan to process
+INFO:027_S_2219:2019-02-07:T2:New scan to process
+INFO:027_S_2245:2019-01-08:T1:New scan to process
+INFO:027_S_2245:2019-01-08:T2:New scan to process
+INFO:123_S_0072:2009-02-10:T1:Duplicate entries in previous uid.csv
+INFO:123_S_0072:2009-02-10:T2:Duplicate entries in previous uid.csv
+INFO:014_S_2308:2018-11-08:T1:New scan to process
+INFO:014_S_2308:2018-11-08:T2:New scan to process
+INFO:067_S_2304:2017-09-05:T2:New scan to process
+INFO:013_S_1186:2011-02-23:T1:Different uid selected from adni csv data
+New 220072, Old: 220073
+INFO:129_S_2332:2018-04-11:T1:New scan to process
+INFO:068_S_2315:2020-10-05:T1:Different uid selected from adni csv data
+New 1346204, Old: 1346210
+INFO:068_S_2315:2022-06-01:T1:New scan to process
+INFO:068_S_2315:2022-06-01:T2:New scan to process
+INFO:130_S_2373:2017-06-29:T2:New scan to process
+INFO:114_S_2392:2019-01-07:T1:New scan to process
+INFO:114_S_2392:2019-01-07:T2:New scan to process
+INFO:029_S_2395:2021-07-09:T1:New scan to process
+INFO:029_S_2395:2021-07-09:T2:New scan to process
+INFO:130_S_2403:2017-07-06:T2:New scan to process
+INFO:037_S_4028:2017-11-06:T1:New scan to process
+INFO:037_S_4028:2017-11-06:T2:New scan to process
+INFO:116_S_4043:2022-02-22:T1:New scan to process
+INFO:116_S_4043:2022-02-22:T2:New scan to process
+INFO:068_S_4061:2019-11-26:T1:Different uid selected from adni csv data
+New 1260279, Old: 1260281
+INFO:099_S_4086:2017-12-05:T1:New scan to process
+INFO:094_S_4089:2011-12-14:T1:Different uid selected from adni csv data
+New 272146, Old: 272144
+INFO:012_S_4094:2018-11-28:T1:New scan to process
+INFO:012_S_4094:2018-11-28:T2:New scan to process
+INFO:016_S_4121:2012-01-23:T1:Different uid selected from adni csv data
+New 280306, Old: 280311
+INFO:023_S_4035:2011-08-18:T1:Duplicate entries in previous uid.csv
+INFO:023_S_4035:2011-08-18:T2:Duplicate entries in previous uid.csv
+INFO:123_S_4127:2015-01-22:T1:Duplicate entries in previous uid.csv
+INFO:123_S_4127:2015-01-22:T2:Duplicate entries in previous uid.csv
+INFO:003_S_4136:2011-08-10:T1:Different uid selected from adni csv data
+New 250173, Old: 250168
+INFO:031_S_4149:2019-02-27:T1:New scan to process
+INFO:031_S_4149:2019-02-27:T2:New scan to process
+INFO:941_S_4187:2022-10-07:T1:New scan to process
+INFO:941_S_4187:2022-10-07:T2:New scan to process
+INFO:023_S_4115:2019-01-15:T1:New scan to process
+INFO:023_S_4115:2019-01-15:T2:New scan to process
+INFO:003_S_4142:2011-08-31:T1:Different uid selected from adni csv data
+New 254893, Old: 254890
+INFO:033_S_4176:2019-01-17:T2:New scan to process
+INFO:127_S_4210:2022-10-04:T1:New scan to process
+INFO:127_S_4210:2022-10-04:T2:New scan to process
+INFO:082_S_4224:2022-06-30:T1:New scan to process
+INFO:082_S_4224:2022-06-30:T2:New scan to process
+INFO:002_S_4225:2018-11-12:T2:New scan to process
+INFO:011_S_4278:2019-02-20:T1:New scan to process
+INFO:011_S_4278:2019-02-20:T2:New scan to process
+INFO:007_S_4272:2019-01-08:T1:New scan to process
+INFO:130_S_4343:2017-05-09:T2:New scan to process
+INFO:130_S_4343:2015-12-04:T1:Duplicate entries in previous uid.csv
+INFO:130_S_4343:2015-12-04:T2:Duplicate entries in previous uid.csv
+INFO:135_S_4356:2022-09-12:T1:New scan to process
+INFO:135_S_4356:2022-09-12:T2:New scan to process
+INFO:029_S_4279:2011-11-09:T1:Different uid selected from adni csv data
+New 265980, Old: 265992
+INFO:129_S_4369:2011-11-17:T1:Different uid selected from adni csv data
+New 267415, Old: 267405
+INFO:129_S_4369:2021-06-08:T1:New scan to process
+INFO:129_S_4369:2021-06-08:T2:New scan to process
+INFO:018_S_4313:2017-10-23:T2:New scan to process
+INFO:018_S_4313:2021-11-18:T1:New scan to process
+INFO:018_S_4313:2021-11-18:T2:New scan to process
+INFO:068_S_4340:2019-10-30:T1:Different uid selected from adni csv data
+New 1250826, Old: 1250828
+INFO:129_S_4396:2017-12-15:T1:New scan to process
+INFO:137_S_4351:2015-12-09:T2:Different uid selected from adni csv data
+New 574553, Old: 574535
+INFO:013_S_5071:2014-02-11:T1:Different uid selected from adni csv data
+New 413789, Old: 413792
+INFO:007_S_4387:2011-12-05:T1:Different uid selected from adni csv data
+New 269929, Old: 269936
+INFO:018_S_4399:2017-08-08:T2:New scan to process
+INFO:018_S_4400:2020-11-05:T1:New scan to process
+INFO:018_S_4400:2020-11-05:T2:New scan to process
+INFO:018_S_4400:2022-02-07:T1:New scan to process
+INFO:018_S_4400:2022-02-07:T2:New scan to process
+INFO:129_S_4422:2018-03-15:T2:Different uid selected from adni csv data
+New 974782, Old: 974781
+INFO:082_S_4428:2022-09-27:T1:New scan to process
+INFO:082_S_4428:2022-09-27:T2:New scan to process
+INFO:029_S_4384:2022-06-22:T1:New scan to process
+INFO:029_S_4384:2022-06-22:T2:New scan to process
+INFO:941_S_4376:2011-06-01:T1:Duplicate entries in previous uid.csv
+INFO:941_S_4376:2011-06-01:T2:Duplicate entries in previous uid.csv
+INFO:003_S_4354:2021-06-23:T1:New scan to process
+INFO:003_S_4354:2021-06-23:T2:New scan to process
+INFO:130_S_4417:2016-02-19:T1:Duplicate entries in previous uid.csv
+INFO:130_S_4417:2016-02-19:T2:Duplicate entries in previous uid.csv
+INFO:130_S_4417:2017-08-11:T2:New scan to process
+INFO:035_S_4464:2022-02-18:T1:New scan to process
+INFO:035_S_4464:2022-02-18:T2:New scan to process
+INFO:029_S_4385:2012-02-15:T1:Different uid selected from adni csv data
+New 285589, Old: 285591
+INFO:098_S_4506:2018-11-13:T1:New scan to process
+INFO:098_S_4506:2018-11-13:T2:New scan to process
+INFO:068_S_4431:2019-01-22:T1:New scan to process
+INFO:068_S_4431:2019-01-22:T2:New scan to process
+INFO:094_S_4460:2012-02-08:T1:Different uid selected from adni csv data
+New 283573, Old: 283576
+INFO:137_S_4520:2022-03-07:T1:New scan to process
+INFO:137_S_4520:2022-03-07:T2:New scan to process
+INFO:053_S_4578:2019-02-05:T1:New scan to process
+INFO:053_S_4578:2019-02-05:T2:New scan to process
+INFO:072_S_4610:2013-04-09:T2:Different uid selected from adni csv data
+New 365928, Old: 365923
+INFO:127_S_4645:2018-06-12:T2:New scan to process
+INFO:013_S_4580:2021-08-24:T1:New scan to process
+INFO:013_S_4580:2021-08-24:T2:New scan to process
+INFO:024_S_4674:2022-06-01:T1:New scan to process
+INFO:024_S_4674:2022-06-01:T2:New scan to process
+INFO:100_S_4556:2021-11-18:T1:New scan to process
+INFO:100_S_4556:2021-11-18:T2:New scan to process
+INFO:006_S_4713:2021-08-19:T1:New scan to process
+INFO:006_S_4713:2021-08-19:T2:New scan to process
+INFO:021_S_4744:2018-07-31:T2:New scan to process
+INFO:128_S_4792:2012-10-09:T1:Duplicate entries in previous uid.csv
+INFO:128_S_4792:2012-10-09:T2:Duplicate entries in previous uid.csv
+INFO:123_S_4806:2012-08-27:T1:Duplicate entries in previous uid.csv
+INFO:123_S_4806:2012-08-27:T2:Duplicate entries in previous uid.csv
+INFO:073_S_4795:2019-11-05:T1:New scan to process
+INFO:073_S_4795:2019-11-05:T2:New scan to process
+INFO:130_S_4817:2017-04-21:T2:New scan to process
+INFO:018_S_4868:2018-07-26:T2:New scan to process
+INFO:116_S_4855:2019-02-01:T1:New scan to process
+INFO:116_S_4855:2019-02-01:T2:New scan to process
+INFO:116_S_4855:2022-02-14:T1:New scan to process
+INFO:116_S_4855:2022-02-14:T2:New scan to process
+INFO:003_S_4872:2022-07-21:T1:New scan to process
+INFO:003_S_4872:2022-07-21:T2:New scan to process
+INFO:126_S_4891:2020-09-23:T1:New scan to process
+INFO:126_S_4891:2020-09-23:T2:New scan to process
+INFO:126_S_4896:2018-08-07:T2:New scan to process
+INFO:052_S_4885:2013-09-11:T1:Duplicate entries in previous uid.csv
+INFO:052_S_4885:2013-09-11:T2:Duplicate entries in previous uid.csv
+INFO:016_S_4902:2018-07-16:T2:New scan to process
+INFO:027_S_4919:2019-01-09:T1:New scan to process
+INFO:027_S_4919:2019-01-09:T2:New scan to process
+INFO:016_S_4952:2017-02-14:T1:Duplicate entries in previous uid.csv
+INFO:016_S_4952:2017-02-14:T2:Duplicate entries in previous uid.csv
+INFO:009_S_0751:2022-06-20:T1:New scan to process
+INFO:009_S_0751:2022-06-20:T2:New scan to process
+INFO:070_S_5040:2013-07-25:T1:Duplicate entries in previous uid.csv
+INFO:070_S_5040:2013-07-25:T2:Duplicate entries in previous uid.csv
+INFO:041_S_5253:2023-03-27:T1:New scan to process
+INFO:041_S_5253:2023-03-27:T2:New scan to process
+INFO:027_S_5093:2017-04-28:T2:Different uid selected from adni csv data
+New 845675, Old: 845674
+INFO:041_S_5100:2018-08-08:T2:New scan to process
+INFO:100_S_5091:2022-01-26:T1:New scan to process
+INFO:100_S_5091:2022-01-26:T2:New scan to process
+INFO:041_S_5141:2017-08-18:T2:Different uid selected from adni csv data
+New 893576, Old: 893575
+INFO:003_S_5154:2022-06-09:T1:New scan to process
+INFO:003_S_5154:2022-06-09:T2:New scan to process
+INFO:021_S_5177:2018-07-18:T2:New scan to process
+INFO:130_S_5175:2017-06-08:T2:New scan to process
+INFO:012_S_5157:2019-01-15:T1:New scan to process
+INFO:012_S_5157:2019-01-15:T2:New scan to process
+INFO:021_S_5194:2017-07-25:T2:Different uid selected from adni csv data
+New 879344, Old: 879342
+INFO:021_S_5194:2018-08-02:T2:New scan to process
+INFO:127_S_5185:2021-09-17:T1:New scan to process
+INFO:127_S_5185:2021-09-17:T2:New scan to process
+INFO:033_S_5198:2018-11-14:T1:New scan to process
+INFO:033_S_5198:2018-11-14:T2:New scan to process
+INFO:035_S_4785:2022-11-21:T1:New scan to process
+INFO:035_S_4785:2022-11-21:T2:New scan to process
+INFO:020_S_5203:2018-12-13:T1:New scan to process
+INFO:020_S_5203:2018-12-13:T2:New scan to process
+INFO:012_S_5195:2018-11-12:T1:New scan to process
+INFO:012_S_5195:2018-11-12:T2:New scan to process
+INFO:021_S_5237:2020-09-15:T1:New scan to process
+INFO:021_S_5237:2020-09-15:T2:New scan to process
+INFO:126_S_5243:2022-09-30:T1:New scan to process
+INFO:126_S_5243:2022-09-30:T2:New scan to process
+INFO:033_S_5259:2018-11-07:T1:New scan to process
+INFO:033_S_5259:2018-11-07:T2:New scan to process
+INFO:053_S_5272:2022-05-03:T1:New scan to process
+INFO:053_S_5272:2022-05-03:T2:New scan to process
+INFO:057_S_0934:2022-07-26:T1:New scan to process
+INFO:057_S_0934:2022-07-26:T2:New scan to process
+INFO:053_S_5296:2018-11-28:T1:New scan to process
+INFO:053_S_5296:2018-11-28:T2:New scan to process
+INFO:067_S_0056:2019-01-10:T1:New scan to process
+INFO:067_S_0056:2019-01-10:T2:New scan to process
+INFO:003_S_0908:2018-12-05:T1:New scan to process
+INFO:003_S_0908:2018-12-05:T2:New scan to process
+INFO:100_S_0069:2019-01-23:T1:New scan to process
+INFO:100_S_0069:2019-01-23:T2:New scan to process
+INFO:006_S_0498:2017-11-06:T2:Different uid selected from adni csv data
+New 928376, Old: 928374
+INFO:027_S_6001:2017-01-11:T2:Different uid selected from adni csv data
+New 808822, Old: 808821
+INFO:027_S_6002:2018-02-16:T1:New scan to process
+INFO:027_S_6002:2018-02-16:T2:New scan to process
+INFO:027_S_6002:2019-02-27:T1:New scan to process
+INFO:027_S_6002:2019-02-27:T2:New scan to process
+INFO:130_S_6019:2017-05-24:T2:New scan to process
+INFO:168_S_6051:2019-10-31:T1:Different uid selected from adni csv data
+New 1252024, Old: 1252026
+INFO:130_S_6037:2017-07-11:T2:New scan to process
+INFO:037_S_6046:2017-07-17:T2:Different uid selected from adni csv data
+New 874817, Old: 874816
+INFO:114_S_6039:2018-12-13:T1:New scan to process
+INFO:114_S_6039:2018-12-13:T2:New scan to process
+INFO:130_S_6047:2017-07-27:T2:New scan to process
+INFO:130_S_6043:2017-07-06:T2:New scan to process
+INFO:141_S_6061:2019-01-14:T1:New scan to process
+INFO:141_S_6061:2019-01-14:T2:New scan to process
+INFO:130_S_6072:2017-08-25:T2:New scan to process
+INFO:012_S_6073:2018-10-31:T1:New scan to process
+INFO:012_S_6073:2018-10-31:T2:New scan to process
+INFO:068_S_0127:2020-03-12:T1:Different uid selected from adni csv data
+New 1303143, Old: 1303145
+INFO:068_S_0127:2020-11-23:T1:Different uid selected from adni csv data
+New 1378326, Old: 1378328
+INFO:168_S_6059:2019-11-13:T1:Different uid selected from adni csv data
+New 1256135, Old: 1256137
+INFO:168_S_6062:2020-01-27:T1:Different uid selected from adni csv data
+New 1280182, Old: 1280184
+INFO:168_S_6065:2020-02-03:T1:Different uid selected from adni csv data
+New 1284408, Old: 1284410
+INFO:168_S_6065:2022-07-27:T1:New scan to process
+INFO:168_S_6065:2022-07-27:T2:New scan to process
+INFO:168_S_6049:2020-10-12:T1:Different uid selected from adni csv data
+New 1348108, Old: 1348114
+INFO:037_S_6083:2018-11-07:T1:New scan to process
+INFO:037_S_6083:2018-11-07:T2:New scan to process
+INFO:168_S_6085:2020-03-19:T1:Different uid selected from adni csv data
+New 1304804, Old: 1304806
+INFO:114_S_6057:2022-01-27:T1:New scan to process
+INFO:114_S_6057:2022-01-27:T2:New scan to process
+INFO:941_S_6094:2022-02-15:T1:New scan to process
+INFO:941_S_6094:2022-02-15:T2:New scan to process
+INFO:116_S_6100:2017-10-31:T1:New scan to process
+INFO:116_S_6100:2017-10-31:T2:New scan to process
+INFO:116_S_6100:2019-01-25:T1:New scan to process
+INFO:116_S_6100:2019-01-25:T2:New scan to process
+INFO:135_S_6104:2018-11-08:T1:New scan to process
+INFO:135_S_6104:2018-11-08:T2:New scan to process
+INFO:130_S_6111:2017-11-13:T2:Different uid selected from adni csv data
+New 931228, Old: 931226
+INFO:135_S_6110:2020-11-23:T1:New scan to process
+INFO:135_S_6110:2020-11-23:T2:New scan to process
+INFO:141_S_6116:2019-01-02:T1:New scan to process
+INFO:141_S_6116:2019-01-02:T2:New scan to process
+INFO:114_S_6063:2022-02-10:T1:New scan to process
+INFO:114_S_6063:2022-02-10:T2:New scan to process
+INFO:037_S_6115:2017-11-30:T2:Different uid selected from adni csv data
+New 940654, Old: 940653
+INFO:037_S_6125:2017-11-30:T2:Different uid selected from adni csv data
+New 940678, Old: 940677
+INFO:168_S_6142:2020-03-04:T1:Different uid selected from adni csv data
+New 1299334, Old: 1299336
+INFO:168_S_6151:2020-03-18:T1:Different uid selected from adni csv data
+New 1304737, Old: 1304739
+INFO:168_S_6151:2022-08-12:T1:Different uid selected from adni csv data
+New 1612776, Old: 1612778
+INFO:127_S_0259:2018-10-30:T2:New scan to process
+INFO:116_S_6133:2019-01-29:T1:New scan to process
+INFO:116_S_6133:2019-01-29:T2:New scan to process
+INFO:100_S_6164:2022-02-02:T1:New scan to process
+INFO:100_S_6164:2022-02-02:T2:New scan to process
+INFO:020_S_6185:2019-01-16:T2:New scan to process
+INFO:168_S_6180:2019-04-08:T1:Different uid selected from adni csv data
+New 1151926, Old: 1151928
+INFO:168_S_6180:2020-10-30:T1:Different uid selected from adni csv data
+New 1359778, Old: 1359782
+INFO:141_S_6178:2019-02-27:T1:New scan to process
+INFO:141_S_6178:2019-02-27:T2:New scan to process
+INFO:018_S_6207:2018-02-13:T2:New scan to process
+INFO:003_S_6014:2020-03-16:T1:New scan to process
+INFO:003_S_6014:2020-03-16:T2:New scan to process
+INFO:035_S_6200:2022-03-07:T1:New scan to process
+INFO:035_S_6200:2022-03-07:T2:New scan to process
+INFO:006_S_6209:2022-03-03:T1:New scan to process
+INFO:006_S_6209:2022-03-03:T2:New scan to process
+INFO:168_S_6233:2020-10-13:T1:Different uid selected from adni csv data
+New 1348596, Old: 1348602
+INFO:006_S_6243:2022-10-19:T1:New scan to process
+INFO:006_S_6243:2022-10-19:T2:New scan to process
+INFO:033_S_6266:2022-03-04:T1:New scan to process
+INFO:033_S_6266:2022-03-04:T2:New scan to process
+INFO:114_S_6113:2022-03-18:T1:New scan to process
+INFO:114_S_6113:2022-03-18:T2:New scan to process
+INFO:127_S_6203:2022-09-21:T1:New scan to process
+INFO:127_S_6203:2022-09-21:T2:New scan to process
+INFO:131_S_6143:2019-05-13:T1:New scan to process
+INFO:131_S_6143:2019-05-13:T2:New scan to process
+INFO:131_S_6170:2018-05-14:T1:New scan to process
+INFO:131_S_6170:2018-05-14:T2:New scan to process
+INFO:003_S_6259:2022-05-10:T1:New scan to process
+INFO:003_S_6259:2022-05-10:T2:New scan to process
+INFO:114_S_6251:2022-05-26:T1:New scan to process
+INFO:114_S_6251:2022-05-26:T2:New scan to process
+INFO:100_S_6273:2022-03-16:T1:New scan to process
+INFO:100_S_6273:2022-03-16:T2:New scan to process
+INFO:168_S_6281:2018-04-09:T1:Different uid selected from adni csv data
+New 983641, Old: 983643
+INFO:168_S_6285:2018-04-17:T1:Different uid selected from adni csv data
+New 986205, Old: 986207
+INFO:021_S_6312:2022-09-15:T1:New scan to process
+INFO:021_S_6312:2022-09-15:T2:New scan to process
+INFO:035_S_6306:2022-06-02:T1:New scan to process
+INFO:035_S_6306:2022-06-02:T2:New scan to process
+INFO:129_S_6304:2022-06-02:T1:New scan to process
+INFO:129_S_6304:2022-06-02:T2:New scan to process
+INFO:168_S_6318:2018-04-19:T1:Different uid selected from adni csv data
+New 987768, Old: 987772
+INFO:006_S_6291:2022-10-27:T1:New scan to process
+INFO:006_S_6291:2022-10-27:T2:New scan to process
+INFO:100_S_6308:2022-03-31:T1:New scan to process
+INFO:100_S_6308:2022-03-31:T2:New scan to process
+INFO:036_S_6316:2022-02-07:T1:New scan to process
+INFO:036_S_6316:2022-02-07:T2:New scan to process
+INFO:168_S_6320:2018-05-03:T1:Different uid selected from adni csv data
+New 992584, Old: 992586
+INFO:168_S_6320:2020-10-15:T1:Different uid selected from adni csv data
+New 1349784, Old: 1349786
+INFO:168_S_6320:2022-07-06:T1:Different uid selected from adni csv data
+New 1603670, Old: 1603672
+INFO:168_S_6321:2018-05-03:T1:Different uid selected from adni csv data
+New 992613, Old: 992615
+INFO:168_S_6321:2020-10-21:T1:Different uid selected from adni csv data
+New 1351301, Old: 1351303
+INFO:168_S_6321:2022-07-06:T1:Different uid selected from adni csv data
+New 1603690, Old: 1603692
+INFO:018_S_6351:2018-05-10:T2:New scan to process
+INFO:027_S_6327:2022-06-02:T1:New scan to process
+INFO:027_S_6327:2022-06-02:T2:New scan to process
+INFO:033_S_6352:2020-07-22:T1:New scan to process
+INFO:033_S_6352:2020-07-22:T2:New scan to process
+INFO:033_S_6352:2022-09-30:T1:New scan to process
+INFO:033_S_6352:2022-09-30:T2:New scan to process
+INFO:114_S_6309:2022-06-08:T1:New scan to process
+INFO:114_S_6309:2022-06-08:T2:New scan to process
+INFO:168_S_6350:2018-05-14:T1:Different uid selected from adni csv data
+New 997533, Old: 997535
+INFO:168_S_6350:2020-12-03:T1:Different uid selected from adni csv data
+New 1381875, Old: 1381877
+INFO:135_S_6360:2022-06-06:T1:New scan to process
+INFO:135_S_6360:2022-06-06:T2:New scan to process
+INFO:168_S_6371:2020-10-22:T1:Different uid selected from adni csv data
+New 1352191, Old: 1352193
+INFO:003_S_6260:2022-06-13:T1:New scan to process
+INFO:003_S_6260:2022-06-13:T2:New scan to process
+INFO:041_S_6354:2023-01-23:T1:New scan to process
+INFO:041_S_6354:2023-01-23:T2:New scan to process
+INFO:127_S_6330:2022-09-15:T1:New scan to process
+INFO:127_S_6330:2022-09-15:T2:New scan to process
+INFO:005_S_6393:2022-10-14:T1:New scan to process
+INFO:005_S_6393:2022-10-14:T2:New scan to process
+INFO:018_S_6414:2018-06-08:T2:New scan to process
+INFO:941_S_6422:2022-10-24:T1:New scan to process
+INFO:941_S_6422:2022-10-24:T2:New scan to process
+INFO:168_S_6413:2018-06-11:T1:Different uid selected from adni csv data
+New 1008547, Old: 1008549
+INFO:003_S_6307:2022-11-07:T1:New scan to process
+INFO:003_S_6307:2022-11-07:T2:New scan to process
+INFO:168_S_6426:2018-06-29:T1:Different uid selected from adni csv data
+New 1015398, Old: 1015400
+INFO:135_S_6473:2022-11-01:T1:New scan to process
+INFO:135_S_6473:2022-11-01:T2:New scan to process
+INFO:168_S_6467:2018-07-05:T1:Different uid selected from adni csv data
+New 1017238, Old: 1017240
+INFO:168_S_6467:2019-10-02:T1:Different uid selected from adni csv data
+New 1235482, Old: 1235485
+INFO:129_S_6459:2022-07-20:T1:New scan to process
+INFO:129_S_6459:2022-07-20:T2:New scan to process
+INFO:035_S_6488:2022-07-18:T1:New scan to process
+INFO:035_S_6488:2022-07-18:T2:New scan to process
+INFO:941_S_6499:2022-09-16:T1:New scan to process
+INFO:941_S_6499:2022-09-16:T2:New scan to process
+INFO:129_S_6830:2020-10-28:T1:New scan to process
+INFO:129_S_6830:2020-10-28:T2:New scan to process
+INFO:129_S_6830:2022-11-15:T1:New scan to process
+INFO:129_S_6830:2022-11-15:T2:New scan to process
+INFO:099_S_6476:2023-01-17:T1:New scan to process
+INFO:099_S_6476:2023-01-17:T2:New scan to process
+INFO:127_S_6357:2022-10-05:T1:New scan to process
+INFO:127_S_6357:2022-10-05:T2:New scan to process
+INFO:082_S_6415:2022-04-14:T1:New scan to process
+INFO:082_S_6415:2022-04-14:T2:New scan to process
+INFO:023_S_6535:2022-09-15:T1:New scan to process
+INFO:023_S_6535:2022-09-15:T2:New scan to process
+INFO:168_S_6492:2018-08-06:T1:Different uid selected from adni csv data
+New 1031685, Old: 1031689
+INFO:023_S_6547:2022-09-28:T1:New scan to process
+INFO:023_S_6547:2022-09-28:T2:New scan to process
+INFO:109_S_6219:2018-04-09:T2:New scan to process
+INFO:135_S_6544:2022-09-27:T1:New scan to process
+INFO:135_S_6544:2022-09-27:T2:New scan to process
+INFO:941_S_6546:2022-10-03:T1:New scan to process
+INFO:941_S_6546:2022-10-03:T2:New scan to process
+INFO:168_S_6541:2020-12-10:T1:Different uid selected from adni csv data
+New 1385427, Old: 1385429
+INFO:168_S_6541:2022-06-02:T1:New scan to process
+INFO:168_S_6541:2022-06-02:T2:New scan to process
+INFO:126_S_6559:2022-11-14:T1:New scan to process
+INFO:126_S_6559:2022-11-14:T2:New scan to process
+INFO:127_S_6512:2022-09-28:T1:New scan to process
+INFO:127_S_6512:2022-09-28:T2:New scan to process
+INFO:941_S_6570:2022-09-20:T1:New scan to process
+INFO:941_S_6570:2022-09-20:T2:New scan to process
+INFO:067_S_6528:2018-08-08:T2:New scan to process
+INFO:033_S_6572:2022-10-31:T1:New scan to process
+INFO:033_S_6572:2022-10-31:T2:New scan to process
+INFO:941_S_6580:2022-09-30:T1:New scan to process
+INFO:941_S_6580:2022-09-30:T2:New scan to process
+INFO:941_S_6574:2022-11-14:T1:New scan to process
+INFO:941_S_6574:2022-11-14:T2:New scan to process
+INFO:941_S_6581:2022-10-17:T1:New scan to process
+INFO:941_S_6581:2022-10-17:T2:New scan to process
+INFO:082_S_6564:2022-09-15:T1:New scan to process
+INFO:082_S_6564:2022-09-15:T2:New scan to process
+INFO:114_S_6429:2023-02-07:T1:New scan to process
+INFO:114_S_6429:2023-02-07:T2:New scan to process
+INFO:135_S_6586:2022-10-26:T1:New scan to process
+INFO:135_S_6586:2022-10-26:T2:New scan to process
+INFO:168_S_6591:2018-10-01:T1:Different uid selected from adni csv data
+New 1054570, Old: 1054572
+INFO:168_S_6591:2020-01-10:T1:Different uid selected from adni csv data
+New 1274614, Old: 1274617
+INFO:168_S_6591:2020-11-25:T1:Different uid selected from adni csv data
+New 1378374, Old: 1378376
+INFO:053_S_6598:2022-06-20:T1:New scan to process
+INFO:053_S_6598:2022-06-20:T2:New scan to process
+INFO:032_S_6602:2019-11-07:T1:New scan to process
+INFO:032_S_6602:2019-11-07:T2:New scan to process
+INFO:168_S_6619:2018-11-05:T1:Different uid selected from adni csv data
+New 1069896, Old: 1069898
+INFO:168_S_6619:2019-12-16:T1:Different uid selected from adni csv data
+New 1267220, Old: 1267222
+INFO:168_S_6619:2020-12-07:T1:Different uid selected from adni csv data
+New 1382659, Old: 1382661
+INFO:003_S_6606:2018-11-08:T2:New scan to process
+INFO:129_S_6621:2018-11-05:T1:New scan to process
+INFO:129_S_6621:2018-11-05:T2:New scan to process
+INFO:037_S_6620:2018-11-26:T1:New scan to process
+INFO:037_S_6620:2018-11-26:T2:New scan to process
+INFO:114_S_6597:2020-08-25:T1:New scan to process
+INFO:114_S_6597:2020-08-25:T2:New scan to process
+INFO:114_S_6597:2021-06-21:T1:New scan to process
+INFO:114_S_6597:2021-06-21:T2:New scan to process
+INFO:114_S_6462:2018-10-04:T2:New scan to process
+INFO:114_S_6462:2022-10-14:T1:New scan to process
+INFO:114_S_6462:2022-10-14:T2:New scan to process
+INFO:114_S_6524:2018-10-18:T2:New scan to process
+INFO:114_S_6595:2018-11-16:T2:New scan to process
+INFO:082_S_6629:2018-11-23:T1:New scan to process
+INFO:082_S_6629:2018-11-23:T2:New scan to process
+INFO:082_S_6629:2022-01-25:T1:New scan to process
+INFO:082_S_6629:2022-01-25:T2:New scan to process
+INFO:168_S_6634:2018-11-27:T2:New scan to process
+INFO:168_S_6634:2020-02-26:T1:Different uid selected from adni csv data
+New 1296556, Old: 1296558
+INFO:168_S_6634:2021-02-16:T1:Different uid selected from adni csv data
+New 1411687, Old: 1411689
+INFO:130_S_6639:2018-12-04:T1:New scan to process
+INFO:130_S_6639:2018-12-04:T2:New scan to process
+INFO:002_S_6652:2018-12-13:T1:New scan to process
+INFO:002_S_6652:2018-12-13:T2:New scan to process
+INFO:019_S_6635:2018-12-19:T1:New scan to process
+INFO:019_S_6635:2018-12-19:T2:New scan to process
+INFO:019_S_6635:2023-01-23:T1:New scan to process
+INFO:019_S_6635:2023-01-23:T2:New scan to process
+INFO:341_S_6653:2018-12-19:T1:New scan to process
+INFO:341_S_6653:2018-12-19:T2:New scan to process
+INFO:027_S_6643:2018-12-26:T1:New scan to process
+INFO:027_S_6643:2018-12-26:T2:New scan to process
+INFO:023_S_6661:2019-01-07:T1:New scan to process
+INFO:023_S_6661:2019-01-07:T2:New scan to process
+INFO:153_S_6665:2019-01-08:T1:New scan to process
+INFO:153_S_6665:2019-01-08:T2:New scan to process
+INFO:027_S_0074:2019-01-24:T1:New scan to process
+INFO:027_S_0074:2019-01-24:T2:New scan to process
+INFO:027_S_0074:2021-01-21:T1:New scan to process
+INFO:027_S_0074:2021-01-21:T2:New scan to process
+INFO:003_S_6678:2019-01-22:T1:New scan to process
+INFO:003_S_6678:2019-01-22:T2:New scan to process
+INFO:153_S_6679:2021-05-07:T1:New scan to process
+INFO:153_S_6679:2021-05-07:T2:New scan to process
+INFO:006_S_6651:2022-04-28:T1:New scan to process
+INFO:006_S_6651:2022-04-28:T2:New scan to process
+INFO:126_S_6683:2019-02-08:T1:New scan to process
+INFO:126_S_6683:2019-02-08:T2:New scan to process
+INFO:035_S_6660:2019-02-04:T1:New scan to process
+INFO:035_S_6660:2019-02-04:T2:New scan to process
+INFO:130_S_6688:2019-02-12:T2:New scan to process
+INFO:130_S_6688:2022-06-16:T1:New scan to process
+INFO:130_S_6688:2022-06-16:T2:New scan to process
+INFO:006_S_6677:2019-02-14:T1:New scan to process
+INFO:006_S_6677:2019-02-14:T2:New scan to process
+INFO:341_S_6686:2019-02-20:T1:New scan to process
+INFO:341_S_6686:2019-02-20:T2:New scan to process
+INFO:023_S_6702:2022-06-23:T1:New scan to process
+INFO:023_S_6702:2022-06-23:T2:New scan to process
+INFO:100_S_6713:2022-08-30:T1:New scan to process
+INFO:100_S_6713:2022-08-30:T2:New scan to process
+INFO:051_S_6719:2022-06-30:T1:New scan to process
+INFO:051_S_6719:2022-06-30:T2:New scan to process
+INFO:019_S_6757:2022-06-29:T1:New scan to process
+INFO:019_S_6757:2022-06-29:T2:New scan to process
+INFO:012_S_6760:2021-12-06:T1:New scan to process
+INFO:012_S_6760:2021-12-06:T2:New scan to process
+INFO:033_S_7066:2023-05-03:T1:New scan to process
+INFO:033_S_7066:2023-05-03:T2:New scan to process
+INFO:014_S_6765:2020-10-21:T1:New scan to process
+INFO:014_S_6765:2020-10-21:T2:New scan to process
+INFO:051_S_6761:2022-08-19:T1:New scan to process
+INFO:051_S_6761:2022-08-19:T2:New scan to process
+INFO:168_S_6754:2019-06-27:T1:Different uid selected from adni csv data
+New 1181679, Old: 1181681
+INFO:168_S_6754:2020-09-28:T1:Different uid selected from adni csv data
+New 1343923, Old: 1343925
+INFO:168_S_6754:2022-10-28:T1:New scan to process
+INFO:168_S_6754:2022-10-28:T2:New scan to process
+INFO:016_S_6790:2022-03-17:T1:New scan to process
+INFO:016_S_6790:2022-03-17:T2:New scan to process
+INFO:006_S_6770:2021-09-01:T1:New scan to process
+INFO:006_S_6770:2021-09-01:T2:New scan to process
+INFO:006_S_6770:2022-09-01:T1:New scan to process
+INFO:006_S_6770:2022-09-01:T2:New scan to process
+INFO:131_S_6805:2020-11-23:T1:New scan to process
+INFO:131_S_6805:2020-11-23:T2:New scan to process
+INFO:016_S_6816:2020-10-26:T1:New scan to process
+INFO:016_S_6816:2020-10-26:T2:New scan to process
+INFO:016_S_6816:2021-11-18:T1:New scan to process
+INFO:016_S_6816:2021-11-18:T2:New scan to process
+INFO:168_S_6817:2019-10-03:T1:Different uid selected from adni csv data
+New 1236269, Old: 1236271
+INFO:168_S_6827:2019-10-10:T1:Different uid selected from adni csv data
+New 1239535, Old: 1239537
+INFO:168_S_6828:2019-10-14:T1:Different uid selected from adni csv data
+New 1240482, Old: 1240484
+INFO:168_S_6828:2021-01-11:T1:Different uid selected from adni csv data
+New 1398870, Old: 1398872
+INFO:168_S_6828:2022-03-25:T1:Different uid selected from adni csv data
+New 1561918, Old: 1561922
+INFO:168_S_6821:2019-10-23:T1:Different uid selected from adni csv data
+New 1244550, Old: 1244552
+INFO:168_S_6821:2020-12-18:T1:Different uid selected from adni csv data
+New 1390871, Old: 1390874
+INFO:016_S_6839:2022-05-25:T1:New scan to process
+INFO:016_S_6839:2022-05-25:T2:New scan to process
+INFO:168_S_6843:2020-01-14:T1:Different uid selected from adni csv data
+New 1275415, Old: 1275417
+INFO:129_S_6852:2022-02-21:T1:New scan to process
+INFO:129_S_6852:2022-02-21:T2:New scan to process
+INFO:168_S_6851:2020-02-25:T1:Different uid selected from adni csv data
+New 1295866, Old: 1295870
+INFO:941_S_6854:2022-02-22:T1:New scan to process
+INFO:941_S_6854:2022-02-22:T2:New scan to process
+INFO:168_S_6875:2020-06-29:T1:Different uid selected from adni csv data
+New 1319217, Old: 1319219
+INFO:168_S_6875:2023-02-15:T1:New scan to process
+INFO:168_S_6875:2023-02-15:T2:New scan to process
+INFO:168_S_6873:2020-06-17:T1:Different uid selected from adni csv data
+New 1318202, Old: 1318204
+INFO:168_S_6874:2020-06-22:T1:Different uid selected from adni csv data
+New 1318866, Old: 1318868
+INFO:168_S_6874:2023-02-17:T1:New scan to process
+INFO:168_S_6874:2023-02-17:T2:New scan to process
+INFO:123_S_6884:2020-09-02:T2:New scan to process
+INFO:070_S_6886:2020-09-09:T1:New scan to process
+INFO:070_S_6886:2020-09-09:T2:New scan to process
+INFO:123_S_6888:2020-09-29:T2:New scan to process
+INFO:033_S_6889:2022-10-12:T1:New scan to process
+INFO:033_S_6889:2022-10-12:T2:New scan to process
+INFO:123_S_6891:2020-10-27:T2:New scan to process
+INFO:137_S_6883:2020-10-28:T1:New scan to process
+INFO:137_S_6883:2020-10-28:T2:New scan to process
+INFO:137_S_6880:2020-10-30:T2:New scan to process
+INFO:016_S_6892:2020-11-13:T1:New scan to process
+INFO:016_S_6892:2020-11-13:T2:New scan to process
+INFO:168_S_6902:2021-02-04:T1:Different uid selected from adni csv data
+New 1406556, Old: 1406558
+INFO:057_S_6869:2023-03-06:T1:New scan to process
+INFO:057_S_6869:2023-03-06:T2:New scan to process
+INFO:168_S_6908:2021-03-01:T1:Different uid selected from adni csv data
+New 1416081, Old: 1416083
+INFO:168_S_6921:2021-04-06:T1:Different uid selected from adni csv data
+New 1428762, Old: 1428764
+INFO:168_S_6921:2022-09-21:T1:New scan to process
+INFO:168_S_6921:2022-09-21:T2:New scan to process
+INFO:035_S_6927:2022-07-13:T1:New scan to process
+INFO:035_S_6927:2022-07-13:T2:New scan to process
+INFO:016_S_6934:2021-04-23:T1:New scan to process
+INFO:016_S_6934:2021-04-23:T2:New scan to process
+INFO:168_S_6938:2021-05-18:T1:Different uid selected from adni csv data
+New 1444117, Old: 1444119
+INFO:016_S_6941:2022-07-22:T1:New scan to process
+INFO:016_S_6941:2022-07-22:T2:New scan to process
+INFO:035_S_6947:2022-06-16:T1:New scan to process
+INFO:035_S_6947:2022-06-16:T2:New scan to process
+INFO:033_S_6969:2022-07-20:T1:New scan to process
+INFO:033_S_6969:2022-07-20:T2:New scan to process
+INFO:941_S_6962:2022-06-29:T1:New scan to process
+INFO:941_S_6962:2022-06-29:T2:New scan to process
+INFO:067_S_6980:2021-06-16:T1:New scan to process
+INFO:067_S_6980:2021-06-16:T2:New scan to process
+INFO:021_S_6994:2022-10-06:T1:New scan to process
+INFO:021_S_6994:2022-10-06:T2:New scan to process
+INFO:035_S_7000:2022-09-27:T1:New scan to process
+INFO:035_S_7000:2022-09-27:T2:New scan to process
+INFO:035_S_6999:2022-10-12:T1:New scan to process
+INFO:035_S_6999:2022-10-12:T2:New scan to process
+INFO:019_S_7016:2022-10-26:T1:New scan to process
+INFO:019_S_7016:2022-10-26:T2:New scan to process
+INFO:126_S_7015:2022-11-21:T1:New scan to process
+INFO:126_S_7015:2022-11-21:T2:New scan to process
+INFO:035_S_7021:2023-03-20:T1:New scan to process
+INFO:035_S_7021:2023-03-20:T2:New scan to process
+INFO:016_S_7039:2022-01-20:T1:New scan to process
+INFO:016_S_7039:2022-01-20:T2:New scan to process
+INFO:131_S_7032:2022-02-02:T1:New scan to process
+INFO:131_S_7032:2022-02-02:T2:New scan to process
+INFO:941_S_7041:2022-02-14:T1:New scan to process
+INFO:941_S_7041:2022-02-14:T2:New scan to process
+INFO:129_S_7042:2022-02-22:T1:New scan to process
+INFO:129_S_7042:2022-02-22:T2:New scan to process
+INFO:035_S_7043:2022-02-25:T1:New scan to process
+INFO:035_S_7043:2022-02-25:T2:New scan to process
+INFO:052_S_7036:2022-01-26:T1:New scan to process
+INFO:052_S_7036:2022-01-26:T2:New scan to process
+INFO:052_S_7037:2022-01-21:T1:New scan to process
+INFO:052_S_7037:2022-01-21:T2:New scan to process
+INFO:035_S_7050:2022-03-14:T1:New scan to process
+INFO:035_S_7050:2022-03-14:T2:New scan to process
+INFO:073_S_7052:2022-03-17:T1:New scan to process
+INFO:073_S_7052:2022-03-17:T2:New scan to process
+INFO:027_S_7054:2022-03-18:T1:New scan to process
+INFO:027_S_7054:2022-03-18:T2:New scan to process
+INFO:126_S_7060:2023-04-27:T1:New scan to process
+INFO:126_S_7060:2023-04-27:T2:New scan to process
+INFO:035_S_7073:2022-04-27:T1:New scan to process
+INFO:035_S_7073:2022-04-27:T2:New scan to process
+INFO:941_S_7074:2022-05-03:T1:New scan to process
+INFO:941_S_7074:2022-05-03:T2:New scan to process
+INFO:053_S_7086:2022-06-13:T1:New scan to process
+INFO:053_S_7086:2022-06-13:T2:New scan to process
+INFO:941_S_7087:2022-06-15:T1:New scan to process
+INFO:941_S_7087:2022-06-15:T2:New scan to process
+INFO:941_S_7085:2022-07-01:T1:New scan to process
+INFO:941_S_7085:2022-07-01:T2:New scan to process
+INFO:037_S_7035:2022-06-23:T1:New scan to process
+INFO:037_S_7035:2022-06-23:T2:New scan to process
+INFO:070_S_7078:2022-06-15:T1:New scan to process
+INFO:070_S_7078:2022-06-15:T2:New scan to process
+INFO:073_S_7082:2022-07-20:T1:New scan to process
+INFO:073_S_7082:2022-07-20:T2:New scan to process
+INFO:033_S_7100:2022-09-07:T1:New scan to process
+INFO:033_S_7100:2022-09-07:T2:New scan to process
+INFO:941_S_7106:2022-09-09:T1:New scan to process
+INFO:941_S_7106:2022-09-09:T2:New scan to process
+INFO:053_S_7109:2022-09-22:T1:New scan to process
+INFO:053_S_7109:2022-09-22:T2:New scan to process
+INFO:035_S_7105:2022-09-23:T1:New scan to process
+INFO:035_S_7105:2022-09-23:T2:New scan to process
+INFO:016_S_7014:2021-11-30:T1:New scan to process
+INFO:016_S_7014:2021-11-30:T2:New scan to process
+INFO:033_S_7114:2022-10-21:T1:New scan to process
+INFO:033_S_7114:2022-10-21:T2:New scan to process
+INFO:013_S_7103:2022-10-24:T1:New scan to process
+INFO:013_S_7103:2022-10-24:T2:New scan to process
+INFO:011_S_7112:2022-11-04:T1:New scan to process
+INFO:011_S_7112:2022-11-04:T2:New scan to process
+INFO:013_S_7097:2022-09-28:T1:New scan to process
+INFO:013_S_7097:2022-09-28:T2:New scan to process
+INFO:035_S_7115:2022-11-15:T1:New scan to process
+INFO:035_S_7115:2022-11-15:T2:New scan to process
+INFO:082_S_7117:2022-11-03:T1:New scan to process
+INFO:082_S_7117:2022-11-03:T2:New scan to process
+INFO:035_S_7120:2023-02-08:T1:New scan to process
+INFO:035_S_7120:2023-02-08:T2:New scan to process
+INFO:035_S_7121:2023-02-15:T1:New scan to process
+INFO:035_S_7121:2023-02-15:T2:New scan to process
+INFO:035_S_7123:2023-03-14:T1:New scan to process
+INFO:035_S_7123:2023-03-14:T2:New scan to process
+INFO:082_S_7122:2023-04-04:T1:New scan to process
+INFO:082_S_7122:2023-04-04:T2:New scan to process
+INFO:NEW_T1
+0.0    6371
+5.0     814
+1.0     244
+3.0      79
+4.0      18
+Name: count, dtype: int64 new T1s identified.
+INFO:NEW_T2
+0.0    7214
+1.0     282
+4.0      18
+3.0      12
+Name: count, dtype: int64 new T2s identified.
