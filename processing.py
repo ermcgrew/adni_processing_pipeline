@@ -25,7 +25,8 @@ def ready_to_process(processing_step, id, date, input_files = [], output_files =
             logging.info(f"{id}:{date}: Running {processing_step}")
             return True
         else:
-            logging.info(f"{id}:{date}: One or more input files missing, cannot run {processing_step}")
+            missingfiles=[file for file in input_files if not os.path.exists(file)]
+            logging.info(f"{id}:{date}: Cannot run {processing_step}, missing these input file(s) {missingfiles}")
             return False
 
 
@@ -155,9 +156,10 @@ class MRI:
             return
 
     def wbseg(self, parent_job_name = ""):
-        this_job_name=f"{self.date_id_prefix}_wbseg"
+        this_function = MRI.wbseg.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
         submit_options =  set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-        if ready_to_process('wbseg', self.id, self.mridate, input_files=[self.brainx], 
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.brainx], 
                             output_files = [self.wbseg], parent_job = parent_job_name):
             os.system(f"bsub {submit_options} -M 12G -q bsc_long \
                     {wbseg_script} \
@@ -170,9 +172,10 @@ class MRI:
             return
 
     def wbsegqc(self, parent_job_name = ""):
-        this_job_name=f"{self.date_id_prefix}_wbsegqc"
+        this_function = MRI.wbsegqc.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-        if ready_to_process('wbsegqc', self.id, self.mridate, input_files=[self.t1trim,self.wbseg], 
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim,self.wbseg], 
                             output_files = [self.wbsegqc], parent_job = parent_job_name):
             os.system(f"bsub {submit_options} {segqc_script} \
                 {self.t1trim} {self.wbseg} {wblabel_file} {self.wbsegqc}")
@@ -196,9 +199,10 @@ class MRI:
 
 
     def superres(self, parent_job_name = ""):
-        this_job_name=f"{self.date_id_prefix}_superres"
+        this_function = MRI.superres.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-        if ready_to_process('superres', self.id, self.mridate, input_files=[self.t1trim], output_files=[self.superres]):
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], output_files=[self.superres]):
             os.system(f"bsub {submit_options} -M 4G -n 1 ./wrapper_scripts/super_resolution.sh \
                     {self.filepath} {self.t1trim} {self.superres}")
             return this_job_name
@@ -206,9 +210,10 @@ class MRI:
             return
 
     def t1ashs(self, parent_job_name = ""):
-        this_job_name=f"{self.date_id_prefix}_t1ashs"
+        this_function = MRI.t1ashs.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-        if ready_to_process("t1ashs", self.id, self.mridate, input_files=[self.t1trim, self.superres], 
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim, self.superres], 
                             output_files=[self.t1ashs_seg_left, self.t1ashs_seg_right], parent_job = parent_job_name):
             # print("T1 ashs running")
             os.system(f"mkdir {self.filepath}/ASHST1")
@@ -220,18 +225,19 @@ class MRI:
             return
     
     def t1mtthk(self, parent_job_name = ""):
+        this_function = MRI.t1mtthk.__name__
         for side in sides:
             if side == "left":
                 ashs_thick = self.t1mtthk_left
                 ashs_seg = self.t1ashs_seg_left
-                this_job_name=f"{self.date_id_prefix}_t1mtthk_left"
+                this_job_name=f"{self.date_id_prefix}_{this_function}_left"
             elif side == "right":
                 ashs_thick = self.t1mtthk_right
                 ashs_seg = self.t1ashs_seg_right
-                this_job_name=f"{self.date_id_prefix}_t1mtthk_right"
+                this_job_name=f"{self.date_id_prefix}_{this_function}_right"
             
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-            if ready_to_process(f"t1mtthk_{side}", self.id, self.mridate, input_files=[ashs_seg], output_files=[ashs_thick], 
+            if ready_to_process(f"{this_function}_{side}", self.id, self.mridate, input_files=[ashs_seg], output_files=[ashs_thick], 
                                 parent_job = parent_job_name):
                 # print(f"t1mtthk for {side} running")
                 os.system(f"bsub {submit_options} -M 12G -n 1 \
@@ -242,12 +248,12 @@ class MRI:
               
 
     def t2ashs(self, parent_job_name = ""):
-        this_job_name=f"{self.date_id_prefix}_t2ashs"
+        this_function = MRI.t2ashs.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-        if ready_to_process("t2ashs", self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
                             output_files=[self.t2ashs_seg_left, self.t2ashs_seg_right]):
             # print(f"bsub submit t2ashs")
-            # print(MRI.do_t2ashs.__name__)
             os.system(f"mkdir {self.filepath}/sfsegnibtend")
             os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs_testcopy.sh run_ashs \
                       {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
@@ -258,8 +264,9 @@ class MRI:
 
 
     def prc_cleanup(self, parent_job_name = ""):
+        this_function = MRI.prc_cleanup.__name__
         for side in sides:
-            this_job_name = f"{self.date_id_prefix}_prc_cleanup_{side}"
+            this_job_name = f"{self.date_id_prefix}_{this_function}_{side}"
 
             if side == "left":
                 seg=self.t2ashs_seg_left
@@ -269,14 +276,14 @@ class MRI:
                 output=self.t2ahs_cleanup_right
             
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-            if ready_to_process(f"prc_cleanup_{side}", self.id, self.mridate, input_files=[seg], \
+            if ready_to_process(f"{this_function}_{side}", self.id, self.mridate, input_files=[seg], \
                                 output_files=[output], parent_job = parent_job_name):
                 os.system(f"bsub {submit_options} ./wrapper_scripts/cleanup_prc.sh {seg} {output}")
 
-        this_job_name = f"{self.date_id_prefix}prc_cleanup_both"
-        parent_job_name = f"{self.date_id_prefix}_prc_cleanup_right"
+        this_job_name = f"{self.date_id_prefix}{this_function}_both"
+        parent_job_name = f"{self.date_id_prefix}_{this_function}_right"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-        if ready_to_process(f"prc_cleanup_both", self.id, self.mridate, \
+        if ready_to_process(f"{this_function}_both", self.id, self.mridate, \
                             input_files=[self.t2ahs_cleanup_left, self.t2ahs_cleanup_right], \
                             output_files=[self.t2ahs_cleanup_both], parent_job = parent_job_name):
                 os.system(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ahs_cleanup_left} \
@@ -294,9 +301,10 @@ class MRI:
     #         return this_job_name
 
     def wmh_prep(self, parent_job_name = ""):
-        this_job_name=f"{self.date_id_prefix}_wmhprep"
+        this_function = MRI.wmh_prep.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-        if ready_to_process("wmhprep", self.id, self.mridate, input_files=[self.flair], output_files=[self.wmh]):
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair], output_files=[self.wmh]):
             if not os.path.exists(f"{analysis_input_dir}/{current_date}"):
                 logging.info(f"making directory {current_date} in analysis_input for WMH analysis.")               
                 os.system(f"mkdir {analysis_input_dir}/{current_date}")
@@ -304,22 +312,24 @@ class MRI:
             return
 
     def pmtau(self, parent_job_name = ""):
-        this_job_name=f"{self.date_id_prefix}_pmtau"
+        this_function = MRI.pmtau.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-        if ready_to_process("pmtau", self.id, self.mridate, input_files=[self.thickness], \
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.thickness], \
                             output_files=[self.pmtau_output], parent_job=parent_job_name):
             os.system(f"bsub {submit_options} ./wrapper_scripts/pmtau.sh {self.id} {self.mridate} {self.filepath}/thickness")
             return
 
     def ashst1_stats(self, wait_code = ""):
-        this_job_name=f"{self.date_id_prefix}_ashs_stats"
+        this_function = MRI.ashst1_stats.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
         ##temp for tesing:
         # os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
         #         {self.id} {self.mridate} {self.filepath} {self.t1ashs_seg_prefix} \
         #         {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
                         
-        if ready_to_process("ashs_stats", self.id, self.mridate, \
+        if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
                                          self.t1mtthk_left,self.t1mtthk_right,self.icv_volumes_file], \
                             output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_mrionly.txt"],\
@@ -331,14 +341,17 @@ class MRI:
             return
 
     def structpetstats(self, wait_code="",t1tau="null",t2tau="null",t1amy="null",t2amy="null",taudate="null",amydate="null"):
+        this_function = MRI.structpetstats.__name__
         ##if t1t1/pets are null, set mode to mri, else mode pet
         if t1tau == "null":
             mode = "mri"
         else:
             mode="pet"
         
-        this_job_name=f"allstats_{mode}_{self.date_id_prefix}"
+        this_job_name=f"{this_function}_{mode}_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
+        logging.info(f"{self.id}:{self.mridate}: Submitting structpetstats to queue with mode {mode}, \
+                     will run when parent jobs matching wait code {wait_code} are complete.")
         os.system(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg} {self.thickness} \
                 {t1tau} {t2tau} {t1amy} {t2amy} \
                 {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
@@ -347,11 +360,11 @@ class MRI:
                 {self.mridate} {taudate} {amydate}")
         # print(f"pet_stats {mode}")
         # print(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg} {self.thickness} \
-        #         # {t1tau} {t2tau} {t1amy} {t2amy} \
-        #         # {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
-        #         # {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
-        #         # {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
-        #         # {self.mridate} {taudate} {amydate}")
+        #         {t1tau} {t2tau} {t1amy} {t2amy} \
+        #         {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
+        #         {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
+        #         {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
+        #         {self.mridate} {taudate} {amydate}")
         return
 
 
@@ -495,10 +508,9 @@ class MRIPetReg:
 # mri_to_process.do_wbsegqc()
 
 
-# mri_to_process.mripetstats(wait_code = f"{mri_to_process.mridate}_{mri_to_process.id}*",
+# mri_to_process.structpetstats(wait_code = f"{mri_to_process.mridate}_{mri_to_process.id}*",
 #                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
 #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
-# mri_to_process.mripetstats(wait_code = f"{mri_to_process.mridate}_{mri_to_process.id}*")
 
 # mri_to_process.do_t1icv()
 # t1ashs_job_name = mri_to_process.do_t1ashs()

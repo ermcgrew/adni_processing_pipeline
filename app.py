@@ -49,107 +49,108 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                 if scantype == 'mri':
                     scan_to_process = MRI(subject,scandate)
                     ##TODO: Flair dicom to nifti processing--add flair dicom to uid csvs
-                    uids={"t1_uid": str(row['IMAGEUID_T1']).split(".")[0],
-                          "t2_uid": str(row['IMAGEUID_T2']).split('.')[0]} 
+                    uids={"t1_uid": [str(row['IMAGEUID_T1']).split(".")[0], scan_to_process.t1nifti],
+                          "t2_uid": [str(row['IMAGEUID_T2']).split('.')[0], scan_to_process.t2nifti]} 
                         #'flair_uid': str(row['IMAGEUID_FLAIR'])
                 elif scantype == "amy":
                     scan_to_process = AmyloidPET(subject,scandate)
-                    uids = {'amy_uid':str(row["IMAGEID"]).split(".")[0]}
+                    uids = {'amy_uid':[str(row["IMAGEID"]).split(".")[0], scan_to_process.amy_nifti]}
                 elif scantype == 'tau':
                     scan_to_process = TauPET(subject,scandate)
-                    uids = {'tau_uid':str(row["IMAGEID"]).split(".")[0]}
+                    uids = {'tau_uid':[str(row["IMAGEID"]).split(".")[0], scan_to_process.tau_nifti]}
 
                 logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Checking for nifti file.")
-                print(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Checking for nifti file.")
+                # print(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Checking for nifti file.")
 
                 for key in uids:
-                    ##add nifti_fileloc_dataset variable and colnames (finalt1nifti, etc) to dict above
-
-                    # if not os.path.exists(scan_to_process.):
-                        # then run dicom to nifti
-                    # else:
-                    #   set status = nifti already exists
-
-                    result = subprocess.run(
-                            ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
-                            scan_to_process.id,scan_to_process.scandate,uids[key],\
-                                scan_to_process.__class__.__name__,scan_to_process.log_output_dir], 
-                            capture_output=True, text=True)
-                    if result.returncode != 0:
-                        logging.warning(f"{scan_to_process.id}:{scan_to_process.scandate}:\
-                                        dicom_to_nifti.sh error {result.returncode}:{result.stderr}")
+                    if uids[key][0] == "nan":
+                        # TODO:record as no dicom, 
                         continue
-
-                    result_list = result.stdout.split("\n")
-                    if len(result_list) > 3:
-                        #first item is "Job <###> submitted to queue..."
-                        status = result_list[1]
+                   
+                    if os.path.exists(uids[key][1]):
+                        status="nifti file already exists in dataset"
                     else:
-                        status = result_list[0]
-                    
+                        result = subprocess.run(
+                                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
+                                scan_to_process.id,scan_to_process.scandate,uids[key][0],\
+                                    scan_to_process.__class__.__name__,scan_to_process.log_output_dir], 
+                                capture_output=True, text=True)
+                        if result.returncode != 0:
+                            logging.warning(f"{scan_to_process.id}:{scan_to_process.scandate}:\
+                                            dicom_to_nifti.sh error {result.returncode}:{result.stderr}")
+                            continue
+
+                        result_list = result.stdout.split("\n")
+                        if len(result_list) > 3:
+                            #first item is "Job <###> submitted to queue..."
+                            status = result_list[1]
+                            nifti_file_loc_public = result_list[2]
+                        else:
+                            status = result_list[0]
+                            nifti_file_loc_public = result_list[1]
+                        
                     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
+                    ##TODO: record no dicom exists status 
 
                     if status == "conversion to nifti sucessful":
-                        nifti_file_loc_public = result_list[2]
-                        # print(f"Nifti filepath: {nifti_file_loc_public}")
                         if key == "t1_uid":
-                            nifti_file_loc_dataset = scan_to_process.t1nifti
                             df_newscans.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
                             df_newscans.at[index,'T1_CONVERT_STATUS'] = 1
                         elif key == "t2_uid":
-                            nifti_file_loc_dataset = scan_to_process.t2nifti
                             df_newscans.at[index,'FINALT2NIFTI'] = nifti_file_loc_public
                             df_newscans.at[index,'T2_CONVERT_STATUS'] = 1
                         #elif key == "flair_uid":
-                            # nifti_file_loc_dataset = scan_to_process.flair
                             # df_newscans.at[index,'FINALFLAIRNIFTI'] = nifti_file_loc_public
                             # df_newscans.at[index,'FLAIR_CONVERT_STATUS'] = 1
                         elif key == "amy_uid":
-                            nifti_file_loc_dataset = scan_to_process.amy_nifti
                             df_newscans.at[index,'FILELOC'] = nifti_file_loc_public
-                            df_newscans.at[index,'AMYNIFTI'] = nifti_file_loc_dataset
+                            df_newscans.at[index,'AMYNIFTI'] = uids[key][1]
                             df_newscans.at[index,'AMY_CONVERT_STATUS'] = 1
                         elif key == "tau_uid":
-                            nifti_file_loc_dataset = scan_to_process.tau_nifti
                             df_newscans.at[index,'FILELOC'] = nifti_file_loc_public
-                            df_newscans.at[index,'TAUNIFTI'] = nifti_file_loc_dataset
+                            df_newscans.at[index,'TAUNIFTI'] = uids[key][1]
                             df_newscans.at[index,'TAU_CONVERT_STATUS'] = 1
 
                         # make symlink for nifti file between /PUBLIC and /dataset
-                        # print(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}") 
-                        os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
+                        # print(f"ln -sf {nifti_file_loc_public} {uids[key][1]}") 
+                        os.system(f"ln -sf {nifti_file_loc_public} {uids[key][1]}")
 
-                        # ##check for any misses:
-                        # if not os.path.exists(nifti_file_loc_dataset):
-                        #     try:
-                        #         os.system(f"ln -sf {nifti_file_loc_public} {nifti_file_loc_dataset}")
-                        #     except:
-                        #         logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:No file found for {key}")
+                    ##check for any misses (status isn't always correct):
+                    if not os.path.exists(uids[key][1]) and nifti_file_loc_public:
+                        # print(f"ln -sf {nifti_file_loc_public} {uids[key][1]}") 
+                        os.system(f"ln -sf {nifti_file_loc_public} {uids[key][1]}")
 
-            #     ##MRI only step:
-            #     if scantype == "mri":
-            #         logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
-            #         #site's vendor & model info
-            #         site = scan_to_process.id.split("_")[0]
-            #         siteinfo_result = subprocess.run(
-            #             ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
-            #             capture_output=True, text=True)
-            #         siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
-            #         siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
-            #         for i in range(0,len(siteinfo_result_list)):
-            #             df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
+                ##MRI only step:
+                if scantype == "mri":
 
-            # # ##after all rows in iterrows
-            # logging.info(f"{scantype}:Saving file location csv with new data")
-            # old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in \
-            #                     os.listdir(fileloc_directory_previousrun) if scantype in x][0]
-            # old_filelocs_df = pd.read_csv(old_fileloc_path)
-            # all_filelocs = pd.concat([df_newscans, old_filelocs_df], ignore_index=True)
-            # #keep most recent (e.g. updated) if any duplicates
-            # all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last', inplace=True) 
-            # all_filelocs.sort_values(by=["RID","SMARTDATE"], ignore_index=True, inplace=True)
+                    # logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
+                    #site's vendor & model info
+                    site = scan_to_process.id.split("_")[0]
+                    siteinfo_result = subprocess.run(
+                        ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
+                        capture_output=True, text=True)
+                    siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
+                    siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
+                    for i in range(0,len(siteinfo_result_list)):
+                        df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
 
-            # ##output df to file 
+            ##after all rows in iterrows
+            logging.info(f"{scantype}:Saving file location csv with new data")
+            old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in \
+                                os.listdir(fileloc_directory_previousrun) if scantype in x][0]
+            old_filelocs_df = pd.read_csv(old_fileloc_path)
+            all_filelocs = pd.concat([df_newscans, old_filelocs_df], ignore_index=True)
+            #keep most recent (e.g. updated) if any duplicates
+            all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last', inplace=True) 
+            all_filelocs.sort_values(by=["RID","SMARTDATE"], ignore_index=True, inplace=True)
+            print(all_filelocs.info())
+            print(all_filelocs.head())
+            print(df_newscans.info())
+            df_newscans.to_csv("/project/wolk/ADNI2018/scripts/adni_processing_pipeline/testing/newmris_convertsymlink_output.csv")
+            print(old_filelocs_df.info())
+            
+
+            ##output df to file 
             # if outputcsv:
             #     all_filelocs.to_csv(outputcsv,index=False,header=True)
             # else:

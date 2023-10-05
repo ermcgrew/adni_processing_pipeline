@@ -35,8 +35,8 @@ def reformat_date_slash_to_dash(df):
 
 ###File/directory locations on the cluster
 #main file directories in cluster
-# adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
 cleanup_dir = f"{analysis_input_dir}/cleanup"
