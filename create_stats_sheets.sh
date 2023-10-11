@@ -24,6 +24,9 @@ function write_header()
     HEADER="$HEADER\t${roi}_tau\t${roi}_amy\t${roi}_thickness"
   done
 
+  #WMH
+  HEADER="$HEADER\tWMH_vol"
+  
   #PMTAU
   for i in Anterior Posterior; do
   HEADER="$HEADER\t${i}_pmtauthick\t${i}_pmtauweightedthick\t${i}_pmtaujac\t${i}_pmtauweightedjac"

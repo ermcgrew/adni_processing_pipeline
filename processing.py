@@ -119,7 +119,8 @@ class MRI:
 
         self.flair = f"{self.filepath}/{self.date_id_prefix}_flair.nii.gz"
         self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
-        self.t1flair = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_to_flair.mat"
+        self.wmh_mask = f"{self.filepath}/{self.date_id_prefix}_wmh_mask.nii.gz"
+        # self.t1flair = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_to_flair.mat"
 
         self.log_output_dir = f"{self.filepath}/logs_{current_date}"
 
@@ -370,7 +371,7 @@ class MRI:
                 {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
                 {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
                 {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
-                {self.mridate} {taudate} {amydate}")
+                {self.mridate} {taudate} {amydate} {self.flair} {self.wmh_mask}")
         return
 
 
@@ -490,27 +491,27 @@ class MRIPetReg:
 
 
 # Test runs
-mri_to_process = MRI("114_S_6917", "2021-04-16") 
+# mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI('141_S_6779','2020-10-27')
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
 # mri_to_process = MRI("033_S_0734", "2018-10-10")
 
-amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
+# amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
 # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
 
-tau_to_process = TauPET("114_S_6917", "2021-08-11")
+# tau_to_process = TauPET("114_S_6917", "2021-08-11")
 # tau_to_process = TauPET("099_S_6175", "2020-07-09")
 
-mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
-mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
+# mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
+# mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
 
 
 # ##MRI processing
-mri_to_process.structpetstats(t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
-                t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
+# mri_to_process.structpetstats(t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
+#                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
 # mri_to_process.do_wbsegqc()
 
