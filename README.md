@@ -13,3 +13,4 @@
 `mkdir YYYYMMDD_ida_study_datasheets YYYYMMDD_merged_data_uids YYYYMMDD_uids_process_status YYYYMMDD_filelocs` 
 4. copy downloaded data csvs to YYYYMMDD_ida_study_datasheets
 5. run app.py on cluster
+  - `python app.py mri_pet_registration -s t1_pet_reg pet_reg_qc -c /project/wolk/ADNI2018/analysis_input/testversions_processingstatuscsvs/anchored_processing_status.csv`
