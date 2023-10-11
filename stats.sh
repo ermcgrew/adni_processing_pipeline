@@ -30,6 +30,8 @@ stats_output_dir=${16}
 mridate=${17}
 taudate=${18}
 amydate=${19}
+flair=${20}
+wmh_mask=${21}
 
 # for file in $@ ; do
 #   # echo $file
@@ -271,6 +273,9 @@ for side in left right; do
       statline="$statline\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )\t $THISTHICK"
     done
 
+    ###White matter hyperintensity from FLAIR nifti (volume of region 1)
+    wmh_vol=$( c3d $flair $wmh_mask -lstat | awk '{print $7}' | tail -n 1 )
+    statline="$statline\t $wmh_vol"
 
     ###PMTau
     jacobian=$(echo $tissueseg | sed -e 's/BrainSegmentation/SubjectToTemplateLogJacobian/g' )
