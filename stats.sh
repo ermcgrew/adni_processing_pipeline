@@ -66,10 +66,43 @@ for side in left right; do
 
   fi
 
+  ### For tau cerebellar reference region, create mask of inferior cerebellar region
+  wbdir=$( dirname $wholebrainseg )
+  inf_cereb_mask="${wbdir}/inferior_cerebellum.nii.gz"
   
-  ###To get Cerebellar reference region to compare radiotracer uptake to
-  # wholebrain seg + t1-pet reg into temp file
-  c3d $wholebrainseg -as SEG -thresh 38 38 1 0 -erode 1 2x2x2vox -popas A \
+  ##From Sandy's utility find_infcereb
+  if [[ ! -e $inf_cereb_mask ]] ; then 
+    allcereb="${wbdir}/whole_cerebellum.nii.gz"
+    c3d $wholebrainseg -replace 38 inf 39 inf 40 inf 41 inf 71 inf 72 inf 73 inf -thresh inf inf 1 0 -o $allcereb
+    c3d $allcereb -cmv -oo $wbdir/coordmap%d.nii.gz
+
+    ##from Sandy's utility findaxisdir
+    ORIENT=$(c3d $allcereb -info | head -n 1 | awk '{print $NF}' )
+    pos=$(echo $ORIENT | grep -b -o "I")
+    dir=pos
+    if [ "$pos" == "" ]; then
+      pos=$(echo $ORIENT | grep -b -o "S")
+      dir=neg
+    fi
+
+    axpos=$(expr ${pos:0:1} )
+    maxaxslice=$(c3d $wbdir/coordmap${axpos}.nii.gz $allcereb -times $allcereb -lstat | sed -n "3p" | awk '{print $4}' ) 
+    minaxslice=$(c3d $wbdir/coordmap${axpos}.nii.gz $allcereb -times $allcereb -lstat | sed -n "3p" | awk '{print $5}' ) 
+    if [ "$dir" == "neg" ]; then
+      minslice=$(echo "$maxaxslice - ( $maxaxslice - $minaxslice )/2 " | bc -l )
+      maxslice=$maxaxslice
+    else
+      minslice=$minaxslice
+      maxslice=$(echo "$minaxslice + ( $maxaxslice - $minaxslice )/2 " | bc -l )
+    fi
+      
+    c3d $allcereb $wbdir/coordmap${axpos}.nii.gz -thresh $minslice $maxslice 1 0 -times -o $inf_cereb_mask
+    rm -f $allcereb $wbdir/coordmap?.nii.gz
+  fi 
+
+  ### Get cerebellar reference region to compare radiotracer uptake to
+  ### wholebrain seg + t1-pet reg into temp file
+  c3d $wholebrainseg $inf_cereb_mask -times -as SEG -thresh 38 38 1 0 -erode 1 2x2x2vox -popas A \
     -push SEG -thresh 39 39 1 0 -erode 1 2x2x2vox -popas B \
     -push SEG -thresh 71 71 1 0 -erode 1 2x2x2vox -popas C \
     -push SEG -thresh 72 72 1 0 -erode 1 2x2x2vox -popas D \
@@ -89,7 +122,6 @@ for side in left right; do
   #pull value out to variable
   CEREBTAU=$(cat $TMPDIR/stattaump.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
   CEREBAMY=$(cat $TMPDIR/statamymp.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
-  
 
   ###ASHST2 volumes, number of slices, tau and amy measures 
   # cleanupt2 + t2-pet reg

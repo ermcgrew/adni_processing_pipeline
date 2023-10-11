@@ -100,9 +100,9 @@ class MRI:
         self.t1mtthk_suffix = "thickness.csv"   
         
         self.t1icv_seg = f"{self.filepath}/ASHSICV/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
-        ##old ASHS root:
+        ##old(lxie) ASHS root:
         self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_corr_nogray_volumes.txt"
-        ##new ASHS root:
+        ##new(pauly) ASHS root:
         # self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_multiatlas_corr_nogray_volumes.txt"
 
 
@@ -180,6 +180,12 @@ class MRI:
             os.system(f"bsub {submit_options} {segqc_script} \
                 {self.t1trim} {self.wbseg} {wblabel_file} {self.wbsegqc}")
         return         
+
+    def wbseg_to_ants(self, parent_job_name = ""):
+        
+        print(f"bsub ./wrapper_scripts/wbseg_to_ants.sh")
+        return
+
 
     def t1icv(self, parent_job_name = ""):
         this_function = MRI.t1icv.__name__
@@ -350,21 +356,21 @@ class MRI:
         
         this_job_name=f"{this_function}_{mode}_{self.date_id_prefix}"
         submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
-        logging.info(f"{self.id}:{self.mridate}: Submitting structpetstats to queue with mode {mode}, \
+        logging.info(f"{self.id}:{self.mridate}: Submitting structpetstats to queue with mode {mode},\
                      will run when parent jobs matching wait code {wait_code} are complete.")
-        os.system(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg} {self.thickness} \
-                {t1tau} {t2tau} {t1amy} {t2amy} \
-                {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
-                {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
-                {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
-                {self.mridate} {taudate} {amydate}")
-        # print(f"pet_stats {mode}")
-        # print(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg} {self.thickness} \
+        # os.system(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg} {self.thickness} \
         #         {t1tau} {t2tau} {t1amy} {t2amy} \
         #         {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
         #         {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
         #         {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
         #         {self.mridate} {taudate} {amydate}")
+        # print(f"pet_stats {mode}")
+        print(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg} {self.thickness} \
+                {t1tau} {t2tau} {t1amy} {t2amy} \
+                {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
+                {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
+                {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
+                {self.mridate} {taudate} {amydate}")
         return
 
 
@@ -484,26 +490,27 @@ class MRIPetReg:
 
 
 # Test runs
-# mri_to_process = MRI("114_S_6917", "2021-04-16") 
+mri_to_process = MRI("114_S_6917", "2021-04-16") 
 # mri_to_process = MRI('141_S_6779','2020-10-27')
 # mri_to_process = MRI("033_S_7088", "2022-06-27")
 # mri_to_process = MRI("137_S_6826", "2019-10-17")
 # mri_to_process = MRI("099_S_6175", "2020-06-03")
 # mri_to_process = MRI("033_S_0734", "2018-10-10")
 
-# amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
+amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
 # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
 # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
 
-# tau_to_process = TauPET("114_S_6917", "2021-08-11")
+tau_to_process = TauPET("114_S_6917", "2021-08-11")
 # tau_to_process = TauPET("099_S_6175", "2020-07-09")
 
-# mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
-# mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
+mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
+mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
 
 
 # ##MRI processing
-# mri_to_process.structpetstats()
+mri_to_process.structpetstats(t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
+                t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
 # mri_to_process.do_wbsegqc()
 
