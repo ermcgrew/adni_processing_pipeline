@@ -50,11 +50,9 @@ if not os.path.exists(this_output_dir):
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
 wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
 wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly"
-segqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simplesegqa.sh"
 wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
 ashs_mopt_mat_file = "/home/lxie/ADNI2018/scripts/identity.mat"
 t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
-t1petregqc_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/simpleregqa.sh"
 pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 
 ##old roots & atlases for ASHS processing
@@ -116,6 +114,6 @@ sides = ["left", "right"]
 
 
 ###Log file
-# logging.basicConfig(filename=f"{this_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
+logging.basicConfig(filename=f"{this_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
 #for testing:
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)

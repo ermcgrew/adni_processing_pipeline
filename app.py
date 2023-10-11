@@ -246,9 +246,9 @@ def mri_pet_registration(steps=[], all_steps=False, csv=""):
     
         mri_to_process = MRI(subject,mridate)
         tau_to_process = TauPET(subject, taudate)
-        mri_tau_reg_to_process = MRIPetReg("taupet", mri_to_process, tau_to_process) 
+        mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process) 
         amy_to_process = AmyloidPET(subject, amydate)
-        mri_amy_reg_to_process = MRIPetReg("amypet", mri_to_process, amy_to_process)
+        mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
 
         if "structpetstats" in steps_ordered and len(steps_ordered) == 1:
             ##if only doing stats, no wait code from image processing funcations
