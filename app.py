@@ -181,13 +181,15 @@ def mri_image_processing(steps=[], all_steps=False, csv=""):
 
     if csv:
         csv_to_read = csv
+        df = pd.read_csv(csv_to_read)
     else:
         csv_to_read = os.path.join(datasetup_directories_path["processing_status"],"mri_processing_status.csv")
+        df_full = pd.read_csv(csv_to_read)
+        df = df_full.loc[(df_full['NEW_T1'] == 1) | (df_full['NEW_T2'] == 1)] # | df['NEW_FLAIR'] == 1
     
     logging.info(f"Running MRI image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
-
-    df=pd.read_csv(csv_to_read)
     # print(df.head())
+
     for index,row in df.iterrows():
         subject = str(row['ID'])
         scandate = str(row['SMARTDATE'])
@@ -197,7 +199,7 @@ def mri_image_processing(steps=[], all_steps=False, csv=""):
         parent_job=''
         for step in steps_ordered:
             # print(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing image processing:{step}.")
-            if step == "t2ashs" or step == "prc_cleanup" and not os.path.exists(scan_to_process.t2nifti):
+            if (step == "t2ashs" or step == "prc_cleanup") and not os.path.exists(scan_to_process.t2nifti):
                 logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:No T2 file.")
                 continue              
             elif "stats" not in step and not os.path.exists(scan_to_process.t1nifti):
@@ -234,6 +236,8 @@ def mri_pet_registration(steps=[], all_steps=False, csv=""):
         csv_to_read = csv
     else:
         csv_to_read = os.path.join(datasetup_directories_path["processing_status"],"anchored_processing_status.csv")
+        # df_newscans = df.loc[(df['NEW_PET'] == 1)]
+
     logging.info(f"Running MRI-PET registration steps {steps_ordered} for sessions in csv {csv_to_read}")
     
     df=pd.read_csv(csv_to_read)
@@ -297,7 +301,7 @@ def mri_pet_registration(steps=[], all_steps=False, csv=""):
         
 
 def final_data_sheets():
-     #job to watch queue for status of all image processing & individual stats collection
+    #job to watch queue for status of all image processing & individual stats collection
     # print(f'bsub -J "{current_date}_queuewatch" -o {this_output_dir} ./queue_watch.sh')
     os.system(f'bsub -J "{current_date}_queuewatch" -o {this_output_dir} ./queue_watch.sh')
     
