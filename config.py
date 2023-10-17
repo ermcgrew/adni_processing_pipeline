@@ -35,8 +35,8 @@ def reformat_date_slash_to_dash(df):
 
 ###File/directory locations on the cluster
 #main file directories in cluster
-# adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
 cleanup_dir = f"{analysis_input_dir}/cleanup"
@@ -72,7 +72,7 @@ ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_201
 ###Steps for argparse choices
 ##Order matters; values match MRI.method & MRIPetReg.method names
 mri_processing_steps = ["ants", "wbseg", "wbsegqc", "t1icv", "superres","t1ashs", "t1mtthk",
-    "t2ashs", "prc_cleanup", "wmh", "pmtau", "ashst1_stats", "structpetstats"]
+    "t2ashs", "prc_cleanup", "wmh", "pmtau", "ashst1_stats", "ashst2_stats", "structpetstats"]
 registration_steps = ["t1_pet_reg", "t2_pet_reg", "pet_reg_qc", "structpetstats"]
 
 
