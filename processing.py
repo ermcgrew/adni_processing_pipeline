@@ -8,6 +8,9 @@ from config import *
 
 ##processing class functions only return job name if it's outputs are the inputs for another function
 
+###when doing job submission, use subprocess.run instead of os.system, parse stdout result
+    #if message is "no parent job matching wait code", try to run anyway? 
+    ##that would work for cleanup_both
 
 #common functions
 def ready_to_process(processing_step, id, date, input_files = [], output_files = [], parent_job = ""):
@@ -97,16 +100,19 @@ class MRI:
         self.t1mtthk_suffix = "thickness.csv"   
         
         self.t1icv_seg = f"{self.filepath}/ASHSICV/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
-        ##old(lxie) ASHS root:
-        self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_corr_nogray_volumes.txt"
-        ##new(pauly) ASHS root:
-        # self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_multiatlas_corr_nogray_volumes.txt"
-
+        ##ICV volume txt file name from older ASHS version
+        self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_corr_nogray_volumes.txt" 
+        if not os.path.exists(self.icv_volumes_file):
+            ##ICV volume txt file name from newer ASHS versions:
+            self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_multiatlas_corr_nogray_volumes.txt"
 
         self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
         self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
         self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
-             
+        self.t2ashs_qc_left = f"{self.filepath}/sfsegnibtend/qa/qa_seg_bootstrap_corr_nogray_left_qa.png"
+        self.t2ashs_qc_right = f"{self.filepath}/sfsegnibtend/qa/qa_seg_bootstrap_corr_nogray_right_qa.png"
+
+
         self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
         self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
 
@@ -186,16 +192,20 @@ class MRI:
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], \
                             output_files=[self.t1icv_seg]):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             # print("submit T1icv")
             # print(f"bsub {submit_options} \
             #     ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
             #         {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             os.system(f"mkdir {self.filepath}/ASHSICV")
             os.system(f"bsub {submit_options} \
-                  ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
+                  ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
                       {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
-            return 
+           
+            # os.system(f"bsub {submit_options} \
+            #       ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
+            #           {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
+            # return 
 
 
     def superres(self, parent_job_name = ""):
@@ -255,6 +265,20 @@ class MRI:
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             os.system(f"mkdir {self.filepath}/sfsegnibtend")
             os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs_testcopy.sh run_ashs \
+                      {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
+                      {self.filepath}/sfsegnibtend {self.id}")
+            return this_job_name
+        else: 
+            return
+
+    def t2ashs_qconly(self,parent_job_name = ""):
+        this_function = MRI.t2ashs_qconly.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
+                            output_files=[self.t2ashs_qc_left, self.t2ashs_qc_right]):
+            # print(f"bsub submit t2ashs")
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+            os.system(f"bsub {submit_options} ./wrapper_scripts/temp_run_ashs_t2_qconly.sh run_ashs \
                       {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
                       {self.filepath}/sfsegnibtend {self.id}")
             return this_job_name
@@ -484,12 +508,14 @@ class MRIPetReg:
 if __name__ == "__main__":
     print("Running processing.py directly.")
 
-    mri_to_process = MRI("114_S_6917", "2021-04-16") 
+    # mri_to_process = MRI("033_S_1016","2017-12-06") 
     # mri_to_process = MRI('141_S_6779','2020-10-27')
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
     # mri_to_process = MRI("137_S_6826", "2019-10-17")
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
     # mri_to_process = MRI("033_S_0734", "2018-10-10")
+    mri_to_process = MRI("018_S_2133", "2019-02-11")
+    mri_to_process.t2ashs_qconly()
 
     # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
     # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
@@ -503,7 +529,7 @@ if __name__ == "__main__":
 
 
     # ##MRI processing
-    mri_to_process.ashst2_stats()
+    # mri_to_process.t2ashs_qconly()
     # mri_to_process.superres() 
     # mri_to_process.structpetstats(t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
@@ -515,7 +541,7 @@ if __name__ == "__main__":
     #                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
-    # mri_to_process.do_t1icv()
+    # mri_to_process.t1icv()
     # t1ashs_job_name = mri_to_process.do_t1ashs()
     # mri_to_process.do_ashs_stats(t1ashs_job_name)
     # mri_to_process.do_t1mtthk()

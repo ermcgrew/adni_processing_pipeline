@@ -56,13 +56,13 @@ t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
 pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 
 ##old roots & atlases for ASHS processing
-ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
+# ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
 ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
 icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
 ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
 
 ##new root and atlases for ASHS processing
-# ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
+ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 # icv_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_icv"
 # ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
 # ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
@@ -71,8 +71,8 @@ ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_201
 
 ###Steps for argparse choices
 ##Order matters; values match MRI.method & MRIPetReg.method names
-mri_processing_steps = ["ants", "wbseg", "wbsegqc", "t1icv", "superres","t1ashs", "t1mtthk",
-    "t2ashs", "prc_cleanup", "wmh", "pmtau", "ashst1_stats", "ashst2_stats", "structpetstats"]
+mri_processing_steps = ["ants", "wbseg", "wbseg_to_ants", "wbsegqc", "t1icv", "superres","t1ashs", "t1mtthk",
+    "t2ashs", "t2ashs_qconly", "prc_cleanup", "wmh", "pmtau", "ashst1_stats", "ashst2_stats", "structpetstats"]
 registration_steps = ["t1_pet_reg", "t2_pet_reg", "pet_reg_qc", "structpetstats"]
 
 
