@@ -10,22 +10,22 @@ z_opt=$7
 m_opt=$8
 
 export ASHS_ROOT=$ashs_root
-module load ImageMagick
 module unload matlab/2023a 
+module load ImageMagick
 
 #standard options
 options="-a $atlas -g $t1trim -f $(readlink -f $t2link) \
-          -w $output_directory -T -I ${id}\
-          -N -t 1"
+          -w $output_directory -T -d -I ${id}"
+        #   -N -t 1"
         #   -d
 
 #addtional options for T1, ICV ASHS only
-if [[ $t2link =~ "T2w" ]] ; then 
-    echo "skip t2"
-else
-    options="$options -m $m_opt -M"
-    # -z $z_opt -l -s 1-7
-fi
+# if [[ $t2link =~ "T2w" ]] ; then 
+#     echo "skip t2"
+# else
+#     options="$options -m $m_opt -M"
+#     # -z $z_opt -l -s 1-7
+# fi
 
 #For ICV ASHS only
 if [[ $t2link == $t1trim ]] ; then 

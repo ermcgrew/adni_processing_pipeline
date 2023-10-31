@@ -336,7 +336,7 @@ def create_mri_uid_list():
 def create_pet_uid_list():
     petmeta_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],pet_meta_list))
     # print(petmeta_df.head())
-    pettype_column_dict = {0:'fdg', 1:'amy', 2:'tau'}
+    pettype_column_dict = {1:'amy', 2:'tau'} #0:'fdg', 
     for key in pettype_column_dict:
         logging.info(f"Datasetup.py/function create_pet_uid_list is collating data for {pettype_column_dict[key]}")
         outputdf=pd.DataFrame()
@@ -365,15 +365,12 @@ def create_pet_uid_list():
 
 
 def create_tau_anchored_uid_list():
+    logging.info(f"Creating tau-anchored uid list")
+
     #need tau, amy, mri uid csvs
-    mris = pd.read_csv("/project/wolk/ADNI2018/analysis_input/20230731_processing_status/mri_processing_status.csv")
-    amys = pd.read_csv("/project/wolk/ADNI2018/analysis_input/20230731_processing_status/amy_processing_status.csv")
-    taus = pd.read_csv("/project/wolk/ADNI2018/analysis_input/20230731_processing_status/tau_processing_status.csv")
-    
-    # mris = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["mri"]))
-    # amys = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["amy"]))
-    # taus = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["tau"]))
-    
+    mris = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["mri"]))
+    amys = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["amy"]))
+    taus = pd.read_csv(os.path.join(datasetup_directories_path['uids'],filenames["uids"]["tau"]))
     taucolstoadd = [col + ".tau" for col in taus.columns if col != "ID" and col != "RID"]
     amycolstoadd = [col + ".amy" for col in amys.columns if col != "ID" and col != "RID"]
     mricolstoadd = [col + ".mri" for col in mris.columns if col != "ID" and col != "RID"]
@@ -440,8 +437,7 @@ def create_tau_anchored_uid_list():
                 
                 index +=1  
     
-    outputdf.to_csv("/project/wolk/ADNI2018/analysis_input/20230731_processing_status/anchored_uids.csv",index=False,header=True)
-    # outputdf.to_csv(os.path.join(datasetup_directories_path["uids"],filenames["uids"]["anchored"]),index=False,header=True)
+    outputdf.to_csv(os.path.join(datasetup_directories_path["uids"],filenames["uids"]["anchored"]),index=False,header=True)
 
 
 
@@ -610,7 +606,9 @@ def main():
 # preprocess_new("MRILIST_12Jun2023.csv",registry=registry_df)   
 
 # create_mri_uid_list()
+# print(os.path.join(datasetup_directories_path["ida_study_datasheets"],pet_meta_list))
 # create_pet_uid_list() 
+create_tau_anchored_uid_list()
 
 # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_uids/mri_uids.csv",\
 #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/mri_filelocations_copyof_MRI3TListWithNIFTIPath_10172022.csv",\

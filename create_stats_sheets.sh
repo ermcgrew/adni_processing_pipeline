@@ -30,6 +30,7 @@ function write_header()
   #PMTAU
   for i in Anterior Posterior; do
   HEADER="$HEADER\t${i}_pmtauthick\t${i}_pmtauweightedthick\t${i}_pmtaujac\t${i}_pmtauweightedjac"
+  done
   
   echo -e "${HEADER}" > $this_run_analysis_output_dir/$tsvfilename
   echo -e "${HEADER}" > $this_run_analysis_output_dir/$structonly
