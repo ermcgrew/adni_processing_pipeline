@@ -48,6 +48,7 @@ if not os.path.exists(this_output_dir):
 
 #Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
+brain_ex_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/brainx_phil.sh"
 wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
 wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly"
 wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
@@ -71,7 +72,8 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 
 ###Steps for argparse choices
 ##Order matters; values match MRI.method & MRIPetReg.method names
-mri_processing_steps = ["ants", "wbseg", "wbseg_to_ants", "wbsegqc", "t1icv", "superres","t1ashs", "t1mtthk",
+##for naming: if whole_brain_seg was called "wbseg", it matches to "wbseg_to_ants" and "wbsegqc" as well
+mri_processing_steps = ["ants", "brain_ex", "whole_brain_seg", "wbseg_to_ants", "wbsegqc", "t1icv", "superres","t1ashs", "t1mtthk",
     "t2ashs", "t2ashs_qconly", "prc_cleanup", "wmh", "pmtau", "ashst1_stats", "ashst2_stats", "structpetstats"]
 registration_steps = ["t1_pet_reg", "t2_pet_reg", "pet_reg_qc", "structpetstats"]
 
