@@ -168,7 +168,7 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                                     filenames['filelocations'][scantype]),index=False,header=True)
  
 
-def mri_image_processing(steps=[], all_steps=False, csv=""):
+def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
     if all_steps:
         steps_ordered = mri_processing_steps
     else:
@@ -177,7 +177,7 @@ def mri_image_processing(steps=[], all_steps=False, csv=""):
         else:
             ##variable mri_processing_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
             steps_ordered = [method for method in mri_processing_steps for step in steps if step in method]
-    # print(f"Run image processing steps: {steps_ordered}")
+    print(f"Run image processing steps: {steps_ordered}")
 
     if csv:
         csv_to_read = csv
@@ -189,6 +189,8 @@ def mri_image_processing(steps=[], all_steps=False, csv=""):
     
     logging.info(f"Running MRI image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
     # print(df.head())
+
+    # dry_run = True
 
     for index,row in df.iterrows():
         subject = str(row['ID'])
@@ -209,19 +211,19 @@ def mri_image_processing(steps=[], all_steps=False, csv=""):
                 # print(f"doing stats step {step}")
                 ##if only doing stats, no need to wait for image processing jobs to complete
                 if len(steps_ordered) == len([x for x in steps_ordered if "stats" in x]):
-                    getattr(scan_to_process,step)() 
+                    getattr(scan_to_process,step)(dry_run = dry_run) 
                 else:
-                    getattr(scan_to_process,step)(wait_code=f"{scan_to_process.mridate}_{scan_to_process.id}*")
+                    getattr(scan_to_process,step)(wait_code=f"{scan_to_process.mridate}_{scan_to_process.id}*", dry_run = dry_run)
             else:
                 if parent_job: 
                     ##Call processing step function on class instance with the parent job name
-                    parent_job = getattr(scan_to_process,step)(parent_job)
+                    parent_job = getattr(scan_to_process,step)(parent_job_name = parent_job, dry_run = dry_run)
                 else:
                     ##Call processing step function on class instance with no parent job 
-                    parent_job = getattr(scan_to_process,step)()
+                    parent_job = getattr(scan_to_process,step)(dry_run = dry_run)
                     
 
-def mri_pet_registration(steps=[], all_steps=False, csv=""):
+def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
     if all_steps==True:
         steps_ordered = registration_steps
     else:
@@ -263,7 +265,7 @@ def mri_pet_registration(steps=[], all_steps=False, csv=""):
                                         t1amy = mri_amy_reg_to_process.t1_reg_nifti,
                                         t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
                                         taudate = mri_tau_reg_to_process.petdate,
-                                        amydate = mri_amy_reg_to_process.petdate) 
+                                        amydate = mri_amy_reg_to_process.petdate, dry_run = dry_run) 
         else:
             ##first processing step will always run without a parent job.
             ##processing steps will return either a job name if needed for subsequent steps, or 'None' if no other steps depend on its output
@@ -281,10 +283,10 @@ def mri_pet_registration(steps=[], all_steps=False, csv=""):
                         else:
                             if parent_job: 
                                 ##Call processing step function on class instance with the parent job name
-                                parent_job = getattr(pet_reg_class,step)(parent_job)
+                                parent_job = getattr(pet_reg_class,step)(parent_job_name = parent_job, dry_run = dry_run)
                             else:
                                 ##Call processing step function on class instance with no parent job 
-                                parent_job = getattr(pet_reg_class,step)()
+                                parent_job = getattr(pet_reg_class,step)(dry_run = dry_run)
 
                     elif step == "structpetstats" and pet_reg_class.pet_type == "amypet":
                         ###only run once, don't need for both tau and amy petreg classes
@@ -297,7 +299,7 @@ def mri_pet_registration(steps=[], all_steps=False, csv=""):
                                                     t1amy = mri_amy_reg_to_process.t1_reg_nifti,
                                                     t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
                                                     taudate = mri_tau_reg_to_process.petdate,
-                                                    amydate = mri_amy_reg_to_process.petdate) 
+                                                    amydate = mri_amy_reg_to_process.petdate, dry_run = dry_run) 
         
 
 def final_data_sheets():
@@ -350,6 +352,7 @@ mristep_or_all_group.add_argument("-s", '--steps', nargs="+", choices=mri_proces
 mristep_or_all_group.add_argument("-a", "--all_steps", action="store_true", help=f"Run all processing steps: {mri_processing_steps}")
 mri_image_proc_parser.add_argument("-c", "--csv", required=False, help="csv with column 'ID' in format 999_S_9999 and \
     column 'SMARTDATE' in format YYYY-MM-DD of sessions to process if not using default.")
+mri_image_proc_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, help = "Run program but don't submit any jobs.")
 mri_image_proc_parser.set_defaults(func=mri_image_processing)
 
 
@@ -360,6 +363,7 @@ reg_step_or_all_group.add_argument("-s", '--steps', nargs="+", choices=registrat
 reg_step_or_all_group.add_argument("-a", "--all_steps", action="store_true", help=f"Run all processing steps: {registration_steps}")
 mri_pet_reg_parser.add_argument("-c", "--csv", required=False, help="csv with column 'ID' in format 999_S_9999, columns \
     'SMARTDATE.tau', 'SMARTDATE.mri', 'SMARTDATE.amy', all in format YYY-MM-DD of sessions to process if not using default.")
+mri_pet_reg_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, help = "Run program but don't submit any jobs.")
 mri_pet_reg_parser.set_defaults(func=mri_pet_registration)
 
 
