@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
-module load ImageMagick
 module unload matlab/2023a 
+module load ImageMagick
 
 function run_ashs()
 {
@@ -14,14 +14,30 @@ function run_ashs()
     m_opt=$7
     export ASHS_ROOT=$ashs_root
 
+    ##test this, if it works, remove from processing.py ASHS functions
+    if [[ ! -d $output_directory ]] ; then 
+        mkdir -p $output_directory
+    fi
+
+    ##for fixing t2 ashs to produce QC pngs
+    rm -rf $output_directory/multiatlas $output_directory/bootstrap
+
     #standard options
     options="-a $atlas -g $t1trim -f $(readlink -f $t2link) \
-            -w $output_directory -T -I ${id}\
-            -N -t 1"
+            -w $output_directory -T -I ${id}"
+            # -N -t 1"
 
     #addtional options for T1, ICV ASHS only
     if [[ $t2link =~ "T2w" ]] ; then 
-        continue
+        options="$options"
+
+        ##symlink this run data to SDROOT where all T2 runs are stored
+        mridate=$( echo $output_directory | rev | cut -d "/" -f 2 | rev)
+        link_loc=/project/hippogang_1/srdas/wd/ADNI23/${id}/${mridate}/sfsegnibtend
+        if [[ ! -h $link_loc ]] ; then 
+            ln -sf $output_directory $link_loc
+        fi
+
     else
         options="$options -m $m_opt -M"
     fi
@@ -35,7 +51,10 @@ function run_ashs()
     $ASHS_ROOT/bin/ashs_main.sh $options
 
     #Remove intermediate files
-    rm -rf $output_directory/multiatlas $output_directory/bootstrap $output_directory/*raw.nii.gz
+    rm -rf $output_directory/*raw.nii.gz $output_directory/multiatlas $output_directory/bootstrap
+    ##keep bootstrap and multiatlas for ADNI T2
+    
+
 }
 
 # Run command passed in

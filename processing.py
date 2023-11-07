@@ -89,7 +89,7 @@ class MRI:
         self.wbseg_dir = f"{self.date_id_prefix}_wholebrainseg/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain"
         self.wbseg_nifti = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
         self.wbsegqc_image = f"{self.filepath}/{self.date_id_prefix}_wbseg_qa.png"
-        self.wbseg_propagated = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg_cortical_propogate.nii.gz"
+        self.wbseg_propagated = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg_cortical_propagate.nii.gz"
 
         self.superres_nifti = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_denoised_SR.nii.gz"
         
@@ -167,16 +167,23 @@ class MRI:
         brainx_job_name = f"{self.date_id_prefix}_copybrainx"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1nifti], output_files=[self.t1trim]):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)    
-            os.system(f"bsub {submit_options} -n 2 {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
-            os.system(f"bsub -o {self.log_output_dir}/{brainx_job_name}.txt -J {brainx_job_name} -w 'done({this_job_name})' cp {self.brainx_thickness_dir} {self.brainx}")
+            if dry_run: 
+                print("doing ants")
+            else:
+                os.system(f"bsub {submit_options} -n 2 {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
+                os.system(f"bsub -o {self.log_output_dir}/{brainx_job_name}.txt -J {brainx_job_name} -w 'done({this_job_name})' cp {self.brainx_thickness_dir} {self.brainx}")
         # T1 trim file created in about 30 seconds, wait for it, 
         # then copy it to main folder so other processing steps can start using it while the rest of ants is still running.
-        status = wait_for_file(self.t1trim_thickness_dir)
-        if status == "Success":
-            os.system(f"cp {self.t1trim_thickness_dir} {self.t1trim}")
-            return brainx_job_name
-        else:
+        if dry_run:
+            print("would wait for trim file")
             return
+        else:
+            status = wait_for_file(self.t1trim_thickness_dir)
+            if status == "Success":
+                os.system(f"cp {self.t1trim_thickness_dir} {self.t1trim}")
+                return brainx_job_name
+            else:
+                return
 
     def whole_brain_seg(self, parent_job_name = "", dry_run = False):
         this_function = MRI.whole_brain_seg.__name__
@@ -230,17 +237,12 @@ class MRI:
             if dry_run:
                 print("submit T1icv")
                 print(f"bsub {submit_options} \
-                    ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
+                    ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
                         {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
             else:
-                os.system(f"mkdir {self.filepath}/ASHSICV")
-                # os.system(f"bsub {submit_options} \
-                #   ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
-                #       {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
-           
                 os.system(f"bsub {submit_options} \
-                      ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
-                          {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
+                  ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
+                      {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
         return 
 
 
@@ -267,10 +269,12 @@ class MRI:
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run: 
                 print("T1 ashs running")
+                print(f"bsub {submit_options} \
+                        ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti} \
+                        {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
             else:
-                os.system(f"mkdir {self.filepath}/ASHST1")
                 os.system(f"bsub {submit_options} \
-                        ./wrapper_scripts/run_ashs_testcopy.sh run_ashs {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti}\
+                        ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti}\
                         {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
             return this_job_name
         else:
@@ -289,11 +293,13 @@ class MRI:
                 this_job_name=f"{self.date_id_prefix}_{this_function}_right"
             if ready_to_process(f"{this_function}_{side}", self.id, self.mridate, input_files=[ashs_seg], output_files=[ashs_thick], 
                                 parent_job = parent_job_name):
-                # print(f"t1mtthk for {side} running")
                 submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-                os.system(f"bsub {submit_options} -M 12G -n 1 \
-                            ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
-                            {side} {ashs_seg} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
+                if dry_run: 
+                    print(f"do MTTHK for side {side}")
+                else:
+                    os.system(f"bsub {submit_options} -M 12G -n 1 \
+                                ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
+                                {side} {ashs_seg} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
         
         return 
               
@@ -307,29 +313,28 @@ class MRI:
             if dry_run:
                 print(f"bsub submit t2ashs")
             else:
-                os.system(f"mkdir {self.filepath}/sfsegnibtend")
-                os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs_testcopy.sh run_ashs \
+                os.system(f"bsub {submit_options} ./wrapper_scripts/run_ashs.sh \
                         {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
                         {self.filepath}/sfsegnibtend {self.id}")
             return this_job_name
         else: 
             return
 
-    def t2ashs_qconly(self,parent_job_name = "", dry_run = False):
-        this_function = MRI.t2ashs_qconly.__name__
-        this_job_name=f"{self.date_id_prefix}_{this_function}"
-        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
-                            output_files=[self.t2ashs_qc_left, self.t2ashs_qc_right]):
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-            if dry_run:
-                print(f"bsub submit t2ashs")
-            else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/temp_run_ashs_t2_qconly.sh run_ashs \
-                        {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
-                        {self.filepath}/sfsegnibtend {self.id}")
-            return this_job_name
-        else:
-            return
+    # def t2ashs_qconly(self,parent_job_name = "", dry_run = False):
+    #     this_function = MRI.t2ashs_qconly.__name__
+    #     this_job_name=f"{self.date_id_prefix}_{this_function}"
+    #     if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
+    #                         output_files=[self.t2ashs_qc_left, self.t2ashs_qc_right]):
+    #         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+    #         if dry_run:
+    #             print(f"bsub submit t2ashs")
+    #         else:
+    #             os.system(f"bsub {submit_options} ./wrapper_scripts/temp_run_ashs_t2_qconly.sh run_ashs \
+    #                     {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
+    #                     {self.filepath}/sfsegnibtend {self.id}")
+    #         return this_job_name
+    #     else:
+    #         return
 
 
     def prc_cleanup(self, parent_job_name = "", dry_run = False):
@@ -347,7 +352,10 @@ class MRI:
             if ready_to_process(f"{this_function}_{side}", self.id, self.mridate, input_files=[seg], \
                                 output_files=[output], parent_job = parent_job_name):
                 submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-                os.system(f"bsub {submit_options} ./wrapper_scripts/cleanup_prc.sh {seg} {output}")
+                if dry_run:
+                    print(f"running prc_cleanup for {side}")
+                else:
+                    os.system(f"bsub {submit_options} ./wrapper_scripts/cleanup_prc.sh {seg} {output}")
 
         this_job_name = f"{self.date_id_prefix}{this_function}_both"
         parent_job_name = f"{self.date_id_prefix}_{this_function}_right"
@@ -355,10 +363,13 @@ class MRI:
                             input_files=[self.t2ahs_cleanup_left, self.t2ahs_cleanup_right], \
                             output_files=[self.t2ahs_cleanup_both], parent_job = parent_job_name):
                 submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-                os.system(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ahs_cleanup_left} \
-                          -interp NN -reslice-identity -push A {self.t2ahs_cleanup_right} \
-                          -interp NN -reslice-identity -add -o {self.t2ahs_cleanup_both}")
-                return
+                if dry_run:
+                    print(f"run prc_cleanup for both")
+                else:
+                    os.system(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ahs_cleanup_left} \
+                            -interp NN -reslice-identity -push A {self.t2ahs_cleanup_right} \
+                            -interp NN -reslice-identity -add -o {self.t2ahs_cleanup_both}")
+                    return
 
 
     def wmh_prep(self, parent_job_name = "", dry_run = False):
@@ -369,8 +380,11 @@ class MRI:
                 logging.info(f"making directory {current_date} in analysis_input for WMH analysis.")               
                 os.system(f"mkdir {analysis_input_dir}/{current_date}")
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)        
-            os.system(f"bsub {submit_options} cp {self.flair} {analysis_input_dir}/{current_date}/{self.mridate}_{self.id}_flair_0000.nii.gz")
-            return
+            if dry_run:
+                print('run wmh prep')
+            else:
+                os.system(f"bsub {submit_options} cp {self.flair} {analysis_input_dir}/{current_date}/{self.mridate}_{self.id}_flair_0000.nii.gz")
+                return
 
     def pmtau(self, parent_job_name = "", dry_run = False):
         this_function = MRI.pmtau.__name__
@@ -564,13 +578,13 @@ if __name__ == "__main__":
     print("Running processing.py directly.")
 
     ### Define class instance
-    # mri_to_process = MRI("018_S_2133", "2019-02-11")    
-    mri_to_process = MRI("033_S_0734", "2018-10-10")
-    # mri_to_process = MRI("033_S_1016","2017-12-06") 
+    mri_to_process = MRI("018_S_2155", "2022-11-21")    
+    # mri_to_process = MRI("033_S_0734", "2018-10-10")
+    # mri_to_process = MRI("114_S_6917","2021-04-16") 
+
+
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
-    # mri_to_process = MRI("114_S_6917","2021-04-16") 
-    # mri_to_process = MRI("137_S_6826", "2019-10-17")
     # mri_to_process = MRI('141_S_6779','2020-10-27')
    
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
@@ -585,18 +599,23 @@ if __name__ == "__main__":
 
 
     ### MRI processing
-    mri_to_process.brain_ex(dry_run=True)
-    # mri_to_process.wbseg_to_ants()
-    # mri_to_process.t2ashs_qconly()
+    # mri_to_process.neck_trim()
     # mri_to_process.superres() 
+    mri_to_process.t1ashs(dry_run=True)
+
+    # mri_to_process.brain_ex(dry_run=True)
+    # mri_to_process.wbsegqc()
+    # mri_to_process.wbseg_to_ants()
+
+    # mri_to_process.t2ashs_qconly()
+    # mri_to_process.t1icv()
+
     # mri_to_process.structpetstats(t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
-    # mri_to_process.wbsegqc()
     # mri_to_process.structpetstats(wait_code = f"{mri_to_process.mridate}_{mri_to_process.id}*",
     #                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
-    # mri_to_process.t1icv()
-    # t1ashs_job_name = mri_to_process.do_t1ashs()
+
 
 
 

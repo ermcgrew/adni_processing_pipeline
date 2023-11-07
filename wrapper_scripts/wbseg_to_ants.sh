@@ -13,7 +13,7 @@ wbseg=$2
 outputdir=$( dirname "$wbseg" )
 corticalMask=$outputdir/GM_Mask.nii.gz
 tmpLabels=$outputdir/antsMalfLabelingCortical.nii.gz
-wbseg_to_ants=$( echo $wbseg | sed -e 's/.nii.gz/_cortical_propogate.nii.gz/g' )
+wbseg_to_ants=$( echo $wbseg | sed -e 's/.nii.gz/_cortical_propagate.nii.gz/g' )
 # echo $wbseg_to_ants
 
 c3d $ants_brainseg -threshold 2 2 1 0 -o $corticalMask
@@ -23,7 +23,7 @@ c3d $wbseg -popas A \
     do echo "-push A -threshold $roi $roi $roi 0"; done) \
     -accum -add -endaccum -o $tmpLabels
 $ANTSPATH/ImageMath 3 $wbseg_to_ants PropagateLabelsThroughMask $corticalMask $tmpLabels 8 0
-$ANTSPATH/LabelOverlapMeasures 3 $wbseg_to_ants $tmpLabels $outputdir/antsWarpedVSPropogated.csv
+$ANTSPATH/LabelOverlapMeasures 3 $wbseg_to_ants $tmpLabels $outputdir/antsWarpedVSPropagated.csv
 
 # ##Remove intermediate files
 rm $outputdir/GM_Mask.nii.gz
