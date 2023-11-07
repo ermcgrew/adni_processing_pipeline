@@ -1,27 +1,56 @@
 # #!/usr/bin/bash
-cd /project/wolk/ADNI2018/scripts/pipeline_test_data/
+# cd /project/wolk/ADNI2018/scripts/pipeline_test_data/
 mridata="/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_processing_status/mri_processing_status.csv"
 
 foldertestone=necktrim_trimtestants_ashsroot_pauly
 foldertesttwo=necktrim_trimtestants_ashsroot_lxie
 # testfolder=necktrim_preprocessedInput
 
-cat $mridata | while read line ; do 
-    id=$( echo $line | cut -d "," -f 3 )
-    date=$( echo $line | cut -d "," -f 2)
-    echo $id, $date
-    if [[ $id == "ID" || $date == "2022-06-23" || $date == "2022-07-01" || $date == "2022-11-21" || $date == "2022-10-17" ]] ; then
+testroot="/project/wolk/ADNI2018/scripts/pipeline_test_data"
+dataroot="/project/wolk/ADNI2018/dataset"
+csvtoread="/project/wolk/ADNI2018/analysis_input/testversions_processingstatuscsvs/anchored_processing_status.csv"
+
+cat $csvtoread | while read line ; do 
+    id=$( echo $line | cut -d "," -f 1 )
+    taudate=$( echo $line | cut -d "," -f 6)
+    mridate=$( echo $line | cut -d "," -f 15)
+    amydate=$( echo $line | cut -d "," -f 36)
+    echo $id, $taudate, $mridate, $amydate
+
+    if [[ $id == "ID" ]] ; then
         continue 
     else
-        for root in $foldertestone $foldertesttwo ; do
-            for i in {1..5} ; do 
-                # mkdir -p ./${root}_${i}/${id}/${date}
-                # cp ./${id}/${date}/*T1w_trimtestants.nii.gz ./${id}/${date}/*T1w.nii.gz ./${id}/${date}/*T2w.nii.gz ./${root}_${i}/${id}/${date}
-                ##run python?      
-            done
-        done
+        taudir="${id}/${taudate}"
+        amydir="${id}/${amydate}"
+        mridir="${id}/${mridate}"
+
+        mkdir -p "${testroot}/${taudir}"
+        cp ${dataroot}/${taudir}/*taupet.nii.gz "${testroot}/${taudir}"
+
+        mkdir -p "${testroot}/${amydir}"
+        cp ${dataroot}/${amydir}/*amypet.nii.gz "${testroot}/${amydir}"
+
+        mkdir -p "${testroot}/${mridir}"
+        cp ${dataroot}/${mridir}/*T1w.nii.gz ${dataroot}/${mridir}/*T2w.nii.gz "${testroot}/${mridir}"
     fi
+
 done
+# cat $mridata | while read line ; do 
+#     id=$( echo $line | cut -d "," -f 3 )
+#     date=$( echo $line | cut -d "," -f 2)
+#     echo $id, $date
+#     if [[ $id == "ID" || $date == "2022-06-23" || $date == "2022-07-01" || $date == "2022-11-21" || $date == "2022-10-17" ]] ; then
+#         continue 
+#     else
+        # for root in $foldertestone $foldertesttwo ; do
+#             for i in {1..5} ; do 
+#                 # mkdir -p ./${root}_${i}/${id}/${date}
+#                 # cp ./${id}/${date}/*T1w_trimtestants.nii.gz ./${id}/${date}/*T1w.nii.gz ./${id}/${date}/*T2w.nii.gz ./${root}_${i}/${id}/${date}
+#                 ##run python?      
+#             done
+#         done
+#     fi
+# done
 
 
 # mkdir -p ./${foldertestone}/024_S_2239/2019-06-03
