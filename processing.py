@@ -90,7 +90,7 @@ class MRI:
         self.wbseg_nifti = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
         self.wbsegqc_image = f"{self.filepath}/{self.date_id_prefix}_wbseg_qa.png"
         self.wbseg_propagated = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg_cortical_propagate.nii.gz"
-
+        self.inferior_cereb_mask = f"{self.filepath}/{self.wbseg_dir}/inferior_cerebellum.nii.gz"
         self.superres_nifti = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_denoised_SR.nii.gz"
         
         self.t1ashs_seg_left = f"{self.filepath}/ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
@@ -128,7 +128,8 @@ class MRI:
         self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
         self.wmh_mask = f"{self.filepath}/{self.date_id_prefix}_wmh_mask.nii.gz"
 
-        self.log_output_dir = f"{self.filepath}/logs_{current_date}"
+        # self.log_output_dir = f"{self.filepath}/logs_{current_date}"
+        self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
             os.system(f"mkdir -p {self.log_output_dir}")
 
@@ -227,6 +228,19 @@ class MRI:
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/wbseg_to_ants.sh {self.ants_brainseg} {self.wbseg_nifti}")
         return
+    
+    def inf_cereb_mask(self, parent_job_name = "", dry_run = False):
+        this_function = MRI.inf_cereb_mask.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.wbseg_nifti], 
+                            output_files = [self.inferior_cereb_mask], parent_job = parent_job_name):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)       
+            if dry_run:
+                print(f"bsub {submit_options} ./wrapper_scripts/make_inferior_cereb_mask.sh {self.wbseg_nifti} {self.wbseg_dir} {self.inferior_cereb_mask}")
+            else:
+                os.system(f"bsub {submit_options} ./wrapper_scripts/make_inferior_cereb_mask.sh {self.wbseg_nifti} {self.wbseg_dir} {self.inferior_cereb_mask}")
+        return
+
 
     def t1icv(self, parent_job_name = "", dry_run = False):
         this_function = MRI.t1icv.__name__
