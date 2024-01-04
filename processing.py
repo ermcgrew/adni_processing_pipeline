@@ -510,6 +510,8 @@ class MRIPetReg:
         self.t1trim = MRI.t1trim
         self.t2nifti = MRI.t2nifti
         self.t2ashs_flirt_reg = MRI.t2ashs_flirt_reg
+        self.mriwbseg = MRI.wbseg_nifti
+        self.mri_infcereb = MRI.inferior_cereb_mask
         self.pet_type = pet_type
         self.reg_type = f"{self.pet_type}reg"
 
@@ -527,11 +529,13 @@ class MRIPetReg:
 
         self.t1_reg_RAS = f"{self.filepath}/{self.reg_prefix}_T10GenericAffine_RAS.mat"
         self.t1_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T1.nii.gz"
+        self.t1_SUVR = f"{self.filepath}/{self.reg_prefix}_T1_SUVR_infcereb.nii.gz"
+        self.t1_PVC = f"{self.filepath}/{self.reg_prefix}_T1_SUVR_infcereb_pvc.nii.gz"
         self.t1_reg_qc = f"{self.filepath}/{self.reg_prefix}_T1_qa.png"
 
         self.t2_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T2.nii.gz"
 
-        self.log_output_dir = f"{self.filepath}/logs_{current_date}"
+        self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
             os.system(f"mkdir -p {self.log_output_dir}")
 
@@ -585,6 +589,37 @@ class MRIPetReg:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/registered_image_qc.sh \
                     {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
             return
+        
+    def tau_suvr(self, parent_job_name = "", dry_run = False):
+        this_function = f"{self.pet_type}_{MRIPetReg.tau_suvr.__name__}"
+        this_job_name=f"{self.mridate}_{self.id}_{this_function}" 
+        if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", 
+                            input_files = [self.t1_reg_nifti, self.mriwbseg], 
+                            output_files = [self.t1_SUVR],
+                            parent_job = parent_job_name):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+            if dry_run:
+                print(f"make suvr")
+            else:
+                os.system(f"bsub {submit_options} ./wrapper_scripts/suvr.sh {self.mriwbseg} {self.mri_infcereb}\ 
+                          {self.t1_reg_nifti} {self.t1_SUVR}")
+            return
+        
+    
+    def tau_pvc(self, parent_job_name = "", dry_run = False):
+        this_function = f"{self.pet_type}_{MRIPetReg.tau_pvc.__name__}"
+        this_job_name=f"{self.mridate}_{self.id}_{this_function}" 
+        if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", 
+                            input_files = [self.t1_SUVR], 
+                            output_files = [self.t1_PVC],
+                            parent_job = parent_job_name):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+            if dry_run:
+                print(f"tau pvc")
+            else:
+                os.system(f"bsub {submit_options} ./wrapper_scripts/pvc.sh {self.t1_SUVR} {self.t1_PVC}")
+            return
+
 
  
 
@@ -592,9 +627,9 @@ if __name__ == "__main__":
     print("Running processing.py directly.")
 
     ### Define class instance
-    mri_to_process = MRI("018_S_2155", "2022-11-21")    
+    # mri_to_process = MRI("018_S_2155", "2022-11-21")    
     # mri_to_process = MRI("033_S_0734", "2018-10-10")
-    # mri_to_process = MRI("114_S_6917","2021-04-16") 
+    mri_to_process = MRI("114_S_6917","2021-04-16") 
 
 
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
@@ -606,16 +641,16 @@ if __name__ == "__main__":
     # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
 
     # tau_to_process = TauPET("099_S_6175", "2020-07-09")
-    # tau_to_process = TauPET("114_S_6917", "2021-08-11")
+    tau_to_process = TauPET("114_S_6917", "2021-08-11")
 
     # mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
-    # mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
+    mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
 
 
     ### MRI processing
     # mri_to_process.neck_trim()
     # mri_to_process.superres() 
-    mri_to_process.t1ashs(dry_run=True)
+    # mri_to_process.t1ashs(dry_run=True)
 
     # mri_to_process.brain_ex(dry_run=True)
     # mri_to_process.wbsegqc()
