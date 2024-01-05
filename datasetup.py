@@ -597,21 +597,18 @@ def main():
             identify_new_scans(filenames['uids'][key], previous_fileloc_csv[0], key)
     
 
-# main()
+if __name__ == "__main__":
+    print("running datasetup.py directly.")
+    # registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
+    # preprocess_new("MRILIST_12Jun2023.csv",registry=registry_df)   
 
+    # create_mri_uid_list()
+    # print(os.path.join(datasetup_directories_path["ida_study_datasheets"],pet_meta_list))
+    # create_pet_uid_list() 
+    create_tau_anchored_uid_list()
 
-##################Testing
+    # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_uids/mri_uids.csv",\
+    #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/mri_filelocations_copyof_MRI3TListWithNIFTIPath_10172022.csv",\
+    #     "mri")
 
-# registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
-# preprocess_new("MRILIST_12Jun2023.csv",registry=registry_df)   
-
-# create_mri_uid_list()
-# print(os.path.join(datasetup_directories_path["ida_study_datasheets"],pet_meta_list))
-# create_pet_uid_list() 
-create_tau_anchored_uid_list()
-
-# identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_uids/mri_uids.csv",\
-#     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/mri_filelocations_copyof_MRI3TListWithNIFTIPath_10172022.csv",\
-#     "mri")
-
-#   "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/mri3TListWithNIFTIPath_10172022.tsv",\
+    #   "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20221017_filelocs/mri3TListWithNIFTIPath_10172022.tsv",\
