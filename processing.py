@@ -120,9 +120,9 @@ class MRI:
         self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
         self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
 
-        self.t2ahs_cleanup_left = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_left.nii.gz"
-        self.t2ahs_cleanup_right = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_right.nii.gz"
-        self.t2ahs_cleanup_both = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_both.nii.gz"
+        self.t2ashs_cleanup_left = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_left.nii.gz"
+        self.t2ashs_cleanup_right = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_right.nii.gz"
+        self.t2ashs_cleanup_both = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_both.nii.gz"
 
         self.flair = f"{self.filepath}/{self.date_id_prefix}_flair.nii.gz"
         self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
@@ -358,10 +358,10 @@ class MRI:
 
             if side == "left":
                 seg=self.t2ashs_seg_left
-                output=self.t2ahs_cleanup_left
+                output=self.t2ashs_cleanup_left
             elif side == "right":
                 seg=self.t2ashs_seg_right
-                output=self.t2ahs_cleanup_right
+                output=self.t2ashs_cleanup_right
             
             if ready_to_process(f"{this_function}_{side}", self.id, self.mridate, input_files=[seg], \
                                 output_files=[output], parent_job = parent_job_name):
@@ -374,15 +374,21 @@ class MRI:
         this_job_name = f"{self.date_id_prefix}{this_function}_both"
         parent_job_name = f"{self.date_id_prefix}_{this_function}_right"
         if ready_to_process(f"{this_function}_both", self.id, self.mridate, \
-                            input_files=[self.t2ahs_cleanup_left, self.t2ahs_cleanup_right], \
-                            output_files=[self.t2ahs_cleanup_both], parent_job = parent_job_name):
+                            input_files=[self.t2ashs_cleanup_left, self.t2ashs_cleanup_right], \
+                            output_files=[self.t2ashs_cleanup_both], parent_job = parent_job_name):
                 submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
                 if dry_run:
                     print(f"run prc_cleanup for both")
                 else:
-                    os.system(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ahs_cleanup_left} \
-                            -interp NN -reslice-identity -push A {self.t2ahs_cleanup_right} \
-                            -interp NN -reslice-identity -add -o {self.t2ahs_cleanup_both}")
+                    os.system(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ashs_cleanup_left} \
+                            -interp NN -reslice-identity -push A {self.t2ashs_cleanup_right} \
+                            -interp NN -reslice-identity -add -o {self.t2ashs_cleanup_both}")
+                    ##result=subprocess.run()
+                    ##if result is error
+                        ## ...
+                    ##result.split()
+                    ##if result[0] is "no parent job matching wait code" and t2ashs cleanup right exists:
+                        ## submit without wait code
                     return
 
 
@@ -433,7 +439,7 @@ class MRI:
         this_function = MRI.ashst2_stats.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"  
         if ready_to_process(this_function, self.id, self.mridate, \
-                            input_files=[self.t2nifti,self.t2ahs_cleanup_left,self.t2ahs_cleanup_right], \
+                            input_files=[self.t2nifti,self.t2ashs_cleanup_left,self.t2ashs_cleanup_right], \
                             output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst2.txt"],\
                             parent_job=wait_code):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
@@ -442,7 +448,7 @@ class MRI:
             else:
                 os.system(f"bsub {submit_options} ./testing/t2statsonly.sh \
                         {self.id} {self.mridate} {stats_output_dir} {self.t2nifti} \
-                        {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right}") 
+                        {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right}") 
             return
 
 
@@ -462,15 +468,15 @@ class MRI:
             print(f"pet_stats {mode}")
             print(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg_nifti} {self.thickness} \
                 {t1tau} {t2tau} {t1amy} {t2amy} \
-                {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
-                {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
+                {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} \
+                {self.t2ashs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
                 {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
                 {self.mridate} {taudate} {amydate} {self.flair} {self.wmh_mask}")       
         else:
             os.system(f"bsub {submit_options } ./stats.sh {self.id} {self.wbseg_nifti} {self.thickness} \
                     {t1tau} {t2tau} {t1amy} {t2amy} \
-                    {self.t2ahs_cleanup_left} {self.t2ahs_cleanup_right} \
-                    {self.t2ahs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
+                    {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} \
+                    {self.t2ashs_cleanup_both} {self.t1trim} {self.icv_volumes_file} \
                     {mode} {wblabel_file} {pmtau_template_dir} {stats_output_dir} \
                     {self.mridate} {taudate} {amydate} {self.flair} {self.wmh_mask}")
         return
