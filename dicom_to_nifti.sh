@@ -51,7 +51,7 @@ else
         fi
         
     else
-        status="nifti file already exists"
+        status="nifti file already exists in PUBLIC/nifti"
     fi
 
 fi
