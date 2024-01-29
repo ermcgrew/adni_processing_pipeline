@@ -141,7 +141,7 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                     for i in range(0,len(siteinfo_result_list)):
                         df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
 
-                ##after all rows in iterrows
+            ##after all rows in iterrows
             logging.info(f"{scantype}:Saving file location csv with new data")
             old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in \
                                 os.listdir(fileloc_directory_previousrun) if scantype in x][0]
