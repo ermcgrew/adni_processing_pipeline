@@ -42,7 +42,6 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
             logging.info(f"Running dicom to nifti conversion and nifti symlink for scantype {scantype} sessions in csv {csv_to_read}")
 
             df=pd.read_csv(csv_to_read)
-            # print(df.head())
 
             if scantype == 'mri':
                 df_newscans = df.loc[(df['NEW_T1'] == 1) | (df['NEW_T2'] == 1)] # | df['NEW_FLAIR'] == 1
@@ -66,18 +65,16 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                     scan_to_process = TauPET(subject,scandate)
                     uids = {'tau_uid':[str(row["IMAGEID"]).split(".")[0], scan_to_process.tau_nifti]}
 
-                logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Checking for nifti file.")
-                # print(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Checking for nifti file.")
+                logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Checking convert to nifti status.")
 
                 for key in uids:
                     if uids[key][0] == "nan":
+                        status="No dicom UID"
                         ##TODO: record convert status to dataframe
                         ##df_newscans.at[index,'{key}_CONVERT_STATUS'] = 0 
                         #if/else for col name
-                        continue
-                   
-                    if os.path.exists(uids[key][1]):
-                        status="nifti file already exists in dataset"
+                    elif os.path.exists(uids[key][1]):
+                        status="nifti file already exists in ADNI2018/dataset"
                     else:
                         result = subprocess.run(
                                 ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
@@ -97,10 +94,8 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                         else:
                             status = result_list[0]
                             nifti_file_loc_public = result_list[1]
-                        
-                        logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
 
-                        if status == "conversion to nifti sucessful":
+                        if status == "conversion to nifti sucessful" or status == "nifti file already exists in PUBLIC/nifti":
                             if key == "t1_uid":
                                 df_newscans.at[index,'FINALT1NIFTI'] = nifti_file_loc_public
                                 df_newscans.at[index,'T1_CONVERT_STATUS'] = 1
@@ -120,17 +115,21 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                                 df_newscans.at[index,'TAU_CONVERT_STATUS'] = 1
 
                             # make symlink for nifti file between /PUBLIC and /dataset
-                            # print(f"ln -sf {nifti_file_loc_public} {uids[key][1]}") 
+                            # print(f'symlink if sucess')
+                                ##TODO: delete this--next if statement will still be evaluated for truthiness even if link is already made
                             os.system(f"ln -sf {nifti_file_loc_public} {uids[key][1]}")
 
-                        ##check for any misses (status isn't always correct):
+                        ##if dicom has been converted but nifti not symlinked:
                         if not os.path.exists(uids[key][1]) and nifti_file_loc_public:
-                            # print(f"ln -sf {nifti_file_loc_public} {uids[key][1]}") 
+                            # print("symlink if other than success")
                             os.system(f"ln -sf {nifti_file_loc_public} {uids[key][1]}")
+
+                    ##Report status of each key (t1/t2, amy, tau)
+                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
 
                 ##MRI only step:
                 if scantype == "mri":
-                    # logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
+                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
                     #site's vendor & model info
                     site = scan_to_process.id.split("_")[0]
                     siteinfo_result = subprocess.run(
@@ -142,30 +141,27 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                         df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
 
             ##after all rows in iterrows
-            logging.info(f"{scantype}:Saving file location csv with new data")
-            old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in \
-                                os.listdir(fileloc_directory_previousrun) if scantype in x][0]
-            old_filelocs_df = pd.read_csv(old_fileloc_path)
-            all_filelocs = pd.concat([df_newscans, old_filelocs_df], ignore_index=True)
-            #keep most recent (e.g. updated) if any duplicates
-            all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last', inplace=True) 
-            all_filelocs.sort_values(by=["RID","SMARTDATE"], ignore_index=True, inplace=True)
-            
-            # print(all_filelocs.info())
-            # print(all_filelocs.head())
-            
-            # df_newscans.to_csv("/project/wolk/ADNI2018/scripts/adni_processing_pipeline/testing/newmris_convertsymlink_output_20231006.csv")
-            
             ###TODO: Missing dicoms record:
-            no_t1 = all_filelocs.loc[pd.isnull(all_filelocs['FINALT1NIFTI'])]
-            no_t2 = all_filelocs.loc[pd.isnull(all_filelocs['FINALT2NIFTI'])]
+            # no_t1 = all_filelocs.loc[pd.isnull(all_filelocs['FINALT1NIFTI'])]
+            # no_t2 = all_filelocs.loc[pd.isnull(all_filelocs['FINALT2NIFTI'])]
 
-            #output df to file 
-            if outputcsv:
-                all_filelocs.to_csv(outputcsv,index=False,header=True)
-            else:
-                all_filelocs.to_csv(os.path.join(datasetup_directories_path["filelocations"],\
-                                    filenames['filelocations'][scantype]),index=False,header=True)
+            ## Save record of file locations
+            # logging.info(f"{scantype}:Saving file location csv after conversion")
+            # if outputcsv:
+            #     df_newscans.to_csv(outputcsv,index=False,header=True)
+            # else:
+            #     old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in \
+            #                         os.listdir(fileloc_directory_previousrun) if scantype in x][0]
+            #     old_filelocs_df = pd.read_csv(old_fileloc_path)
+            #     all_filelocs = pd.concat([df_newscans, old_filelocs_df], ignore_index=True)
+            #     #keep most recent (e.g. updated) if any duplicates
+            #     all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last', inplace=True) 
+            #     all_filelocs.sort_values(by=["RID","SMARTDATE"], ignore_index=True, inplace=True)
+                
+            #     print(all_filelocs.info())
+            
+            #     all_filelocs.to_csv(os.path.join(datasetup_directories_path["filelocations"],\
+            #                         filenames['filelocations'][scantype]),index=False,header=True)
  
 
 def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
@@ -342,6 +338,7 @@ convert_parser.add_argument("-i", "--inputcsv", required=False, help="csv with c
         of sessions to process if not using default.")
         ##TODO: complete help for pet vs mri csv parameters
 convert_parser.add_argument("-o","--outputcsv", required=False, help="Full filepath and filename to save csv of filelocation information.")
+##TODO: if input, then output and vice versa (if using one, the other is also required)
 convert_parser.set_defaults(func=convert_symlink)
 
 

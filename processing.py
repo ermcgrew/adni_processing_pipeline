@@ -489,7 +489,7 @@ class AmyloidPET:
         self.scandate = amydate
         self.filepath=f"{adni_data_dir}/{self.id}/{self.scandate}"
         self.date_id_prefix = f"{self.scandate}_{self.id}"
-        self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet.nii.gz"        
+        self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet6mm.nii.gz"        
 
         self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
@@ -608,7 +608,7 @@ class MRIPetReg:
             if dry_run:
                 print(f"make suvr")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/suvr.sh {self.mriwbseg} {self.mri_infcereb}\ 
+                os.system(f"bsub {submit_options} ./wrapper_scripts/suvr.sh {self.mriwbseg} {self.mri_infcereb} \
                           {self.t1_reg_nifti} {self.t1_SUVR}")
             return
         
