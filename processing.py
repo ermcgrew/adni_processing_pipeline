@@ -491,7 +491,7 @@ class AmyloidPET:
         self.date_id_prefix = f"{self.scandate}_{self.id}"
         self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet.nii.gz"        
 
-        self.log_output_dir = f"{self.filepath}/logs_{current_date}"
+        self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
             os.system(f"mkdir -p {self.log_output_dir}")
 
@@ -502,9 +502,10 @@ class TauPET:
         self.scandate = taudate
         self.filepath = f"{adni_data_dir}/{self.id}/{self.scandate}"
         self.date_id_prefix = f"{self.scandate}_{self.id}"
-        self.tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet.nii.gz"
-        
-        self.log_output_dir = f"{self.filepath}/logs_{current_date}"
+        # self.tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet.nii.gz"
+        self.tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet6mm.nii.gz"
+
+        self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
             os.system(f"mkdir -p {self.log_output_dir}")
 
@@ -589,7 +590,7 @@ class MRIPetReg:
                             parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
-                print(f"bsub {submit_options} {t1petregqc_script} \
+                print(f"bsub {submit_options} ./wrapper_scripts/registered_image_qc.sh\
                     {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/registered_image_qc.sh \

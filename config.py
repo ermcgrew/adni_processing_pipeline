@@ -42,7 +42,8 @@ adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Locati
 cleanup_dir = f"{analysis_input_dir}/cleanup"
 analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
 stats_output_dir = f"{analysis_output_dir}/stats"
-this_output_dir = f"{analysis_output_dir}/{current_date}"
+# this_output_dir = f"{analysis_output_dir}/{current_date}"
+this_output_dir = f"{analysis_output_dir}"
 if not os.path.exists(this_output_dir):
     os.system(f"mkdir -p {this_output_dir}")
 
@@ -118,5 +119,5 @@ sides = ["left", "right"]
 
 ###Log file
 logging.basicConfig(filename=f"{this_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
-#for testing:
+# for testing:
 # logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
