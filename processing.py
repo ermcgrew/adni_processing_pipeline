@@ -56,8 +56,8 @@ def wait_for_file(file):
         counter += 1
     
     if os.path.exists(file):
-        while os.stat(file).st_size <= 10000:
-            time.sleep(1)
+        while os.stat(file).st_size <= 1000000:
+            time.sleep(2)
         return "Success"
     else:
         return "Error"
@@ -605,8 +605,7 @@ class MRIPetReg:
             if dry_run:
                 print(f"make suvr")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/suvr.sh {self.mriwbseg} {self.mri_infcereb}\ 
-                          {self.t1_reg_nifti} {self.t1_SUVR}")
+                os.system(f"bsub {submit_options} ./wrapper_scripts/suvr.sh {self.mriwbseg} {self.mri_infcereb} {self.t1_reg_nifti} {self.t1_SUVR}")
             return
         
     

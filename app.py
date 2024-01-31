@@ -177,7 +177,7 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
         else:
             ##variable mri_processing_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
             steps_ordered = [method for method in mri_processing_steps for step in steps if step in method]
-    print(f"Run image processing steps: {steps_ordered}")
+    # print(f"Run image processing steps: {steps_ordered}")
 
     if csv:
         csv_to_read = csv

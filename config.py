@@ -55,15 +55,11 @@ ashs_mopt_mat_file = "/home/lxie/ADNI2018/scripts/identity.mat"
 t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
 pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 
-##old roots & atlases for ASHS processing
-# ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
-ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
-icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
-ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
-
+##roots & atlases for ASHS processing
 ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
-
-
+ashs_t1_atlas = "/home/lxie/ASHS_T1/ASHSexp/exp201/atlas/final"
+icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
+ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/abc_prisma/exp03/final"
 
 
 ###Steps for argparse choices
