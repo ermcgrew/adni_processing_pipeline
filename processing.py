@@ -70,37 +70,35 @@ class MRI:
         self.id = subject
         self.mridate = mridate
         self.scandate = mridate
-        self.filepath=f"{adni_data_dir}/{self.id}/{self.mridate}"
+        self.filepath=f"{adni_data_dir}/{self.id}/MRI3T/{self.mridate}/processed"
         self.date_id_prefix = f"{self.mridate}_{self.id}"
         
-        self.t1nifti = f"{self.filepath}/{self.date_id_prefix}_T1w.nii.gz"
+        self.t1nifti = f"{self.filepath}/{self.date_id_prefix}_mprage.nii.gz"
         
-        self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trim.nii.gz"
-        ####for testing--trim created from ANTS neckmask
-        # self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trimtestants.nii.gz"
+        self.t1trim = f"{self.filepath}/{self.date_id_prefix}_mprage_trim.nii.gz"
 
-        self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
+        self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz" ###***not in old thick dirs
         self.ants_brainseg = f"{self.filepath}/thickness/{self.id}BrainSegmentation.nii.gz"
         self.thickness = f"{self.filepath}/thickness/{self.id}CorticalThickness.nii.gz"
         self.pmtau_output = f"{self.filepath}/thickness/ap.nii.gz"
         self.brainx_thickness_dir = f"{self.filepath}/thickness/{self.id}ExtractedBrain0N4.nii.gz"
         
-        self.brainx = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain.nii.gz"
-        self.wbseg_dir = f"{self.date_id_prefix}_wholebrainseg/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain"
-        self.wbseg_nifti = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
+        self.brainx = f"{self.filepath}/{self.date_id_prefix}_brainx_PHIL_ExtractedBrain.nii.gz"
+        self.wbseg_dir = f"{self.date_id_prefix}_brainx_PHIL_ExtractedBrain"
+        self.wbseg_nifti = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_brainx_PHIL_ExtractedBrain_wholebrainseg.nii.gz"
         self.wbsegqc_image = f"{self.filepath}/{self.date_id_prefix}_wbseg_qa.png"
-        self.wbseg_propagated = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg_cortical_propagate.nii.gz"
+        self.wbseg_propagated = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_brainx_PHIL_ExtractedBrain_wholebrainseg_cortical_propagate.nii.gz"
         self.inferior_cereb_mask = f"{self.filepath}/{self.wbseg_dir}/inferior_cerebellum.nii.gz"
-        self.superres_nifti = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_denoised_SR.nii.gz"
+        self.superres_nifti = f"{self.filepath}/{self.date_id_prefix}_mprage_trim_denoised_SR.nii.gz"
         
-        self.t1ashs_seg_left = f"{self.filepath}/ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
-        self.t1ashs_seg_right = f"{self.filepath}/ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
+        self.t1ashs_seg_left = f"{self.filepath}/ASHST1/final/{self.id}_left_lfseg_usegray.nii.gz"
+        self.t1ashs_seg_right = f"{self.filepath}/ASHST1/final/{self.id}_right_lfseg_usegray.nii.gz"
         self.t1ashs_seg_prefix = f"{self.filepath}/ASHST1/final/{self.id}"
-        self.t1ashs_seg_suffix = "lfseg_heur.nii.gz"
+        self.t1ashs_seg_suffix = "lfseg_usegray.nii.gz"
         
-        self.t1mtthk_left = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_left_thickness.csv"
-        self.t1mtthk_right = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_right_thickness.csv"   
-        self.t1mtthk_prefix = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}"
+        self.t1mtthk_left = f"{self.filepath}/MSTThkASHST1/{self.id}_left_thickness.csv"
+        self.t1mtthk_right = f"{self.filepath}/MSTThkASHST1/{self.id}_right_thickness.csv"   
+        self.t1mtthk_prefix = f"{self.filepath}/MSTThkASHST1/{self.id}_"
         self.t1mtthk_suffix = "thickness.csv"   
         
         self.t1icv_seg = f"{self.filepath}/ASHSICV/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
@@ -110,23 +108,22 @@ class MRI:
             ##ICV volume txt file name from newer ASHS versions:
             self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_multiatlas_corr_nogray_volumes.txt"
 
-        self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
-        self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
-        self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
-        self.t2ashs_qc_left = f"{self.filepath}/sfsegnibtend/qa/qa_seg_bootstrap_corr_nogray_left_qa.png"
-        self.t2ashs_qc_right = f"{self.filepath}/sfsegnibtend/qa/qa_seg_bootstrap_corr_nogray_right_qa.png"
+        self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_tse.nii.gz"
+        self.t2ashs_seg_left = f"{self.filepath}/ASHST2_Prisma/final/{self.id}_left_lfseg_corr_usegrayy.nii.gz"
+        self.t2ashs_seg_right = f"{self.filepath}/ASHST2_Prisma/final/{self.id}_right_lfseg_corr_usegray.nii.gz"
+        self.t2ashs_qc_left = f"{self.filepath}/ASHST2_Prisma/qa/qa_seg_bootstrap_corr_usegray_left_qa.png"
+        self.t2ashs_qc_right = f"{self.filepath}/ASHST2_Prisma/qa/qa_seg_bootstrap_corr_usegray_right_qa.png"
 
-
-        self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
-        self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
+        self.t2ashs_tse = f"{self.filepath}/ASHST2_Prisma/tse.nii.gz"
+        self.t2ashs_flirt_reg = f"{self.filepath}/ASHST2_Prisma/flirt_t2_to_t1/flirt_t2_to_t1.mat"
 
         self.t2ashs_cleanup_left = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_left.nii.gz"
         self.t2ashs_cleanup_right = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_right.nii.gz"
         self.t2ashs_cleanup_both = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_both.nii.gz"
 
         self.flair = f"{self.filepath}/{self.date_id_prefix}_flair.nii.gz"
-        self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
-        self.wmh_mask = f"{self.filepath}/{self.date_id_prefix}_wmh_mask.nii.gz"
+        self.wmh = f"{self.filepath}/{self.date_id_prefix}_flair_wmh.nii.gz"
+        self.wmh_mask = f"{self.filepath}/{self.date_id_prefix}_flair_wmh_mask.nii.gz"
 
         # self.log_output_dir = f"{self.filepath}/logs_{current_date}"
         self.log_output_dir = f"{self.filepath}/logs"
