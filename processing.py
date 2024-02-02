@@ -168,7 +168,7 @@ class MRI:
             if dry_run: 
                 print("doing ants")
             else:
-                os.system(f"bsub {submit_options} -n 2 {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
+                os.system(f"bsub {submit_options} -q bsc_long -n 2 {ants_script} {self.t1nifti} {self.filepath}/thickness/{self.id}")
                 os.system(f"bsub -o {self.log_output_dir}/{brainx_job_name}.txt -J {brainx_job_name} -w 'done({this_job_name})' cp {self.brainx_thickness_dir} {self.brainx}")
         # T1 trim file created in about 30 seconds, wait for it, 
         # then copy it to main folder so other processing steps can start using it while the rest of ants is still running.
