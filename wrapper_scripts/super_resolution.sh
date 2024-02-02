@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 #Usage: super_resolution.sh output_directory input_file output_file_name
 #code adapted from /home/lxie/ADNI2018/scripts/RunT1BaselineLongitudianl_09092022.sh
-
+set -e
 module load c3d
 
 output_directory=$1

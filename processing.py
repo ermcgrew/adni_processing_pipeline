@@ -194,8 +194,8 @@ class MRI:
             else:
                 os.system(f"bsub {submit_options} -M 12G -q bsc_long \
                         {wbseg_script} {self.filepath} \
-                        {self.filepath}/{self.date_id_prefix}_wholebrainseg \
-                        {self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain \
+                        {self.filepath} \
+                        {self.date_id_prefix}_brainx_PHIL_ExtractedBrain \
                         {wbseg_atlas_dir} 1")
             return this_job_name          
         else:
@@ -247,9 +247,9 @@ class MRI:
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print("submit T1icv")
-                print(f"bsub {submit_options} \
-                    ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
-                        {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
+                # print(f"bsub {submit_options} \
+                #     ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
+                #         {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
             else:
                 os.system(f"bsub {submit_options} \
                   ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
@@ -265,7 +265,7 @@ class MRI:
             if dry_run:
                 print("run superres")
             else:
-                os.system(f"bsub {submit_options} -M 4G -n 1 ./wrapper_scripts/super_resolution.sh \
+                os.system(f"bsub {submit_options} -M 8G -n 1 ./wrapper_scripts/super_resolution.sh \
                     {self.filepath} {self.t1trim} {self.superres_nifti}")
             return this_job_name
         else:
@@ -280,9 +280,9 @@ class MRI:
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run: 
                 print("T1 ashs running")
-                print(f"bsub {submit_options} \
-                        ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti} \
-                        {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
+                # print(f"bsub {submit_options} \
+                #         ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti} \
+                #         {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
             else:
                 os.system(f"bsub {submit_options} \
                         ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti}\
