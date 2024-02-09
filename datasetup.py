@@ -152,10 +152,14 @@ def preprocess_new(csvfilename, registry=None):
         df = fixup_imaging_csv(df)
 
         for i, row in df.iterrows():
-            ## Preprocess the PET we want
+            ## ID the PET sequence we use
             ## Old title to look for (8mm) mi_pet = "Coreg, Avg, Std Img and Vox Siz, Uniform Resolution" 
+            ## Also exludes amyloid scans that have "Early" variant
             mi_pet = "Coreg, Avg, Std Img and Vox Siz, Uniform 6mm Res" 
-            df.at[i, 'RIGHTONE'] = 1 if mi_pet in row['Sequence'] else 0
+            if mi_pet in row['Sequence'] and "Early" not in row['Sequence']:
+                df.at[i, 'RIGHTONE'] = 1 
+            else:
+                df.at[i, 'RIGHTONE'] = 0
 
             # Preprocess PET scan type (Amyloid=1/TAU=2/other=0)
             if "FBB" in row['Sequence'] or "AV45" in row['Sequence']:
@@ -442,7 +446,6 @@ def create_tau_anchored_uid_list():
     outputdf.to_csv(os.path.join(datasetup_directories_path["uids"],filenames["uids"]["anchored"]),index=False,header=True)
 
 
-
 def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
     #compare output of create_{scantype}_uid_list function to previous fileloc list
     #this function can run any scantype, but only one at a time
@@ -620,11 +623,11 @@ if __name__ == "__main__":
     #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/tau_filelocations_copyof_taulist_dec15_2022_fileloc_2022-12-20.csv", \
     #     "tau")
     
-    for key in filenames["uids"]:
-        if key == "anchored": 
-            print(f'do this stuff for {key}')
-            previous_fileloc_csv = [x for x in previous_filelocs_csvs if key in x]
-            if previous_fileloc_csv: #in case of no match
-                # identify_new_scans(filenames['uids'][key], previous_fileloc_csv[0], key)
-                print(f"{filenames['uids'][key]}, {previous_fileloc_csv[0]}, {key}")
+    # for key in filenames["uids"]:
+    #     if key == "anchored": 
+    #         print(f'do this stuff for {key}')
+    #         previous_fileloc_csv = [x for x in previous_filelocs_csvs if key in x]
+    #         if previous_fileloc_csv: #in case of no match
+    #             # identify_new_scans(filenames['uids'][key], previous_fileloc_csv[0], key)
+    #             print(f"{filenames['uids'][key]}, {previous_fileloc_csv[0]}, {key}")
     
