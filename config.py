@@ -74,7 +74,7 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 ###Steps for argparse choices
 ##Order matters; values match MRI.method & MRIPetReg.method names
 ##for naming: if whole_brain_seg was called "wbseg", it matches to "wbseg_to_ants" and "wbsegqc" as well
-mri_processing_steps = ["ants", "brain_ex", "whole_brain_seg", "wbseg_to_ants", "wbsegqc", "inf_cereb_mask", 
+mri_processing_steps = ["neck_trim", "ants", "brain_ex", "whole_brain_seg", "wbseg_to_ants", "wbsegqc", "inf_cereb_mask", 
                         "t1icv", "superres","t1ashs", "t1mtthk","t2ashs", "t2ashs_qconly", "prc_cleanup", 
                         "wmh", "pmtau", "ashst1_stats", "ashst2_stats", "structpetstats"]
 registration_steps = ["t1_pet_reg", "tau_suvr", "tau_pvc", "t2_pet_reg", "pet_reg_qc", "structpetstats"]
@@ -118,6 +118,6 @@ sides = ["left", "right"]
 
 
 ###Log file
-logging.basicConfig(filename=f"{this_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
+logging.basicConfig(filename=f"{this_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.DEBUG)
 # for testing:
 # logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)

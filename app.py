@@ -232,13 +232,14 @@ def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
 
     if csv:
         csv_to_read = csv
+        df = pd.read_csv(csv_to_read)
     else:
         csv_to_read = os.path.join(datasetup_directories_path["processing_status"],"anchored_processing_status.csv")
-        # df_newscans = df.loc[(df['NEW_PET'] == 1)]
+        df_newscans = pd.read_csv(csv_to_read)
+        df = df_newscans.loc[(df_newscans['NEW_anchored'] == 1)]
 
-    logging.info(f"Running MRI-PET registration steps {steps_ordered} for sessions in csv {csv_to_read}")
+    logging.info(f"With DRY_RUN={dry_run}: Running MRI-PET registration steps {steps_ordered} for sessions in csv {csv_to_read}")
     
-    df=pd.read_csv(csv_to_read)
     # print(df.head())
     for index,row in df.iterrows():
         subject = str(row['ID'])

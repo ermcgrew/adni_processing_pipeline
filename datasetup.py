@@ -456,12 +456,13 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
     # old_filelocs_df = pd.read_csv(old_filelocs_csv)
 
     # print(new_uids_df.info())
-    # print(new_uids_df.head())
+    print(new_uids_df.head())
     # print(old_filelocs_df.info())
-    # print(old_filelocs_df.head())
+    print(old_filelocs_df.head())
     # print(old_filelocs_df.columns)
     
     if scantype == 'anchored':
+        print('in anchored')
         for index,row in new_uids_df.iterrows():
             id = row['ID']
             taudate_new = row['SMARTDATE.tau']
@@ -475,7 +476,7 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
             # print(len(match_in_old))
 
             if len(match_in_old) == 1:
-                # print("One match")
+                print("One match")
                 tauuid_new = str(row['IMAGEID.tau']).split('.')[0]
                 tauuid_old = str(match_in_old['IMAGEID.tau'].values[0])
                 amyuid_new = str(row['IMAGEID.amy']).split('.')[0]
@@ -485,7 +486,7 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
 
                 if tauuid_new == tauuid_old and amyuid_new == amyuid_old and mriuid_new == mriuid_old:
                     new_uids_df.at[index,f"NEW_{scantype}"] = 0 
-                    # print("already processed")
+                    print("already processed")
                 else:
                     logging.debug(f"{id}:{taudate_new}:{scantype}:Different uid selected from adni csv data")
                     new_uids_df.at[index,f"NEW_{scantype}"] = 3
@@ -582,12 +583,12 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
         logging.info(f"T2 scans sorted:{new_uids_df['NEW_T2'].value_counts()}")
         # logging.info(f"FLAIR scans sorted:{new_uids_df['NEW_FLAIR'].value_counts()}")
     else:
-        logging.info(f"Pet scans sorted:{new_uids_df['NEW_PET'].value_counts()}")
+        logging.info(f"Pet scans sorted:{new_uids_df['NEW_anchored'].value_counts()}")
  
     # new_uids_df.to_csv("/project/wolk/ADNI2018/scripts/adni_processing_pipeline/testing/mri_processing_status_test_20231005.csv",index=False, header=True)
     # new_uids_df.to_csv("/project/wolk/ADNI2018/scripts/adni_processing_pipeline/testing/tau_processing_status_test_20240126.csv",index=False, header=True)
 
-    new_uids_df.to_csv(os.path.join(datasetup_directories_path["processing_status"], filenames['processing_status'][scantype]), index=False, header=True)
+    # new_uids_df.to_csv(os.path.join(datasetup_directories_path["processing_status"], filenames['processing_status'][scantype]), index=False, header=True)
 
 
 def main():
@@ -608,7 +609,7 @@ def main():
 
 if __name__ == "__main__":
     print("running datasetup.py directly.")
-    registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
+    # registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
     # preprocess_new("PET_META_LIST_30Jun2023.csv",registry=registry_df)   
 
     # create_mri_uid_list()
@@ -623,6 +624,11 @@ if __name__ == "__main__":
     #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/tau_filelocations_copyof_taulist_dec15_2022_fileloc_2022-12-20.csv", \
     #     "tau")
     
+    identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_uids/anchored_uids.csv",\
+                        "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/anchored_processing_status_copyof_20210909oldsheet.csv",\
+                        "anchored")
+
+
     # for key in filenames["uids"]:
     #     if key == "anchored": 
     #         print(f'do this stuff for {key}')
