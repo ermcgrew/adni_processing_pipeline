@@ -424,13 +424,13 @@ class MRI:
         if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
                                          self.t1mtthk_left,self.t1mtthk_right,self.icv_volumes_file], \
-                            output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_mrionly.txt"],\
+                            output_files=[f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst1.txt"],\
                             parent_job=wait_code):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
             if dry_run:
                 print("ASHS T1 stats running")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/mri_ashs_stats.sh \
+                os.system(f"bsub {submit_options} ./wrapper_scripts/ashst1_stats.sh \
                     {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
                     {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
             return
@@ -446,7 +446,7 @@ class MRI:
             if dry_run:
                 print("ASHS T2 stats running")
             else:
-                os.system(f"bsub {submit_options} ./testing/t2statsonly.sh \
+                os.system(f"bsub {submit_options} ./wrapper_scripts/ashst2_stats.sh \
                         {self.id} {self.mridate} {stats_output_dir} {self.t2nifti} \
                         {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right}") 
             return
@@ -530,6 +530,7 @@ class MRIPetReg:
             self.petdate = PET.scandate
             self.pet_nifti = PET.tau_nifti            
             self.pettype_filename = "taupet"
+            ##TODO: add 6mm to pettype_filename for new processing?
 
         self.filepath = f"{adni_data_dir}/{self.id}/{self.petdate}"
         self.reg_prefix = f"{self.petdate}_{self.id}_{self.pettype_filename}_to_{self.mridate}"
