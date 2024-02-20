@@ -1,10 +1,12 @@
 #!/usr/bin/bash
 
 # Usage:
-# ./stats.sh id wholebrainseg t1tausuvrreg t2taureg t1amyreg t2amyreg \
-# cleanup/seg_left cleanup/seg_right cleanup/seg_both icv.txt wblabelfile \ 
-# stats_output_dir mridate taudate amydate wbseg_to
-
+# ./pet_stats.sh id mridate taudate amydate  
+# wholebrainseg wbsegtoants wblabelfile
+# icv.txt 
+# cleanup/seg_left cleanup/seg_right cleanup/seg_both
+# t1tau t1tausuvr t1tausuvrpvc t2taureg t1amyreg t2amyreg 
+# stats_output_file 
 
 
 export DOERODE=true
@@ -12,24 +14,29 @@ TMPDIR=$(mktemp -d)
 export TMPDIR
 
 id=$1  
-wholebrainseg=$2 
-t1tausuvr=$2 
-t2tau=$4 
-t1amy=$5 
-t2amy=$6 
-cleanup_left=$7
-cleanup_right=$8
-cleanup_both=${9}
-icvfile=${10}
-wblabelfile=${11}
-stats_output_dir=${12}
-mridate=${13}
-taudate=${14}
-amydate=${15}
-##additional file: wbseg to ants, use for all except cerebellar reference region
-wbsegtoants=${16}
-t1tausuvrpvc=${$17}
-t1tau=${18}
+mridate=$2
+taudate=$3
+amydate=$4
+
+wholebrainseg=$5
+wbsegtoants=$6
+wblabelfile=$7
+
+icvfile=$8
+
+cleanup_left=$9
+cleanup_right=${10}
+cleanup_both=${11}
+
+t1tau=${12}
+t1tausuvr=${13}
+t1tausuvrpvc=${$14}
+t2tau=${$15} 
+t1amy=${$16} 
+t2amy=${$17} 
+
+stats_output_file=${18}
+
 
 #ID, ICV vol and thickness to stat variable
 RID=$(echo $id | cut -f 3 -d "_")
@@ -277,4 +284,4 @@ statline="$statline,$WBTAU"
 
 
 echo $statline
-echo -e $statline >> ${stats_output_dir}/stats_tau_${taudate}_amy_${amydate}_mri_${mridate}_${id}_pet.txt
+echo -e $statline >> $stats_output_file
