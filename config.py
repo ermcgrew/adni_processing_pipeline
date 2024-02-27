@@ -72,12 +72,13 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 
 
 ###Steps for argparse choices
-##Order matters; values match MRI.method & MRIPetReg.method names
+##Order matters: steps are ordered so dependent processing steps come after their parent processing step
+##Names matter: values match MRI.method & MRIPetReg.method names
 ##for naming: if whole_brain_seg was called "wbseg", it matches to "wbseg_to_ants" and "wbsegqc" as well
 mri_processing_steps = ["neck_trim", "ants", "brain_ex", "whole_brain_seg", "wbseg_to_ants", "wbsegqc", "inf_cereb_mask", 
-                        "t1icv", "superres","t1ashs", "t1mtthk","t2ashs", "t2ashs_qconly", "prc_cleanup", 
-                        "wmh", "pmtau", "ashst1_stats", "ashst2_stats", "structpetstats"]
-registration_steps = ["t1_pet_reg", "tau_suvr", "tau_pvc", "t2_pet_reg", "pet_reg_qc", "structpetstats"]
+                        "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "t2ashs_qconly", "prc_cleanup", 
+                        "wmh", "pmtau", "ashst1_stats", "ashst2_stats", "structure_stats", "pet_stats"]
+registration_steps = ["t1_pet_reg", "tau_suvr", "tau_pvc", "t2_pet_reg", "pet_reg_qc", "pet_stats"]
 
 
 ###Data sheets & derived csvs names and locations
