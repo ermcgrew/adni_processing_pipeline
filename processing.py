@@ -133,9 +133,10 @@ class MRI:
         if not os.path.exists(self.log_output_dir):
             os.system(f"mkdir -p {self.log_output_dir}")
 
-        self.t1ashs_stats_txt = f"{stats_output_dir}/stats_{self.mridate}_{self.id}_ashst1.txt"
-        self.t2ashs_stats_txt = f"{stats_output_dir}/stats_{self.mridate}_{self.id}_ashst2.txt"
-        self.structure_stats_txt = f"{stats_output_dir}/stats_{self.mridate}_{self.id}_structure.txt"
+        self.t1ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst1.txt"
+        self.t2ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst2.txt"
+        self.structure_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_structure.txt"
+            #####existing structure records end with structonly.txt
         # self.pet_stats_txt = f"{stats_output_dir}/stats_{self.mridate}_{self.id}_pet.txt"
 
 
@@ -383,6 +384,9 @@ class MRI:
                 submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
                 if dry_run:
                     print(f"run prc_cleanup for both")
+                    print(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ashs_cleanup_left} \
+                            -interp NN -reslice-identity -push A {self.t2ashs_cleanup_right} \
+                            -interp NN -reslice-identity -add -o {self.t2ashs_cleanup_both}")
                 else:
                     os.system(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ashs_cleanup_left} \
                             -interp NN -reslice-identity -push A {self.t2ashs_cleanup_right} \
@@ -429,7 +433,7 @@ class MRI:
         if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
                                          self.t1mtthk_left,self.t1mtthk_right,self.icv_volumes_file], \
-                            output_files=[self.ashst2_stats_txt],\
+                            output_files=[self.t1ashs_stats_txt],\
                             parent_job=wait_code):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
             if dry_run:
@@ -446,7 +450,7 @@ class MRI:
         this_job_name=f"{self.date_id_prefix}_{this_function}"  
         if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.t2nifti,self.t2ashs_cleanup_left,self.t2ashs_cleanup_right], \
-                            output_files=[self.ashst2_stats_txt],\
+                            output_files=[self.t2ashs_stats_txt],\
                             parent_job=wait_code):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
             if dry_run:
@@ -457,7 +461,13 @@ class MRI:
                         {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right}") 
             return
 
-    ##job name order backwards?
+    ##job name order backwards? --no, prevents these jobs as being counted as processing jobs for wait codes
+    ## tie stats types to processing jobs? 
+
+    #app.py if stats in step and only stats are being run, then run just stats
+        #else, run with parent job--if parent job is the last step completed, should run at the right time
+        ##add return parent job name to t2 ashs, t1mtthk/pmtau?, wbseg for struct?, ?? for pet?
+
     ##structure stats use wbseg and wbseg to ants too?
     ## structure stats GM mask necessary if using wbsegtoants?
     ## addd pmtau code to ASHS t2 and t1
@@ -482,16 +492,21 @@ class MRI:
                         t1tausuvr="null",t1taupvc="null",taudate="null",amydate="null", dry_run = False):
         this_function = MRI.pet_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
-        pet_stats_txt = f"{stats_output_dir}/stats_tau_{taudate}_amy_{amydate}_mri_{mridate}_${self.id}_pet.txt"
+        pet_stats_txt = f"{stats_output_dir}/stats_tau_{taudate}_amy_{amydate}_mri_{self.mridate}_${self.id}_pet.txt"
         ## too many input files, so pass blank list to get stats related to any existing images & prevent overwriting stats output
-        if ready_to_process(this_function, self.id, self.mridate, \ 
-                            input_files = [], \
+        if ready_to_process(this_function, self.id, self.mridate, input_files = [], \
                             output_files = [pet_stats_txt], parent_job = wait_code):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
             if dry_run:
                 print('running pet stats')
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/pet_stats.sh \
+                # os.system(f"bsub {submit_options} ./wrapper_scripts/pet_stats.sh \
+                #     {self.id} {self.mridate} {taudate} {amydate} {self.wbseg_nifti} \
+                #     {self.wbseg_propagated} {wblabel_file} {self.icv_volumes_file} \
+                #     {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
+                #     {t1tau} {t1tausuvr} {t1taupvc} {t2tau} {t1amy} {t2amy} \
+                #     {pet_stats_txt}")
+                os.system(f"bash /project/wolk/ADNI2018/scripts/adni_processing_pipeline/wrapper_scripts/pet_stats.sh \
                     {self.id} {self.mridate} {taudate} {amydate} {self.wbseg_nifti} \
                     {self.wbseg_propagated} {wblabel_file} {self.icv_volumes_file} \
                     {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
@@ -686,9 +701,8 @@ if __name__ == "__main__":
     ### Define class instance
     # mri_to_process = MRI("018_S_2155", "2022-11-21")    
     # mri_to_process = MRI("033_S_0734", "2018-10-10")
-    mri_to_process = MRI("114_S_6917","2021-04-16") 
-
-
+    # mri_to_process = MRI("114_S_6917","2021-04-16") 
+    mri_to_process = MRI("135_S_4722","2017-06-22") 
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
     # mri_to_process = MRI('141_S_6779','2020-10-27')
@@ -696,12 +710,15 @@ if __name__ == "__main__":
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
     # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
     # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
+    amy_to_process = AmyloidPET("135_S_4722","2017-06-20")
+
 
     # tau_to_process = TauPET("099_S_6175", "2020-07-09")
-    tau_to_process = TauPET("114_S_6917", "2021-08-11")
+    # tau_to_process = TauPET("114_S_6917", "2021-08-11")
+    tau_to_process = TauPET("135_S_4722", "2017-06-22")
 
-    # mri_amy_reg_to_process = MRIPetReg('amypet', mri_to_process, amy_to_process)
-    mri_tau_reg_to_process = MRIPetReg('taupet', mri_to_process, tau_to_process)
+    mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
+    mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
 
 
     ### MRI processing
@@ -722,7 +739,11 @@ if __name__ == "__main__":
     #                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
-
+    mri_to_process.prc_cleanup(dry_run = True)
+    # mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
+    #     t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
+    #     t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
+    #     taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate)
 
 
     ### PET processing

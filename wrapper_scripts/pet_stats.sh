@@ -30,10 +30,10 @@ cleanup_both=${11}
 
 t1tau=${12}
 t1tausuvr=${13}
-t1tausuvrpvc=${$14}
-t2tau=${$15} 
-t1amy=${$16} 
-t2amy=${$17} 
+t1tausuvrpvc=${14}
+t2tau=${15} 
+t1amy=${16} 
+t2amy=${17} 
 
 stats_output_file=${18}
 
@@ -249,37 +249,43 @@ WBTAULABELRIGHTNUMS=("31 33 170 122 134" "172 102 132 154 166" "124 200 126 162 
 
 WBTAU=""
 # extract measurements
-for side in left right; do
-  for ((i=0;i<${#WBTAULABELIDS[*]}; i++)); do
-    if [[ -f $wbsegtoants && -f $t1tausuvr ]]; then
-      if [[ $side == "left" ]]; then
-        REPRULE=$(for lab in ${WBTAULABELLEFTNUMS[i]}; do echo $lab 999; done)
-      else
-        REPRULE=$(for lab in ${WBTAULABELRIGHTNUMS[i]}; do echo $lab 999; done)
-      fi
-      WBTAU="$WBTAU,$(c3d $wbsegtoants -replace $REPRULE -thresh 999 999 1 0 -as SEG \
-        $t1tausuvr -int 0 -reslice-identity \
-        -push SEG -lstat | awk '{print $2}' | tail -n 1)"
-    else
-      WBTAU="$WBTAU,"
-    fi
+for wbtype in $wbsegtoants $wholebrainseg ; do 
+  for tautype in $t1tausuvr $t1tausuvrpvc ; do 
+    for side in left right; do
+      for ((i=0;i<${#WBTAULABELIDS[*]}; i++)); do
+        if [[ -f $wbtype && -f $tautype ]]; then
+          if [[ $side == "left" ]]; then
+            REPRULE=$(for lab in ${WBTAULABELLEFTNUMS[i]}; do echo $lab 999; done)
+          else
+            REPRULE=$(for lab in ${WBTAULABELRIGHTNUMS[i]}; do echo $lab 999; done)
+          fi
+          WBTAU="$WBTAU,$(c3d $wbtype -replace $REPRULE -thresh 999 999 1 0 -as SEG \
+            $tautype -int 0 -reslice-identity \
+            -push SEG -lstat | awk '{print $2}' | tail -n 1)"
+        else
+          WBTAU="$WBTAU,"
+        fi
+      done
+    done
   done
 done
-WBTAU="${WBTAU:1}"
-# compute mean
-MEA=$WBTAU
-NMEA=${#WBTAULABELIDS[*]}
-for ((i=1;i<=$NMEA;i++)); do
-  LMEA=$(echo $MEA | cut -d, -f $i)
-  RMEA=$(echo $MEA | cut -d, -f $((i+NMEA)))
-  if [[ $LMEA != "" && $RMEA != "" ]]; then
-    MMEA=$(echo "scale=10;($LMEA+$RMEA)/2" | bc -l)
-  else
-    MMEA=""
-  fi
-  MEA="$MEA,$MMEA"
-done
-WBTAU=$MEA
+
+# WBTAU="${WBTAU:1}"
+# # compute mean
+# MEA=$WBTAU
+# NMEA=${#WBTAULABELIDS[*]}
+# for ((i=1;i<=$NMEA;i++)); do
+#   LMEA=$(echo $MEA | cut -d, -f $i)
+#   RMEA=$(echo $MEA | cut -d, -f $((i+NMEA)))
+#   if [[ $LMEA != "" && $RMEA != "" ]]; then
+#     MMEA=$(echo "scale=10;($LMEA+$RMEA)/2" | bc -l)
+#   else
+#     MMEA=""
+#   fi
+#   MEA="$MEA,$MMEA"
+# done
+# WBTAU=$MEA
+
 statline="$statline,$WBTAU"
 
 
