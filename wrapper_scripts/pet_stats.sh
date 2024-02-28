@@ -270,24 +270,6 @@ for wbtype in $wbsegtoants $wholebrainseg ; do
   done
 done
 
-# WBTAU="${WBTAU:1}"
-# # compute mean
-# MEA=$WBTAU
-# NMEA=${#WBTAULABELIDS[*]}
-# for ((i=1;i<=$NMEA;i++)); do
-#   LMEA=$(echo $MEA | cut -d, -f $i)
-#   RMEA=$(echo $MEA | cut -d, -f $((i+NMEA)))
-#   if [[ $LMEA != "" && $RMEA != "" ]]; then
-#     MMEA=$(echo "scale=10;($LMEA+$RMEA)/2" | bc -l)
-#   else
-#     MMEA=""
-#   fi
-#   MEA="$MEA,$MMEA"
-# done
-# WBTAU=$MEA
-
 statline="$statline,$WBTAU"
 
-
-echo $statline
-echo -e $statline >> $stats_output_file
+echo -e $statline | tee $stats_output_file

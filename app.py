@@ -299,7 +299,7 @@ def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
                                                     amydate = mri_amy_reg_to_process.petdate, dry_run = dry_run) 
         
 
-def final_data_sheets():
+def final_data_sheets(mode):
     #job to watch queue for status of all image processing & individual stats collection
     # print(f'bsub -J "{current_date}_queuewatch" -o {this_output_dir} ./queue_watch.sh')
     os.system(f'bsub -J "{current_date}_queuewatch" -o {this_output_dir} ./queue_watch.sh')
@@ -308,7 +308,7 @@ def final_data_sheets():
     # print(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" -o {this_output_dir} \
     #       ./create_stats_sheets.sh {wblabel_file} {stats_output_dir} {this_output_dir}')
     os.system(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" -o {this_output_dir} \
-              ./create_stats_sheets.sh {wblabel_file} {stats_output_dir} {this_output_dir}')
+              ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {mode}')
 
  
 #Arguments
@@ -366,7 +366,8 @@ mri_pet_reg_parser.set_defaults(func=mri_pet_registration)
 
 
 ###final_data_sheets
-final_data_sheet_parser = subparsers.add_parser("final_data_sheets", help="Collect individual stats into final sheets.")
+final_data_sheet_parser = subparsers.add_parser("final_data_sheets", help = "Collect individual stats into final sheets.")
+final_data_sheet_parser.add_argument("-m", "--mode", nargs = "+", choices = stats_steps, help="Select which type of stats to collect into final sheet")
 final_data_sheet_parser.set_defaults(func=final_data_sheets)
 
 

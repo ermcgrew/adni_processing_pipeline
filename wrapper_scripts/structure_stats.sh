@@ -19,6 +19,6 @@ for i in $(cat $wblabelfile | grep -v '#' | sed -n '9,$p' | \
         statline="$statline\t $THISTHICK"
 done
 
-echo -e $statline >> $outputfile
+echo -e $statline | tee $outputfile
 
 rm -r $TMPDIR

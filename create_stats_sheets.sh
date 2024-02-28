@@ -1,5 +1,10 @@
 #!/usr/bin/bash
 
+wblabels=$1
+output_dir=$2
+mode=$3
+
+
 function write_header()
 {
   mode=$1
@@ -7,7 +12,7 @@ function write_header()
   
   HEADER="RID,ID,MRIDATE,"
 
-  if [[ $mode == "pet_stats" ]] ; then 
+  if [[ $mode == "pet" ]] ; then 
     HEADER="${HEADER}\tAMYDATE\tTAUDATE\tICV\tSlice_Thickness"
 
     ##ASHST2 hippocampal ROIs
@@ -27,14 +32,14 @@ function write_header()
     wbrois=$(echo inftemp midtemp suptemp suppariet calc angular supfront)
     for roi in wbrois ; do 
       for side in R L ; do
-        HEADER="${HEADER}\t${roi}_tau_${side}\t${roi}_tau_pvc_${side}\t${roi}_amy_${side}"
+        HEADER="${HEADER}\t${roi}_wbtoants_tau_${side}\t${roi}_wbtoants_tau_pvc_${side}\t${roi}_wbtoants_amy_${side}"
       done 
     done
 
     for roi in $(cat $wblabels | grep -v '#' | sed -n '9,$p' \
     | grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF' \
     | cut -f 2 -d \" | sed -e 's/\( \)\{1,\}/_/g' ); do
-      HEADER="$HEADER\t${roi}_tau\t${roi}_taupvc\t${roi}_amy"
+      HEADER="$HEADER\t${roi}_wbtoants_tau\t${roi}_wbtoants_taupvc\t${roi}_wbtoants_amy"
     done
 
     #compSUVR
@@ -91,13 +96,14 @@ function write_header()
     HEADER="$HEADER\t${i}_pmtauthick\t${i}_pmtauweightedthick\t${i}_pmtaujac\t${i}_pmtauweightedjac"
     done
 
-  elif [[ $mode == "ASHST2" ]] ; then 
+  elif [[ $mode == "ashst2" ]] ; then 
     list=$(echo CA1 CA2 CA3 DG MISC SUB ERC BA35 BA36 PHC sulcus CA HIPP EXTHIPPO EXTHIPPOno36 MTLno36)
     for side in left right; do
       for sf in $list; do
-        HEADER="${HEADER}\t${side}_${sf}_vol\t${side}_${sf}_ns\t${side}_${sf}_tau\t${side}_${sf}_amy"
+        HEADER="${HEADER}\t${side}_${sf}_vol\t${side}_${sf}_ns"
       done
     done
+
     #PMTAU
     for i in Anterior Posterior; do
     HEADER="$HEADER\t${i}_pmtauthick\t${i}_pmtauweightedthick\t${i}_pmtaujac\t${i}_pmtauweightedjac"
@@ -111,32 +117,47 @@ function write_header()
 
 }
 
+
 function collate_new_data ()
 {
-  for file in $(find ${stats_output_dir}/*whole.txt); do
-    cat $file >> $this_run_analysis_output_dir/$tsvfilename
-  done
-  for file in $(find ${stats_output_dir}/*structonly.txt); do
-    cat $file >> $this_run_analysis_output_dir/$structonly
-  done
-  for file in $(find ${stats_output_dir}/*ashst1.txt); do
-    cat $file >> $this_run_analysis_output_dir/$ashst1csv
-  done
-
+  statfile=$1
+  if [[ $mode == "pet" ]] ; then 
+    for file in $(find ${output_dir}/stats/*pet.txt); do
+      cat $file >> $statfile
+    done
+  elif [[ $mode == "structure" ]] ; then 
+    for file in $(find ${output_dir}/stats/*structure.txt); do
+      cat $file >> $statfile
+    done
+  elif [[ $mode == "ashst1" ]] ; then 
+    for file in $(find ${output_dir}/stats/*ashst1.txt); do
+      cat $file >> $statfile
+    done
+  elif [[ $mode == "ashst2" ]] ; then 
+    for file in $(find ${output_dir}/stats/*ashst2.txt); do
+      cat $file >> $statfile
+    done  
+  elif [[ $mode == "wmh" ]] ; then 
+    for file in $(find ${output_dir}/stats/*wmh.txt); do
+      cat $file >> $statfile
+    done  
+  fi
 }
 
-wblabels=$1
-stats_output_dir=$2
-this_run_analysis_output_dir=$3
-##mode as argument? 
 
-date=$(echo $this_run_analysis_output_dir | cut -f 6 -d "/")
+date=$(echo date + '%Y%m%d')
 
-#by mode: statfile =
-tsvfilename="pet_ashst2_stats_corr_nogray_${date}.tsv"
-ashst1csv="ASHS_T1MTTHK_${date}.csv"
-structonly="structonly_ashst2_stats_corr_nogray_${date}.tsv"
+if [[ $mode == "pet" ]] ; then 
+  statfile="${output_dir}/data/tau_amy_ROIvols_compSUVR_${date}.csv"
+elif [[ $mode == "structure" ]] ; then 
+  statfile="${output_dir}/data/thickness_${date}.csv"
+elif [[ $mode == "ashst1" ]] ; then 
+  statfile="${output_dir}/data/T1_ASHSvols_MTTHK_PMTAU_${date}.csv"
+elif [[ $mode == "ashst2" ]] ; then 
+  statfile="${output_dir}/data/T2_ASHSvols_PMTAU_${date}.csv"
+elif [[ $mode == "wmh" ]] ; then 
+  statfile="${output_dir}/data/WMH_${date}.csv"
+fi
 
-# echo "Writing tsv header"
-write_header($mode, $statfile)
-collate_new_data
+write_header $mode $statfile
+collate_new_data $mode $statfile

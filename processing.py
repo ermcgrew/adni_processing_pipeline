@@ -128,7 +128,6 @@ class MRI:
         self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
         self.wmh_mask = f"{self.filepath}/{self.date_id_prefix}_wmh_mask.nii.gz"
 
-        # self.log_output_dir = f"{self.filepath}/logs_{current_date}"
         self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
             os.system(f"mkdir -p {self.log_output_dir}")
@@ -136,8 +135,6 @@ class MRI:
         self.t1ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst1.txt"
         self.t2ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst2.txt"
         self.structure_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_structure.txt"
-            #####existing structure records end with structonly.txt
-        # self.pet_stats_txt = f"{stats_output_dir}/stats_{self.mridate}_{self.id}_pet.txt"
 
 
     def neck_trim(self, parent_job_name = "", dry_run = False):
@@ -461,17 +458,7 @@ class MRI:
                         {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right}") 
             return
 
-    ##job name order backwards? --no, prevents these jobs as being counted as processing jobs for wait codes
-    ## tie stats types to processing jobs? 
-
-    #app.py if stats in step and only stats are being run, then run just stats
-        #else, run with parent job--if parent job is the last step completed, should run at the right time
-        ##add return parent job name to t2 ashs, t1mtthk/pmtau?, wbseg for struct?, ?? for pet?
-
-    ##structure stats use wbseg and wbseg to ants too?
-    ## structure stats GM mask necessary if using wbsegtoants?
-    ## addd pmtau code to ASHS t2 and t1
-
+   
     def structure_stats(self, wait_code = "", dry_run = False):
         this_function = MRI.structure_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
