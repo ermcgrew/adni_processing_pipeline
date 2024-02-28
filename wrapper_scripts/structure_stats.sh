@@ -16,7 +16,7 @@ c3d $wholebrainseg -dup $MASKCOMM -as A $thickness -interp NN -reslice-identity 
 for i in $(cat $wblabelfile | grep -v '#' | sed -n '9,$p' | \
     grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF' | awk '{print $1}' ); do    
         THISTHICK=$(cat $TMPDIR/allthick.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-        statline="$statline\t $THISTHICK"
+        statline="$statline,$THISTHICK"
 done
 
 echo -e $statline | tee $outputfile

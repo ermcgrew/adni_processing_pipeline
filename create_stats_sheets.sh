@@ -10,47 +10,46 @@ function write_header()
   mode=$1
   statfile=$2
   
-  HEADER="RID,ID,MRIDATE,"
+  HEADER="RID,ID,MRIDATE"
 
   if [[ $mode == "pet" ]] ; then 
-    HEADER="${HEADER}\tAMYDATE\tTAUDATE\tICV\tSlice_Thickness"
+    HEADER="${HEADER},AMYDATE,TAUDATE,ICV,Slice_Thickness"
 
     ##ASHST2 hippocampal ROIs
     list=$(echo CA1 CA2 CA3 DG MISC SUB ERC BA35 BA36 PHC sulcus CA HIPP EXTHIPPO EXTHIPPOno36 MTLno36)
     for side in left right; do
       for sf in $list; do
-        HEADER="${HEADER}\t${side}_${sf}_tau\t${side}_${sf}_amy"
+        HEADER="${HEADER},${side}_${sf}_tau,${side}_${sf}_amy"
       done
     done
 
     ##Combined hippocampal ROIs and CEREB tau and amy values
-    HEADER="$HEADER\tHIPPboth_tau\tHIPPboth_amy\tEXTHIPPno36both_tau\tEXTHIPPno36both_amy\t\
-    MTLno36both_tau\tMTLno36both_amy\tcereb_tau\tcereb_amy"
+    HEADER="$HEADER,HIPPboth_tau,HIPPboth_amy,EXTHIPPno36both_tau,EXTHIPPno36both_amy,MTLno36both_tau,MTLno36both_amy,cereb_tau,cereb_amy"
 
     #Whole brain ROIS: tau, taupvc, amy
-    HEADER="$HEADER\tocc_tau\tocc_tau_pvc\tocc_amy\tpostcing_tau\tpostcing_tau_pvc\tpostcing_amy"
+    HEADER="$HEADER,occ_tau,occ_tau_pvc,occ_amy,postcing_tau,postcing_tau_pvc,postcing_amy"
     wbrois=$(echo inftemp midtemp suptemp suppariet calc angular supfront)
-    for roi in wbrois ; do 
+    for roi in $wbrois ; do 
       for side in R L ; do
-        HEADER="${HEADER}\t${roi}_wbtoants_tau_${side}\t${roi}_wbtoants_tau_pvc_${side}\t${roi}_wbtoants_amy_${side}"
+        HEADER="${HEADER},${roi}_wbtoants_tau_${side},${roi}_wbtoants_tau_pvc_${side},${roi}_wbtoants_amy_${side}"
       done 
     done
 
     for roi in $(cat $wblabels | grep -v '#' | sed -n '9,$p' \
     | grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF' \
     | cut -f 2 -d \" | sed -e 's/\( \)\{1,\}/_/g' ); do
-      HEADER="$HEADER\t${roi}_wbtoants_tau\t${roi}_wbtoants_taupvc\t${roi}_wbtoants_amy"
+      HEADER="$HEADER,${roi}_wbtoants_tau,${roi}_wbtoants_taupvc,${roi}_wbtoants_amy"
     done
 
     #compSUVR
-    HEADER="${HEADER}\tcompSUVR"
+    HEADER="${HEADER},compSUVR"
 
     #BRAAK stages
     for wbtype in WB_ants WB ; do 
       for tautype in tau tau_suvr ; do 
         for side in L R; do
           for region in BRAAK3 BRAAK4 BRAAK5 BRAAK6 ; do
-          HEADER="${HEADER}\t${side}_${region}_${tautype}_${wbtype}"
+          HEADER="${HEADER},${side}_${region}_${tautype}_${wbtype}"
     done
     done
     done
@@ -60,7 +59,7 @@ function write_header()
     for roi in $(cat $wblabels | grep -v '#' | sed -n '9,$p' \
       | grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF' \
       | cut -f 2 -d \" | sed -e 's/\( \)\{1,\}/_/g' ); do
-      HEADER="$HEADER\t${roi}_thickness"
+      HEADER="$HEADER,${roi}_thickness"
     done
 
   elif [[ $mode == "ashst1" ]] ; then 
@@ -93,24 +92,24 @@ function write_header()
   
     #PMTAU
     for i in Anterior Posterior; do
-    HEADER="$HEADER\t${i}_pmtauthick\t${i}_pmtauweightedthick\t${i}_pmtaujac\t${i}_pmtauweightedjac"
+    HEADER="$HEADER,${i}_pmtauthick,${i}_pmtauweightedthick,${i}_pmtaujac,${i}_pmtauweightedjac"
     done
 
   elif [[ $mode == "ashst2" ]] ; then 
     list=$(echo CA1 CA2 CA3 DG MISC SUB ERC BA35 BA36 PHC sulcus CA HIPP EXTHIPPO EXTHIPPOno36 MTLno36)
     for side in left right; do
       for sf in $list; do
-        HEADER="${HEADER}\t${side}_${sf}_vol\t${side}_${sf}_ns"
+        HEADER="${HEADER},${side}_${sf}_vol,${side}_${sf}_ns"
       done
     done
 
     #PMTAU
     for i in Anterior Posterior; do
-    HEADER="$HEADER\t${i}_pmtauthick\t${i}_pmtauweightedthick\t${i}_pmtaujac\t${i}_pmtauweightedjac"
+    HEADER="$HEADER,${i}_pmtauthick,${i}_pmtauweightedthick,${i}_pmtaujac,${i}_pmtauweightedjac"
     done
 
   elif [[ $mode == "wmh" ]] ; then 
-    HEADER="$HEADER\tWMH_vol"
+    HEADER="$HEADER,WMH_vol"
   fi 
 
   echo -e "${HEADER}" > $statfile
@@ -120,10 +119,11 @@ function write_header()
 
 function collate_new_data ()
 {
-  statfile=$1
-  if [[ $mode == "pet" ]] ; then 
+  mode=$1
+  statfile=$2
+  if [[ $mode == "pet" ]] ; then
     for file in $(find ${output_dir}/stats/*pet.txt); do
-      cat $file >> $statfile
+      cat -e $file >> $statfile
     done
   elif [[ $mode == "structure" ]] ; then 
     for file in $(find ${output_dir}/stats/*structure.txt); do
@@ -145,7 +145,7 @@ function collate_new_data ()
 }
 
 
-date=$(echo date + '%Y%m%d')
+date=$( date '+%Y%m%d')
 
 if [[ $mode == "pet" ]] ; then 
   statfile="${output_dir}/data/tau_amy_ROIvols_compSUVR_${date}.csv"
