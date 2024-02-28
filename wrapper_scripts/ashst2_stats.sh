@@ -71,4 +71,4 @@ for side in left right; do
     done
 done
 
-echo -e $statline >> ${stats_output_dir}/stats_mri_${mridate}_${id}_ashst2.txt
+echo -e $statline | tee ${stats_output_dir}/stats_mri_${mridate}_${id}_ashst2.txt

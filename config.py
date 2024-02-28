@@ -79,7 +79,7 @@ mri_processing_steps = ["neck_trim", "ants", "brain_ex", "whole_brain_seg", "wbs
                         "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "t2ashs_qconly", "prc_cleanup", 
                         "wmh", "pmtau", "ashst1_stats", "ashst2_stats", "structure_stats", "pet_stats"]
 registration_steps = ["t1_pet_reg", "tau_suvr", "tau_pvc", "t2_pet_reg", "pet_reg_qc", "pet_stats"]
-
+stats_steps = [step for step in mri_processing_steps if "stats" in step]
 
 ###Data sheets & derived csvs names and locations
 #list all directories with data sheets, then select those for newest date
