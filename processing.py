@@ -426,7 +426,7 @@ class MRI:
 
     def ashst1_stats(self, wait_code = "", dry_run = False):
         this_function = MRI.ashst1_stats.__name__
-        this_job_name=f"{self.date_id_prefix}_{this_function}"             
+        this_job_name=f"{this_function}_{self.date_id_prefix}"             
         if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
                                          self.t1mtthk_left,self.t1mtthk_right,self.icv_volumes_file], \
@@ -444,7 +444,7 @@ class MRI:
 
     def ashst2_stats(self, wait_code = "", dry_run = False):
         this_function = MRI.ashst2_stats.__name__
-        this_job_name=f"{self.date_id_prefix}_{this_function}"  
+        this_job_name=f"{this_function}_{self.date_id_prefix}"  
         if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.t2nifti,self.t2ashs_cleanup_left,self.t2ashs_cleanup_right], \
                             output_files=[self.t2ashs_stats_txt],\
@@ -487,18 +487,19 @@ class MRI:
             if dry_run:
                 print('running pet stats')
             else:
-                # os.system(f"bsub {submit_options} ./wrapper_scripts/pet_stats.sh \
-                #     {self.id} {self.mridate} {taudate} {amydate} {self.wbseg_nifti} \
-                #     {self.wbseg_propagated} {wblabel_file} {self.icv_volumes_file} \
-                #     {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
-                #     {t1tau} {t1tausuvr} {t1taupvc} {t2tau} {t1amy} {t2amy} \
-                #     {pet_stats_txt}")
-                os.system(f"bash /project/wolk/ADNI2018/scripts/adni_processing_pipeline/wrapper_scripts/pet_stats.sh \
+                os.system(f"bsub {submit_options} ./wrapper_scripts/pet_stats.sh \
                     {self.id} {self.mridate} {taudate} {amydate} {self.wbseg_nifti} \
                     {self.wbseg_propagated} {wblabel_file} {self.icv_volumes_file} \
                     {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
                     {t1tau} {t1tausuvr} {t1taupvc} {t2tau} {t1amy} {t2amy} \
                     {pet_stats_txt}")
+                # os.system(f"bash /project/wolk/ADNI2018/scripts/adni_processing_pipeline/wrapper_scripts/pet_stats.sh \
+                #     {self.id} {self.mridate} {taudate} {amydate} {self.wbseg_nifti} \
+                #     {self.wbseg_propagated} {wblabel_file} {self.icv_volumes_file} \
+                #     {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
+                #     {t1tau} {t1tausuvr} {t1taupvc} {t2tau} {t1amy} {t2amy} \
+                #     {pet_stats_txt}")
+                # print(f"{self.wbseg_propagated} {t1tausuvr}")
     
         return
 
@@ -540,6 +541,7 @@ class AmyloidPET:
         self.scandate = amydate
         self.filepath=f"{adni_data_dir}/{self.id}/{self.scandate}"
         self.date_id_prefix = f"{self.scandate}_{self.id}"
+        # self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet.nii.gz"        
         self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet6mm.nii.gz"        
 
         self.log_output_dir = f"{self.filepath}/logs"
@@ -688,21 +690,21 @@ if __name__ == "__main__":
     ### Define class instance
     # mri_to_process = MRI("018_S_2155", "2022-11-21")    
     # mri_to_process = MRI("033_S_0734", "2018-10-10")
-    # mri_to_process = MRI("114_S_6917","2021-04-16") 
-    mri_to_process = MRI("135_S_4722","2017-06-22") 
+    mri_to_process = MRI("114_S_6917","2021-04-16") 
+    # mri_to_process = MRI("135_S_4722","2017-06-22") 
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
     # mri_to_process = MRI('141_S_6779','2020-10-27')
    
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
-    # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
+    amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
     # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
-    amy_to_process = AmyloidPET("135_S_4722","2017-06-20")
+    # amy_to_process = AmyloidPET("135_S_4722","2017-06-20")
 
 
     # tau_to_process = TauPET("099_S_6175", "2020-07-09")
-    # tau_to_process = TauPET("114_S_6917", "2021-08-11")
-    tau_to_process = TauPET("135_S_4722", "2017-06-22")
+    tau_to_process = TauPET("114_S_6917", "2021-08-11")
+    # tau_to_process = TauPET("135_S_4722", "2017-06-22")
 
     mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
     mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
@@ -726,11 +728,11 @@ if __name__ == "__main__":
     #                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
-    mri_to_process.prc_cleanup(dry_run = True)
-    # mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
-    #     t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
-    #     t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
-    #     taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate)
+    # mri_to_process.prc_cleanup(dry_run = True)
+    mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
+        t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
+        t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
+        taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate)
 
 
     ### PET processing
@@ -742,3 +744,8 @@ if __name__ == "__main__":
     # mri_tau_reg_to_process.do_t2_pet_reg()
     # mri_tau_reg_to_process.do_t2_pet_reg(f"{mri_to_process.mridate}_{mri_to_process.id}_t1taupetreg")
     # mri_tau_reg_to_process.do_t2_pet_reg([f"{mri_to_process.mridate}_{mri_to_process.id}_t1taupetreg",f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
+
+
+    # mri_amy_reg_to_process.t1_pet_reg()
+    # mri_amy_reg_to_process.t2_pet_reg()
+    # mri_amy_reg_to_process.pet_reg_qc()

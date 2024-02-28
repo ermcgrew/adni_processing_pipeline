@@ -306,10 +306,11 @@ def final_data_sheets(mode):
     
     logging.info(f"Collecting data from analysis_output/stats/ for data sheets.")
     # print(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" -o {this_output_dir} \
-    #       ./create_stats_sheets.sh {wblabel_file} {stats_output_dir} {this_output_dir}')
+    #           ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {mode}')
     os.system(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" -o {this_output_dir} \
               ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {mode}')
-
+    # os.system(f'bsub -J "{current_date}_datasheets" -o {this_output_dir} \
+    #           ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {mode}')
  
 #Arguments
 global_parser = argparse.ArgumentParser()
@@ -367,7 +368,7 @@ mri_pet_reg_parser.set_defaults(func=mri_pet_registration)
 
 ###final_data_sheets
 final_data_sheet_parser = subparsers.add_parser("final_data_sheets", help = "Collect individual stats into final sheets.")
-final_data_sheet_parser.add_argument("-m", "--mode", nargs = "+", choices = stats_steps, help="Select which type of stats to collect into final sheet")
+final_data_sheet_parser.add_argument("-m", "--mode", nargs = "+", choices = ["pet","structure","ashst1", "ashst2","wmh"], help="Select which type of stats to collect into final sheet")
 final_data_sheet_parser.set_defaults(func=final_data_sheets)
 
 

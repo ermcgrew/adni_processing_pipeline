@@ -43,7 +43,7 @@ RID=$(echo $id | cut -f 3 -d "_")
 ICV=$( printf %10.2f $(cat $icvfile | awk '{print $5}'))
 thick=$(c3d $cleanup_left -info-full | grep Spacing | \
   sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" | awk '{print $3}')
-statline="$RID\t$id\t$mridate\t$amydate\t$taudate\t$ICV\t$thick"
+statline="$RID,$id,$mridate,$amydate,$taudate,$ICV,$thick"
 # echo $statline
 
 #do stats for each hemisphere:
@@ -90,7 +90,7 @@ for side in left right; do
   for i in $list; do
     THISTAU=$(cat $TMPDIR/stattau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/statamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-    statline="$statline\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t$(echo $THISAMY/${CEREBAMY} | bc -l )"  
+    statline="$statline,$(echo $THISTAU/${CEREBTAU} | bc -l ),$(echo $THISAMY/${CEREBAMY} | bc -l )"  
   done
 
 
@@ -100,7 +100,7 @@ for side in left right; do
   for i in 1; do
     THISTAU=$(cat $TMPDIR/stattau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/statamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-    statline="$statline\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
+    statline="$statline,$(echo $THISTAU/${CEREBTAU} | bc -l ),$(echo $THISAMY/${CEREBAMY} | bc -l )"
   done
 
   # Combine hippocampal regions to get total HIPP values 
@@ -109,7 +109,7 @@ for side in left right; do
   for i in 1; do
     THISTAU=$(cat $TMPDIR/stathipptau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/stathippamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-    statline="$statline\t  $(echo $THISTAU/${CEREBTAU} | bc -l )\t  $(echo $THISAMY/${CEREBAMY} | bc -l )"
+    statline="$statline,$(echo $THISTAU/${CEREBTAU} | bc -l ),$(echo $THISAMY/${CEREBAMY} | bc -l )"
   done
 
   # Combine EXTHIPPO regions to get total EXTHIPPO values 
@@ -118,7 +118,7 @@ for side in left right; do
   for i in 1; do
     THISTAU=$(cat $TMPDIR/statexthipptau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/statexthippamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-    statline="$statline\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
+    statline="$statline,$(echo $THISTAU/${CEREBTAU} | bc -l ),$(echo $THISAMY/${CEREBAMY} | bc -l )"
   done
 
   # Combine EXTHIPPO NO BA36 regions to get total EXTHIPPO NO BA36 values 
@@ -127,7 +127,7 @@ for side in left right; do
   for i in 1; do
     THISTAU=$(cat $TMPDIR/statexthippno36tau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/statexthippno36amy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-    statline="$statline\t  $(echo $THISTAU/${CEREBTAU} | bc -l )\t  $(echo $THISAMY/${CEREBAMY} | bc -l )"
+    statline="$statline,$(echo $THISTAU/${CEREBTAU} | bc -l ),$(echo $THISAMY/${CEREBAMY} | bc -l )"
   done
 
   # Combine MTL NO BA36 regions to get total MTL NO BA36 values 
@@ -136,7 +136,7 @@ for side in left right; do
   for i in 1; do
     THISTAU=$(cat $TMPDIR/statmtlno36tau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/statmtlno36amy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-    statline="$statline\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
+    statline="$statline,$(echo $THISTAU/${CEREBTAU} | bc -l ),$(echo $THISAMY/${CEREBAMY} | bc -l )"
   done
 
 
@@ -147,26 +147,26 @@ for side in left right; do
     c3d $cleanup_both -replace 2 1 3 1 4 1 -as A $t2amy -interp NN -reslice-identity -push A -lstat > $TMPDIR/stathippbothamy.txt
     THISTAU=$(cat $TMPDIR/stathippbothtau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/stathippbothamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
-    statline="$statline\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
+    statline="$statline,$(echo $THISTAU/${CEREBTAU} | bc -l ),$(echo $THISAMY/${CEREBAMY} | bc -l )"
 
     # BOTH EXTHIPPO NO BA36
     c3d $cleanup_both -replace 1 2 -replace 10 1 11 1 -as A $t2tau -interp NN -reslice-identity -push A -lstat > $TMPDIR/statexthippno36bothtau.txt
     c3d $cleanup_both -replace 1 2 -replace 10 1 11 1 -as A $t2amy -interp NN -reslice-identity -push A -lstat > $TMPDIR/statexthippno36bothamy.txt
     THISTAU=$(cat $TMPDIR/statexthippno36bothtau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/statexthippno36bothamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
-    statline="$statline\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
+    statline="$statline,$(echo $THISTAU/${CEREBTAU} | bc -l ),$(echo $THISAMY/${CEREBAMY} | bc -l )"
 
     # BOTH MTL NO BA36
     c3d $cleanup_both -replace 2 1 3 1 4 1 10 1 11 1 -as A $t2tau -interp NN -reslice-identity -push A -lstat > $TMPDIR/statmtlno36bothtau.txt
     c3d $cleanup_both -replace 2 1 3 1 4 1 10 1 11 1 -as A $t2amy -interp NN -reslice-identity -push A -lstat > $TMPDIR/statmtlno36bothamy.txt
     THISTAU=$(cat $TMPDIR/statmtlno36bothtau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/statmtlno36bothamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
-    statline="$statline\t $(echo $THISTAU/${CEREBTAU} | bc -l )\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
+    statline="$statline,$(echo $THISTAU/${CEREBTAU} | bc -l ),$(echo $THISAMY/${CEREBAMY} | bc -l )"
 
 
     ####tau & amy values for ROIs from T1 whole brain seg
     # Add Cerebellum values used above
-    statline="$statline\t $CEREBTAU\t $CEREBAMY"
+    statline="$statline,$CEREBTAU,$CEREBAMY"
 
     # Occipital lobe ROIs
     c3d $wbsegtoants -replace 128 1000 129 1000 144 1000 145 1000 156 1000 157 1000 160 1000 161 1000\
@@ -178,7 +178,7 @@ for side in left right; do
     THISTAU=$(cat $TMPDIR/stattauocc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
     THISTAUPVC=$(cat $TMPDIR/stattaupvcocc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/statamyocc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
-    statline="$statline\t $THISTAU\t $THISTAUPVC\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
+    statline="$statline,$THISTAU,$THISTAUPVC,$(echo $THISAMY/${CEREBAMY} | bc -l )"
         
     # Posterior cingulate ROIs
     c3d $wbsegtoants -replace 166 1000 167 1000 -thresh 1000 1000 1 0 -as A $t1tausuvr -interp NN \
@@ -190,8 +190,8 @@ for side in left right; do
     THISTAU=$(cat $TMPDIR/stattaupc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
     THISTAUPVC=$(cat $TMPDIR/stattaupvcpc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
     THISAMY=$(cat $TMPDIR/statamypc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
-    statline="$statline\t $THISTAU\t $THISTAUPVC\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
-    
+    statline="$statline,$THISTAU,$THISTAUPVC,$(echo $THISAMY/${CEREBAMY} | bc -l )"
+  
     # Other ROIs suitable for looking at subtypes: 
     # inf temporal gyrus (132 133) middle temporal (154 right 155 left) superior temporal 200 201 \
     # superior parietal 198 199 calcarine 108 109 angular gyrus 106 107 190 191 superior frontal
@@ -206,9 +206,9 @@ for side in left right; do
       -accum -add -endaccum -as SUM  $t1amy -interp NN -reslice-identity -push SUM -lstat > $TMPDIR/variousamyrois.txt
     for i in 132 133 154 155 200 201 198 199 108 109 106 107 190 191; do
       THISTAU=$(cat $TMPDIR/varioustaurois.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-      THISTAUPVC=$(cat $TMPDIR/varioustauroispvc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
+      THISTAUPVC=$(cat $TMPDIR/varioustauroispvc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
       THISAMY=$(cat $TMPDIR/variousamyrois.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-      statline="$statline\t $THISTAU\t $THISTAUPVC\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
+      statline="$statline,$THISTAU,$THISTAUPVC,$(echo $THISAMY/${CEREBAMY} | bc -l )"
     done
 
 
@@ -216,15 +216,16 @@ for side in left right; do
     c3d $wbsegtoants -as A $t1tausuvr -interp NN -reslice-identity -push A  -lstat > $TMPDIR/alltau.txt
     c3d $wbsegtoants -as A $t1tausuvrpvc -interp NN -reslice-identity -push A  -lstat > $TMPDIR/alltaupvc.txt
     c3d $wbsegtoants -as A $t1amy -interp NN -reslice-identity -push A  -lstat > $TMPDIR/allamy.txt
+
     for i in $(cat $wblabelfile | grep -v '#' | sed -n '9,$p' | \
     grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF' | awk '{print $1}' ); do
       THISTAU=$(cat $TMPDIR/alltau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-      THISTAUPVC=$(cat $TMPDIR/alltaupvc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
+      THISTAUPVC=$(cat $TMPDIR/alltaupvc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
       THISAMY=$(cat $TMPDIR/allamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
-      statline="$statline\t $THISTAU\t $THISTAUPVC\t $(echo $THISAMY/${CEREBAMY} | bc -l )"
+      statline="$statline,$THISTAU,$THISTAUPVC,$(echo $THISAMY/${CEREBAMY} | bc -l )"
     done
 
-    #### comp SUVR 
+    ### comp SUVR 
     # Left_MFG_middle_frontal_gyrus,Right_MFG_middle_frontal_gyrus,Left_ACgG_anterior_cingulate_gyrus,
     # Right_ACgG_anterior_cingulate_gyrus,Left_PCgG_posterior_cingulate_gyrus,Right_PCgG_posterior_cingulate_gyrus,
     # Left_AnG_angular_gyrus,Right_AnG_angular_gyrus,Left_PCu_precuneus,Right_PCu_precuneus,
