@@ -183,7 +183,7 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
         df_full = pd.read_csv(csv_to_read)
         df = df_full.loc[(df_full['NEW_T1'] == 1) | (df_full['NEW_T2'] == 1)] # | df['NEW_FLAIR'] == 1
     
-    logging.info(f"With DRY_RUN={dry_run}: Running MRI image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
+    logging.info(f"DRY_RUN={dry_run}: Running MRI image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
     # print(df.head())
 
     # dry_run = True
@@ -254,7 +254,7 @@ def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
         mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
 
         if "structpetstats" in steps_ordered and len(steps_ordered) == 1:
-            ##if only doing stats, no wait code from image processing funcations
+            ##if only doing stats, no wait code from image processing functions
             logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:{mri_tau_reg_to_process.petdate}:{mri_amy_reg_to_process.petdate}:Running pet stats.")
             # print(f"submit without wait code")
             mri_to_process.structpetstats(t1tau = mri_tau_reg_to_process.t1_reg_nifti, 

@@ -135,7 +135,7 @@ class MRI:
         self.t1ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst1.txt"
         self.t2ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst2.txt"
         self.structure_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_structure.txt"
-
+        self.wmh_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_wmh.txt"
 
     def neck_trim(self, parent_job_name = "", dry_run = False):
         this_job_name=f"{self.date_id_prefix}_necktrim"
@@ -464,16 +464,31 @@ class MRI:
         this_function = MRI.structure_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
         if ready_to_process(this_function, self.id, self.mridate, \
-                            input_files=[self.wbsegtoants, self.thickness], \
+                            input_files=[self.wbseg_propagated, self.thickness], \
                             output_files=[self.structure_stats_txt], parent_job=wait_code):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
             if dry_run:
                 print("Running structure stats")
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/structure_stats.sh \
-                    {self.wbsegtoants} {self.thickness} {wblabel_file} {self.structure_stats_txt} \
-                    {pmtau_template_dir}")
+                    {self.wbseg_propagated} {self.thickness} {wblabel_file} {self.structure_stats_txt} \
+                    {pmtau_template_dir} {self.id} {self.mridate}")
         return
+
+    def wmh_stats(self, wait_code = "", dry_run = False):
+        this_function = MRI.wmh_stats.__name__
+        this_job_name=f"{this_function}_{self.date_id_prefix}"
+        if ready_to_process(this_function, self.id, self.mridate, \
+                            input_files=[self.flair, self.wmh_mask], \
+                            output_files=[self.wmh_stats_txt], parent_job=wait_code):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
+            if dry_run:
+                print("Running wmh stats")
+            else:
+                os.system(f"bsub {submit_options} ./wrapper_scripts/wmh_stats.sh \
+                  {self.id} {self.mridate} {self.flair} {self.wmh_mask} {self.wmh_stats_txt}")
+        return
+
 
 
     ##has to be in mri class, since it takes both tau and amy reg at the same time
@@ -698,17 +713,17 @@ if __name__ == "__main__":
     # mri_to_process = MRI('141_S_6779','2020-10-27')
    
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
-    amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
+    # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
     # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
     # amy_to_process = AmyloidPET("135_S_4722","2017-06-20")
 
 
     # tau_to_process = TauPET("099_S_6175", "2020-07-09")
-    tau_to_process = TauPET("114_S_6917", "2021-08-11")
+    # tau_to_process = TauPET("114_S_6917", "2021-08-11")
     # tau_to_process = TauPET("135_S_4722", "2017-06-22")
 
-    mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
-    mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
+    # mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
+    # mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
 
 
     ### MRI processing
@@ -730,10 +745,15 @@ if __name__ == "__main__":
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
     # mri_to_process.prc_cleanup(dry_run = True)
-    mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
-        t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
-        t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
-        taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate)
+    # mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
+    #     t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
+    #     t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
+    #     taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate)
+
+
+    # mri_to_process.structure_stats()
+    # mri_to_process.ashst2_stats()
+    # mri_to_process.ashst1_stats()
 
 
     ### PET processing
