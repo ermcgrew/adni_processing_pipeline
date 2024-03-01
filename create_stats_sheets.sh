@@ -61,9 +61,14 @@ function write_header()
       | cut -f 2 -d \" | sed -e 's/\( \)\{1,\}/_/g' ); do
       HEADER="$HEADER,${roi}_thickness"
     done
+    
+    #PMTAU
+    for i in Anterior Posterior; do
+    HEADER="$HEADER,${i}_pmtauthick,${i}_pmtauweightedthick,${i}_pmtaujac,${i}_pmtauweightedjac"
+    done
 
   elif [[ $mode == "ashst1" ]] ; then 
-    HEADER="ICV_ASHSICV"
+    HEADER="$HEADER,ICV_ASHSICV"
 
     # ASHS T1 baseline volume and thickness
     for type in VOL; do
@@ -89,11 +94,6 @@ function write_header()
       HEADER="$HEADER,${side}_${sub}_${type}_MSTFitQuality_ASHST1_3T"
     done
     done
-  
-    #PMTAU
-    for i in Anterior Posterior; do
-    HEADER="$HEADER,${i}_pmtauthick,${i}_pmtauweightedthick,${i}_pmtaujac,${i}_pmtauweightedjac"
-    done
 
   elif [[ $mode == "ashst2" ]] ; then 
     list=$(echo CA1 CA2 CA3 DG MISC SUB ERC BA35 BA36 PHC sulcus CA HIPP EXTHIPPO EXTHIPPOno36 MTLno36)
@@ -103,10 +103,6 @@ function write_header()
       done
     done
 
-    #PMTAU
-    for i in Anterior Posterior; do
-    HEADER="$HEADER,${i}_pmtauthick,${i}_pmtauweightedthick,${i}_pmtaujac,${i}_pmtauweightedjac"
-    done
 
   elif [[ $mode == "wmh" ]] ; then 
     HEADER="$HEADER,WMH_vol"
@@ -150,11 +146,11 @@ date=$( date '+%Y%m%d')
 if [[ $mode == "pet" ]] ; then 
   statfile="${output_dir}/data/tau_amy_ROIvols_compSUVR_${date}.csv"
 elif [[ $mode == "structure" ]] ; then 
-  statfile="${output_dir}/data/thickness_${date}.csv"
+  statfile="${output_dir}/data/thickness_PMTAU_${date}.csv"
 elif [[ $mode == "ashst1" ]] ; then 
-  statfile="${output_dir}/data/T1_ASHSvols_MTTHK_PMTAU_${date}.csv"
+  statfile="${output_dir}/data/T1_ASHSvols_MTTHK_${date}.csv"
 elif [[ $mode == "ashst2" ]] ; then 
-  statfile="${output_dir}/data/T2_ASHSvols_PMTAU_${date}.csv"
+  statfile="${output_dir}/data/T2_ASHSvols_${date}.csv"
 elif [[ $mode == "wmh" ]] ; then 
   statfile="${output_dir}/data/WMH_${date}.csv"
 fi

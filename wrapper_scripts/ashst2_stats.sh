@@ -10,7 +10,10 @@ t2=$4
 cleanup_left=$5
 cleanup_right=$6
 
-statline="${id},${mridate}"
+
+RID=$(echo $id | cut -f 3 -d "_")
+
+statline="${RID},${id},${mridate}"
 
 #do stats for each hemisphere:
 for side in left right; do
