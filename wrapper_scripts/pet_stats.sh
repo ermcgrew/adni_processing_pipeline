@@ -271,6 +271,7 @@ for wbtype in $wbsegtoants $wholebrainseg ; do
   done
 done
 
-statline="$statline,$WBTAU"
+
+statline="$statline$WBTAU" ##WBTAU variable starts with comma
 
 echo -e $statline | tee $stats_output_file

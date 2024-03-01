@@ -438,7 +438,8 @@ class MRI:
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/ashst1_stats.sh \
                     {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
-                    {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} {self.icv_volumes_file}") 
+                    {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} \
+                    {self.icv_volumes_file}") 
             return
 
 
@@ -470,7 +471,8 @@ class MRI:
                 print("Running structure stats")
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/structure_stats.sh \
-                    {self.wbsegtoants} {self.thickness} {wblabel_file} {self.structure_stats_txt}")
+                    {self.wbsegtoants} {self.thickness} {wblabel_file} {self.structure_stats_txt} \
+                    {pmtau_template_dir}")
         return
 
 
@@ -479,7 +481,7 @@ class MRI:
                         t1tausuvr="null",t1taupvc="null",taudate="null",amydate="null", dry_run = False):
         this_function = MRI.pet_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
-        pet_stats_txt = f"{stats_output_dir}/stats_tau_{taudate}_amy_{amydate}_mri_{self.mridate}_${self.id}_pet.txt"
+        pet_stats_txt = f"{stats_output_dir}/stats_tau_{taudate}_amy_{amydate}_mri_{self.mridate}_{self.id}_pet.txt"
         ## too many input files, so pass blank list to get stats related to any existing images & prevent overwriting stats output
         if ready_to_process(this_function, self.id, self.mridate, input_files = [], \
                             output_files = [pet_stats_txt], parent_job = wait_code):
@@ -499,7 +501,6 @@ class MRI:
                 #     {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
                 #     {t1tau} {t1tausuvr} {t1taupvc} {t2tau} {t1amy} {t2amy} \
                 #     {pet_stats_txt}")
-                # print(f"{self.wbseg_propagated} {t1tausuvr}")
     
         return
 

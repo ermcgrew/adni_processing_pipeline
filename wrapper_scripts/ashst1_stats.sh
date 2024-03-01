@@ -10,6 +10,9 @@ thickness_csv_prefix=$6
 thickness_csv_suffix=$7
 icv_txt=$8
 
+
+RID=$(echo $id | cut -f 3 -d "_")
+
 ################ICV VOL#############
 # icv_txt=/project/wolk/ADNI2018/dataset/067_S_6117/2021-08-04/ASHSICV/final/067_S_6117_left_corr_nogray_volumes.txt
 ICV=$(cat $icv_txt | cut -d " " -f 5)
@@ -95,8 +98,6 @@ done
 THKFITQUALITY="${THKFITQUALITY:1}"
 # echo "Thick fit qual: $THKFITQUALITY"
 
-# echo "$ICV,$VOL,$THK,$THKFITQUALITY"
-RID=$(echo $id | cut -f 3 -d "_")
 
 # output all values
 echo "$RID,$id,$mridate,$ICV,$VOL,$THK,$THKFITQUALITY" | tee ${stats_output_dir}/stats_mri_${mridate}_${id}_ashst1.txt
