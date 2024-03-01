@@ -123,7 +123,7 @@ function collate_new_data ()
   statfile=$2
   if [[ $mode == "pet" ]] ; then
     for file in $(find ${output_dir}/stats/*pet.txt); do
-      cat -e $file >> $statfile
+      cat $file >> $statfile
     done
   elif [[ $mode == "structure" ]] ; then 
     for file in $(find ${output_dir}/stats/*structure.txt); do
