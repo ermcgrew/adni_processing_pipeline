@@ -603,6 +603,7 @@ class MRIPetReg:
 
         self.filepath = f"{adni_data_dir}/{self.id}/{self.petdate}"
         self.reg_prefix = f"{self.petdate}_{self.id}_{self.pettype_filename}_to_{self.mridate}"
+        ### Add 6mm to reg_prefix for 6mm processing
 
         self.t1_reg_RAS = f"{self.filepath}/{self.reg_prefix}_T10GenericAffine_RAS.mat"
         self.t1_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T1.nii.gz"
