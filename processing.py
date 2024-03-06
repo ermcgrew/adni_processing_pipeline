@@ -126,7 +126,6 @@ class MRI:
 
         self.flair = f"{self.filepath}/{self.date_id_prefix}_flair.nii.gz"
         self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
-        self.wmh_mask = f"{self.filepath}/{self.date_id_prefix}_wmh_mask.nii.gz"
 
         self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
@@ -401,14 +400,14 @@ class MRI:
         this_function = MRI.wmh_prep.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair], output_files=[self.wmh]):
-            if not os.path.exists(f"{analysis_input_dir}/{current_date}"):
-                logging.info(f"making directory {current_date} in analysis_input for WMH analysis.")               
-                os.system(f"mkdir {analysis_input_dir}/{current_date}")
+            if not os.path.exists(f"{wmh_prep_dir}/{current_date}"):
+                logging.info(f"making directory {current_date} in analysis_input/wmh/ for WMH analysis.")               
+                os.system(f"mkdir -p {wmh_prep_dir}/{current_date}/data_for_inference/")
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)        
             if dry_run:
-                print('run wmh prep')
+                print('copy flair file to wmh/date/data_for_inference')
             else:
-                os.system(f"bsub {submit_options} cp {self.flair} {analysis_input_dir}/{current_date}/{self.mridate}_{self.id}_flair_0000.nii.gz")
+                os.system(f"bsub {submit_options} cp {self.flair} {wmh_prep_dir}/{current_date}/data_for_inference/{self.mridate}_{self.id}_flair_0000.nii.gz")
                 return
 
     def pmtau(self, parent_job_name = "", dry_run = False):
@@ -479,14 +478,14 @@ class MRI:
         this_function = MRI.wmh_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
         if ready_to_process(this_function, self.id, self.mridate, \
-                            input_files=[self.flair, self.wmh_mask], \
+                            input_files=[self.flair, self.wmh], \
                             output_files=[self.wmh_stats_txt], parent_job=wait_code):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
             if dry_run:
                 print("Running wmh stats")
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/wmh_stats.sh \
-                  {self.id} {self.mridate} {self.flair} {self.wmh_mask} {self.wmh_stats_txt}")
+                  {self.id} {self.mridate} {self.flair} {self.wmh} {self.wmh_stats_txt}")
         return
 
 

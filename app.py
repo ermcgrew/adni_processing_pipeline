@@ -15,13 +15,13 @@ def unpack_dicoms(date):
     #### zip files of new dicoms must already be added to cluster
     ### Symlinks zip files to /PUBLIC, unpack dicoms to /PUBLIC/ADNI, 
     ### rsync /PUBLIC/ADNI with /PUBLIC/dicoms
-    os.system(f"bsub -J '{current_date}_unzip_rsync' -o {this_output_dir}/unzip_rsync_{current_date_time}.txt \
-        bash organize_files.sh {date} {this_output_dir}") 
+    os.system(f"bsub -J '{current_date}_unzip_rsync' -o {analysis_output_dir}/{current_date_time}_unzip_rsync.txt \
+        bash organize_files.sh {date} {analysis_output_dir}") 
 
 def data_setup():
     #### adni spreadsheets must already be added to cluster
     ### get UID & processing status lists for new batches of scans to process
-    os.system(f"bsub -J '{current_date}_datasteup' -o {this_output_dir}/datasetup_{current_date_time}.txt \
+    os.system(f"bsub -J '{current_date}_datasteup' -o {analysis_output_dir}/{current_date_time}_datasetup.txt \
         python datasetup.py") 
 
 def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
@@ -158,7 +158,6 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
         else:
             ##variable mri_processing_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
             steps_ordered = [method for method in mri_processing_steps for step in steps if step in method]
-    print(f"Run image processing steps: {steps_ordered}")
 
     if csv:
         csv_to_read = csv
@@ -166,12 +165,9 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
     else:
         csv_to_read = os.path.join(datasetup_directories_path["processing_status"],"mri_processing_status.csv")
         df_full = pd.read_csv(csv_to_read)
-        df = df_full.loc[(df_full['NEW_T1'] == 1) | (df_full['NEW_T2'] == 1)] # | df['NEW_FLAIR'] == 1
+        df = df_full.loc[(df_full['NEW_T1'] == 1) | (df_full['NEW_T2'] == 1) | (df_full['NEW_FLAIR'] == 1)]
     
     logging.info(f"DRY_RUN={dry_run}: Running MRI image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
-    # print(df.head())
-
-    # dry_run = True
 
     for index,row in df.iterrows():
         subject = str(row['ID'])
@@ -181,7 +177,6 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
         ##processing steps will return either a job name if needed for subsequent steps, or 'None' if no other steps depend on its output
         parent_job=''
         for step in steps_ordered:
-            # print(f"{scan_to_process.id}:{scan_to_process.scandate}:Doing image processing:{step}.")
             if (step == "t2ashs" or step == "prc_cleanup") and not os.path.exists(scan_to_process.t2nifti):
                 logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:No T2 file.")
                 continue              
@@ -189,7 +184,6 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
                 logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:No T1 file.")
                 continue
             elif "stats" in step:
-                # print(f"doing stats step {step}")
                 ##if only doing stats, no need to wait for image processing jobs to complete
                 if len(steps_ordered) == len([x for x in steps_ordered if "stats" in x]):
                     getattr(scan_to_process,step)(dry_run = dry_run) 
@@ -199,11 +193,19 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
                 if parent_job: 
                     ##Call processing step function on class instance with the parent job name
                     parent_job = getattr(scan_to_process,step)(parent_job_name = parent_job, dry_run = dry_run)
-
                 else:
                     ##Call processing step function on class instance with no parent job 
                     parent_job = getattr(scan_to_process,step)(dry_run = dry_run)
-                    
+    
+    ## Run all WMH--only spin up container once
+    if "wmh_prep" in steps_ordered:
+        if dry_run:
+            print(f"all flair files moved to wmh/date, now run wmh_seg container, then cp files to session folders")
+        else:
+            sing_output = f"{analysis_output_dir}/{current_date_time}_wmh_singularity_%J.txt"
+            logging.info(f"Running WMH singularity for all files, check results at {sing_output}.")
+            os.system(f"bsub -o {sing_output} bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date}/ ")
+
 
 def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
     if all_steps==True:
@@ -286,16 +288,13 @@ def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
         
 
 def final_data_sheets(mode):
-    #job to watch queue for status of all image processing & individual stats collection
-    # print(f'bsub -J "{current_date}_queuewatch" -o {this_output_dir} ./queue_watch.sh')
-    os.system(f'bsub -J "{current_date}_queuewatch" -o {this_output_dir} ./queue_watch.sh')
-    
-    logging.info(f"Collecting data from analysis_output/stats/ for data sheets.")
-    # print(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" -o {this_output_dir} \
-    #           ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {mode}')
-    os.system(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" -o {this_output_dir} \
+    logging.info(f"Collecting data from analysis_output/stats/ for data sheets after all image processing complete.")
+
+    ## job to watch queue for status of all image processing & individual stats collection
+    os.system(f'bsub -J "{current_date}_queuewatch" -o {analysis_output_dir}/{current_date_time}_queuewatch_%J.txt ./queue_watch.sh')
+    os.system(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" -o {analysis_output_dir}/{current_date_time}_createstatssheets_%J.txt \
               ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {mode}')
-    # os.system(f'bsub -J "{current_date}_datasheets" -o {this_output_dir} \
+    # os.system(f'bsub -J "{current_date}_datasheets" -o {analysis_output_dir} \
     #           ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {mode}')
  
 #Arguments
