@@ -15,6 +15,7 @@ def unpack_dicoms(date):
     #### zip files of new dicoms must already be added to cluster
     ### Symlinks zip files to /PUBLIC, unpack dicoms to /PUBLIC/ADNI, 
     ### rsync /PUBLIC/ADNI with /PUBLIC/dicoms
+    logging.info(f"Running organize_files.sh on zip file adni_dl_{date}")
     os.system(f"bsub -J '{current_date}_unzip_rsync' -o {analysis_output_dir}/{current_date_time}_unzip_rsync.txt \
         bash organize_files.sh {date} {analysis_output_dir}") 
 

@@ -6,13 +6,9 @@ import time
 import pandas as pd
 from config import *
 
-##processing class functions only return job name if it's outputs are the inputs for another function
+## processing class functions only return job name if it's outputs are the inputs for another function
 
-###when doing job submission, use subprocess.run instead of os.system, parse stdout result
-    #if message is "no parent job matching wait code", try to run anyway? 
-    ##that would work for cleanup_both
-
-#common functions
+# Shared functions
 def ready_to_process(processing_step, id, date, input_files = [], output_files = [], parent_job = ""):
     #output files all "OR" comparisons, as long as 1 is true, output is present
     if [file for file in output_files if os.path.exists(file)]:
@@ -115,7 +111,6 @@ class MRI:
         self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
         self.t2ashs_qc_left = f"{self.filepath}/sfsegnibtend/qa/qa_seg_bootstrap_corr_nogray_left_qa.png"
         self.t2ashs_qc_right = f"{self.filepath}/sfsegnibtend/qa/qa_seg_bootstrap_corr_nogray_right_qa.png"
-
 
         self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
         self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
@@ -335,65 +330,20 @@ class MRI:
         else: 
             return
 
-    # def t2ashs_qconly(self,parent_job_name = "", dry_run = False):
-    #     this_function = MRI.t2ashs_qconly.__name__
-    #     this_job_name=f"{self.date_id_prefix}_{this_function}"
-    #     if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
-    #                         output_files=[self.t2ashs_qc_left, self.t2ashs_qc_right]):
-    #         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-    #         if dry_run:
-    #             print(f"bsub submit t2ashs")
-    #         else:
-    #             os.system(f"bsub {submit_options} ./wrapper_scripts/temp_run_ashs_t2_qconly.sh run_ashs \
-    #                     {ashs_root} {ashs_t2_atlas} {self.t1trim} {self.t2nifti}\
-    #                     {self.filepath}/sfsegnibtend {self.id}")
-    #         return this_job_name
-    #     else:
-    #         return
-
 
     def prc_cleanup(self, parent_job_name = "", dry_run = False):
         this_function = MRI.prc_cleanup.__name__
-        for side in sides:
-            this_job_name = f"{self.date_id_prefix}_{this_function}_{side}"
-
-            if side == "left":
-                seg=self.t2ashs_seg_left
-                output=self.t2ashs_cleanup_left
-            elif side == "right":
-                seg=self.t2ashs_seg_right
-                output=self.t2ashs_cleanup_right
-            
-            if ready_to_process(f"{this_function}_{side}", self.id, self.mridate, input_files=[seg], \
-                                output_files=[output], parent_job = parent_job_name):
-                submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-                if dry_run:
-                    print(f"running prc_cleanup for {side}")
-                else:
-                    os.system(f"bsub {submit_options} ./wrapper_scripts/cleanup_prc.sh {seg} {output}")
-
-        this_job_name = f"{self.date_id_prefix}{this_function}_both"
-        parent_job_name = f"{self.date_id_prefix}_{this_function}_right"
-        if ready_to_process(f"{this_function}_both", self.id, self.mridate, \
-                            input_files=[self.t2ashs_cleanup_left, self.t2ashs_cleanup_right], \
+        this_job_name = f"{self.date_id_prefix}_{this_function}"
+        if ready_to_process(this_function, self.id, self.mridate, \
+                            input_files=[self.t2ashs_seg_left, self.t2ashs_seg_right, self.t2ashs_tse], \
                             output_files=[self.t2ashs_cleanup_both], parent_job = parent_job_name):
-                submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-                if dry_run:
-                    print(f"run prc_cleanup for both")
-                    print(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ashs_cleanup_left} \
-                            -interp NN -reslice-identity -push A {self.t2ashs_cleanup_right} \
-                            -interp NN -reslice-identity -add -o {self.t2ashs_cleanup_both}")
-                else:
-                    os.system(f"bsub {submit_options} c3d {self.t2ashs_tse} -as A {self.t2ashs_cleanup_left} \
-                            -interp NN -reslice-identity -push A {self.t2ashs_cleanup_right} \
-                            -interp NN -reslice-identity -add -o {self.t2ashs_cleanup_both}")
-                    ##result=subprocess.run()
-                    ##if result is error
-                        ## ...
-                    ##result.split()
-                    ##if result[0] is "no parent job matching wait code" and t2ashs cleanup right exists:
-                        ## submit without wait code
-                    return
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+            if dry_run:
+                print(f"running prc_cleanup")
+            else:
+                os.system(f"bsub {submit_options} ./wrapper_scripts/cleanup_prc.sh {self.t2ashs_seg_left} \
+                    {self.t2ashs_cleanup_left} {self.t2ashs_seg_right} {self.t2ashs_cleanup_right} {self.t2ashs_tse} {self.t2ashs_cleanup_both}")
+        return
 
 
     def wmh_prep(self, parent_job_name = "", dry_run = False):
@@ -744,7 +694,7 @@ if __name__ == "__main__":
     #                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
-    # mri_to_process.prc_cleanup(dry_run = True)
+    mri_to_process.prc_cleanup(dry_run=True)
     # mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
     #     t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
     #     t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
