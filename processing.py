@@ -5,6 +5,7 @@ import os
 import time
 import pandas as pd
 from config import *
+import subprocess
 
 ## processing class functions only return job name if it's outputs are the inputs for another function
 
@@ -75,6 +76,7 @@ class MRI:
         ####for testing--trim created from ANTS neckmask
         # self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trimtestants.nii.gz"
 
+        self.thick_dir = f"{self.filepath}/thickness"
         self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
         self.ants_brainseg = f"{self.filepath}/thickness/{self.id}BrainSegmentation.nii.gz"
         self.thickness = f"{self.filepath}/thickness/{self.id}CorticalThickness.nii.gz"
@@ -87,6 +89,7 @@ class MRI:
         self.wbsegqc_image = f"{self.filepath}/{self.date_id_prefix}_wbseg_qa.png"
         self.wbseg_propagated = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg_cortical_propagate.nii.gz"
         self.inferior_cereb_mask = f"{self.filepath}/{self.wbseg_dir}/inferior_cerebellum.nii.gz"
+        
         self.superres_nifti = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_denoised_SR.nii.gz"
         
         self.t1ashs_seg_left = f"{self.filepath}/ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
@@ -109,9 +112,6 @@ class MRI:
         self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
         self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
         self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
-        self.t2ashs_qc_left = f"{self.filepath}/sfsegnibtend/qa/qa_seg_bootstrap_corr_nogray_left_qa.png"
-        self.t2ashs_qc_right = f"{self.filepath}/sfsegnibtend/qa/qa_seg_bootstrap_corr_nogray_right_qa.png"
-
         self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
         self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
 
@@ -143,6 +143,23 @@ class MRI:
                             {self.t1nifti} {self.t1trim}")
             return this_job_name
         #  sandy's script: /project/hippogang_1/srdas/homebin/ashsharpicvscripts/trim_neck.sh -w $(mktemp -d)
+
+
+    ## old version of getting thickness
+    def cortical_thick(self, parent_job_name = "", dry_run = False):
+        this_function = MRI.cortical_thick.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], 
+                            output_files = [self.thickness], parent_job = parent_job_name):
+            submit_options =  set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+            if dry_run:
+                print(f'run crossthick.sh')
+            else:
+                os.system(f"bsub {submit_options} -M 8G {thickness_script} {self.id} {self.t1trim} {self.thick_dir}")
+            return this_job_name          
+        else:
+            return
+
 
     def brain_ex(self, parent_job_name = "", dry_run = False):
         this_function = MRI.brain_ex.__name__
@@ -232,9 +249,9 @@ class MRI:
                             output_files = [self.inferior_cereb_mask], parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)       
             if dry_run:
-                print(f"bsub {submit_options} ./wrapper_scripts/make_inferior_cereb_mask.sh {self.wbseg_nifti} {self.wbseg_dir} {self.inferior_cereb_mask}")
+                print(f" ./wrapper_scripts/make_inferior_cereb_mask.sh")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/make_inferior_cereb_mask.sh {self.wbseg_nifti} {self.wbseg_dir} {self.inferior_cereb_mask}")
+                os.system(f"bsub {submit_options} ./wrapper_scripts/make_inferior_cereb_mask.sh {self.wbseg_nifti} {self.inferior_cereb_mask}")
         return
 
 
@@ -246,9 +263,6 @@ class MRI:
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print("submit T1icv")
-                print(f"bsub {submit_options} \
-                    ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
-                        {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
             else:
                 os.system(f"bsub {submit_options} \
                   ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
@@ -270,6 +284,40 @@ class MRI:
         else:
             return
 
+
+
+    def superres_test(self, parent_job_name = "", dry_run = False):
+        this_function = MRI.superres.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], output_files=[self.superres_nifti]):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+            if dry_run:
+                print("run superres")
+            else:
+                try:
+                    # "bsub", submit_options, "-M 4G -n 1 ./wrapper_scripts/super_resolution.sh", \
+                        # self.filepath, self.t1trim, self.superres_nifti
+                        #bsub separate
+                        # each bsub option must be separate from others
+                            ### modify submit_options return
+                        # flag and arg go together for bsbu options "-o filepath/log.txt"
+                        # script, args as separate strings
+                    result=subprocess.run(["bsub","-N", "-o testlog.txt", "./wrapper_scripts/super_resolution.sh", self.filepath, self.t1trim, self.superres_nifti], capture_output=True, text=True, timeout=10,check=True)
+                    result_list = result.stdout.split("\n")
+                    print(result_list)
+                except FileNotFoundError as exc:
+                    print(f"Process failed because the executable could not be found.\n{exc}")
+                except subprocess.CalledProcessError as exc:
+                    print(f"Process failed because did not return a successful return code. "
+                        f"Returned {exc.returncode}\n{exc}")
+                except subprocess.TimeoutExpired as exc:
+                    print(f"Process timed out.\n{exc}")
+                # return this_job_name
+        else:
+            return
+
+
+
     def t1ashs(self, parent_job_name = "", dry_run = False):
         this_function = MRI.t1ashs.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
@@ -279,9 +327,9 @@ class MRI:
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run: 
                 print("T1 ashs running")
-                print(f"bsub {submit_options} \
-                        ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti} \
-                        {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
+                # print(f"bsub {submit_options} \
+                #         ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti} \
+                #         {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
             else:
                 os.system(f"bsub {submit_options} \
                         ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti}\
@@ -543,16 +591,16 @@ class MRIPetReg:
         if self.pet_type == "AmyloidPET":
             self.petdate = PET.scandate
             self.pet_nifti = PET.amy_nifti
-            self.pettype_filename = "amypet"
+            # self.pettype_filename = "amypet"
+            self.pettype_filename = "amypet6mm"
         elif self.pet_type == "TauPET":
             self.petdate = PET.scandate
-            self.pet_nifti = PET.tau_nifti            
-            self.pettype_filename = "taupet"
-            ##TODO: add 6mm to pettype_filename for new processing?
+            self.pet_nifti = PET.tau_nifti
+            # self.pettype_filename = "taupet"            
+            self.pettype_filename = "taupet6mm"
 
         self.filepath = f"{adni_data_dir}/{self.id}/{self.petdate}"
         self.reg_prefix = f"{self.petdate}_{self.id}_{self.pettype_filename}_to_{self.mridate}"
-        ### Add 6mm to reg_prefix for 6mm processing
 
         self.t1_reg_RAS = f"{self.filepath}/{self.reg_prefix}_T10GenericAffine_RAS.mat"
         self.t1_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T1.nii.gz"
@@ -656,11 +704,12 @@ if __name__ == "__main__":
     ### Define class instance
     # mri_to_process = MRI("018_S_2155", "2022-11-21")    
     # mri_to_process = MRI("033_S_0734", "2018-10-10")
-    mri_to_process = MRI("114_S_6917","2021-04-16") 
+    # mri_to_process = MRI("114_S_6917","2021-04-16") 
     # mri_to_process = MRI("135_S_4722","2017-06-22") 
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
     # mri_to_process = MRI('141_S_6779','2020-10-27')
+    mri_to_process = MRI('007_S_2394','2023-10-26')
    
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
     # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
@@ -677,6 +726,8 @@ if __name__ == "__main__":
 
 
     ### MRI processing
+    # mri_to_process.superres_test()
+    mri_to_process.cortical_thick()
     # mri_to_process.neck_trim()
     # mri_to_process.superres() 
     # mri_to_process.t1ashs(dry_run=True)
@@ -685,7 +736,6 @@ if __name__ == "__main__":
     # mri_to_process.wbsegqc()
     # mri_to_process.wbseg_to_ants()
 
-    # mri_to_process.t2ashs_qconly()
     # mri_to_process.t1icv()
 
     # mri_to_process.structpetstats(t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
@@ -694,7 +744,7 @@ if __name__ == "__main__":
     #                 t1tau = mri_tau_reg_to_process.t1_reg_nifti, t2tau = mri_tau_reg_to_process.t2_reg_nifti,
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
-    mri_to_process.prc_cleanup(dry_run=True)
+    # mri_to_process.prc_cleanup(dry_run=True)
     # mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
     #     t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
     #     t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\

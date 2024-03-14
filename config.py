@@ -49,6 +49,7 @@ stats_output_dir = f"{analysis_output_dir}/stats"
 
 #Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
+thickness_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/crossthickness.sh"
 brain_ex_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/brainx_phil.sh"
 wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
 wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly"
@@ -75,8 +76,8 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 ##Order matters: steps are ordered so dependent processing steps come after their parent processing step
 ##Names matter: values match MRI.method & MRIPetReg.method names
 ##for naming: if whole_brain_seg was called "wbseg", it matches to "wbseg_to_ants" and "wbsegqc" as well
-mri_processing_steps = ["neck_trim", "ants", "brain_ex", "whole_brain_seg", "wbseg_to_ants", "wbsegqc", "inf_cereb_mask", 
-                        "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "t2ashs_qconly", "prc_cleanup", 
+mri_processing_steps = ["neck_trim", "cortical_thick", "ants", "brain_ex", "whole_brain_seg", "wbseg_to_ants", "wbsegqc", "inf_cereb_mask", 
+                        "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "prc_cleanup", 
                         "wmh_prep", "pmtau", "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
 registration_steps = ["t1_pet_reg", "tau_suvr", "tau_pvc", "t2_pet_reg", "pet_reg_qc", "pet_stats"]
 
