@@ -288,16 +288,20 @@ def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
                                                     amydate = mri_amy_reg_to_process.petdate, dry_run = dry_run) 
         
 
-def final_data_sheets(mode):
-    logging.info(f"Collecting data from analysis_output/stats/ for data sheets after all image processing complete.")
+def final_data_sheets(mode,wait):
+    for stats_type in mode:
+        logging.info(f"With wait == {wait}: Compiling individual session stats data from analysis_output/stats/ for stats type {stats_type}.")
+        if wait: 
+            # job to watch queue for status of all image processing & individual stats collection
+            os.system(f'bsub -J "{current_date}_queuewatch" -o {analysis_output_dir}/{current_date_time}_queuewatch_%J.txt ./queue_watch.sh')
+            os.system(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" \
+                -o {analysis_output_dir}/{current_date_time}_createstatssheets_{stats_type}_%J.txt \
+                ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {stats_type}')
+        else:
+            os.system(f'bsub -J "{current_date}_datasheets" -o {analysis_output_dir}/{current_date_time}_createstatssheets_{stats_type}_%J.txt \
+                ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {stats_type}')
+    
 
-    ## job to watch queue for status of all image processing & individual stats collection
-    os.system(f'bsub -J "{current_date}_queuewatch" -o {analysis_output_dir}/{current_date_time}_queuewatch_%J.txt ./queue_watch.sh')
-    os.system(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" -o {analysis_output_dir}/{current_date_time}_createstatssheets_%J.txt \
-              ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {mode}')
-    # os.system(f'bsub -J "{current_date}_datasheets" -o {analysis_output_dir} \
-    #           ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {mode}')
- 
 #Arguments
 global_parser = argparse.ArgumentParser()
 subparsers = global_parser.add_subparsers(title="Subcommands", help="Sections of ADNI processing pipeline.")
@@ -354,7 +358,8 @@ mri_pet_reg_parser.set_defaults(func=mri_pet_registration)
 
 ###final_data_sheets
 final_data_sheet_parser = subparsers.add_parser("final_data_sheets", help = "Collect individual stats into final sheets.")
-final_data_sheet_parser.add_argument("-m", "--mode", nargs = "+", choices = ["pet","structure","ashst1", "ashst2","wmh"], help="Select which type of stats to collect into final sheet")
+final_data_sheet_parser.add_argument("-m", "--mode", nargs = "+", choices = ["pet", "structure", "ashst1", "ashst2","wmh"], help="Select which type(s) of stats to compile into a final sheet")
+final_data_sheet_parser.add_argument("-w", "--wait", action="store_true", help = "Run with queuewatch to wait for all image processing to complete")
 final_data_sheet_parser.set_defaults(func=final_data_sheets)
 
 
