@@ -120,7 +120,8 @@ class MRI:
         self.t2ashs_cleanup_both = f"{cleanup_dir}/{self.id}_{self.mridate}_seg_both.nii.gz"
 
         self.flair = f"{self.filepath}/{self.date_id_prefix}_flair.nii.gz"
-        self.wmh = f"{self.filepath}/{self.date_id_prefix}_wmh.nii.gz"
+        self.flair_noskull = f"{self.filepath}/{self.date_id_prefix}_flair_skullstrip.nii.gz"
+        self.wmh = f"{self.filepath}/{self.date_id_prefix}_flair_wmh.nii.gz"
 
         self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
@@ -393,11 +394,25 @@ class MRI:
                     {self.t2ashs_cleanup_left} {self.t2ashs_seg_right} {self.t2ashs_cleanup_right} {self.t2ashs_tse} {self.t2ashs_cleanup_both}")
         return
 
+    
+    def flair_skull_strip(self, parent_job_name = "", dry_run = False):
+        this_function = MRI.flair_skull_strip.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair], output_files=[self.flair_noskull]):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)        
+            if dry_run:
+                print('do skull stripping')
+            else:
+                os.system(f"bsub {submit_options} bash ./wrapper_scripts/flair_skull_strip_hdbet.sh {self.filepath} {self.date_id_prefix}")
+            return this_job_name
+        else:
+            return
+
 
     def wmh_prep(self, parent_job_name = "", dry_run = False):
         this_function = MRI.wmh_prep.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
-        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair], output_files=[self.wmh]):
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair_noskull], output_files=[self.wmh]):
             if not os.path.exists(f"{wmh_prep_dir}/{current_date}"):
                 logging.info(f"making directory {current_date} in analysis_input/wmh/ for WMH analysis.")               
                 os.system(f"mkdir -p {wmh_prep_dir}/{current_date}/data_for_inference/")
@@ -405,7 +420,7 @@ class MRI:
             if dry_run:
                 print('copy flair file to wmh/date/data_for_inference')
             else:
-                os.system(f"bsub {submit_options} cp {self.flair} {wmh_prep_dir}/{current_date}/data_for_inference/{self.mridate}_{self.id}_flair_0000.nii.gz")
+                os.system(f"bsub {submit_options} cp {self.flair_noskull} {wmh_prep_dir}/{current_date}/data_for_inference/{self.mridate}_{self.id}_flair_skullstrip_0000.nii.gz")
                 return
 
     def pmtau(self, parent_job_name = "", dry_run = False):
@@ -704,12 +719,12 @@ if __name__ == "__main__":
     ### Define class instance
     # mri_to_process = MRI("018_S_2155", "2022-11-21")    
     # mri_to_process = MRI("033_S_0734", "2018-10-10")
-    # mri_to_process = MRI("114_S_6917","2021-04-16") 
+    mri_to_process = MRI("114_S_6917","2021-04-16") 
     # mri_to_process = MRI("135_S_4722","2017-06-22") 
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
     # mri_to_process = MRI('141_S_6779','2020-10-27')
-    mri_to_process = MRI('007_S_2394','2023-10-26')
+    # mri_to_process = MRI('007_S_2394','2023-10-26')
    
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
     # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
@@ -727,7 +742,8 @@ if __name__ == "__main__":
 
     ### MRI processing
     # mri_to_process.superres_test()
-    mri_to_process.cortical_thick()
+    # mri_to_process.cortical_thick()
+    mri_to_process.flair_skull_strip()
     # mri_to_process.neck_trim()
     # mri_to_process.superres() 
     # mri_to_process.t1ashs(dry_run=True)
