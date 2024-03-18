@@ -36,7 +36,7 @@ function write_header()
     done
 
     for roi in $(cat $wblabels | grep -v '#' | sed -n '9,$p' \
-    | grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF' \
+    | grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF|Thalamus|Forebrain' \
     | cut -f 2 -d \" | sed -e 's/\( \)\{1,\}/_/g' ); do
       HEADER="$HEADER,${roi}_wbtoants_tau,${roi}_wbtoants_taupvc,${roi}_wbtoants_amy"
     done
@@ -45,19 +45,17 @@ function write_header()
     HEADER="${HEADER},compSUVR"
 
     #BRAAK stages
-    for wbtype in WB_ants WB ; do 
-      for tautype in tau tau_suvr ; do 
-        for side in L R; do
-          for region in BRAAK3 BRAAK4 BRAAK5 BRAAK6 ; do
-          HEADER="${HEADER},${side}_${region}_${tautype}_${wbtype}"
+    for tautype in tau tau_suvr ; do 
+      for side in L R; do
+        for region in BRAAK3 BRAAK4 BRAAK5 BRAAK6 ; do
+        HEADER="${HEADER},${side}_${region}_${tautype}_WBants"
     done
     done
     done
-    done 
 
   elif [[ $mode == "structure" ]] ; then 
     for roi in $(cat $wblabels | grep -v '#' | sed -n '9,$p' \
-      | grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF' \
+      | grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF|Thalamus|Forebrain' \
       | cut -f 2 -d \" | sed -e 's/\( \)\{1,\}/_/g' ); do
       HEADER="$HEADER,${roi}_thickness"
     done

@@ -242,11 +242,11 @@ def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
         amy_to_process = AmyloidPET(subject, amydate)
         mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
 
-        if "structpetstats" in steps_ordered and len(steps_ordered) == 1:
+        if "pet_stats" in steps_ordered and len(steps_ordered) == 1:
             ##if only doing stats, no wait code from image processing functions
             logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:{mri_tau_reg_to_process.petdate}:{mri_amy_reg_to_process.petdate}:Running pet stats.")
             # print(f"submit without wait code")
-            mri_to_process.structpetstats(t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
+            mri_to_process.pet_stats(t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
                                         t2tau = mri_tau_reg_to_process.t2_reg_nifti,
                                         t1amy = mri_amy_reg_to_process.t1_reg_nifti,
                                         t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
@@ -259,7 +259,7 @@ def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
             for pet_reg_class in [mri_tau_reg_to_process, mri_amy_reg_to_process]:
                 logging.info(f"{pet_reg_class.id}:{pet_reg_class.mridate}:{pet_reg_class.petdate}:{pet_reg_class.pet_type}:Now processing")
                 for step in steps_ordered:
-                    if step != "structpetstats":
+                    if step != "pet_stats":
                         if (step == "t1_pet_reg" or step == "pet_reg_qc") and not os.path.exists(mri_to_process.t1nifti):
                             logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:No T1 file.")
                             continue              
@@ -274,12 +274,12 @@ def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
                                 ##Call processing step function on class instance with no parent job 
                                 parent_job = getattr(pet_reg_class,step)(dry_run = dry_run)
 
-                    elif step == "structpetstats" and pet_reg_class.pet_type == "amypet":
+                    elif step == "pet_stats" and pet_reg_class.pet_type == "amypet":
                         ###only run once, don't need for both tau and amy petreg classes
                         # print(f'submit with id date wait code')
                         logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:{mri_tau_reg_to_process.petdate}:{mri_amy_reg_to_process.petdate}:Running pet stats.")
                         jobname_prefix_this_subject = f"{mri_to_process.mridate}_{mri_to_process.id}*"
-                        mri_to_process.structpetstats(wait_code=jobname_prefix_this_subject,
+                        mri_to_process.pet_stats(wait_code=jobname_prefix_this_subject,
                                                     t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
                                                     t2tau = mri_tau_reg_to_process.t2_reg_nifti,
                                                     t1amy = mri_amy_reg_to_process.t1_reg_nifti,
