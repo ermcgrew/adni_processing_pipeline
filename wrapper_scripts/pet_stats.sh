@@ -218,7 +218,7 @@ for side in left right; do
     c3d $wbsegtoants -as A $t1amy -interp NN -reslice-identity -push A  -lstat > $TMPDIR/allamy.txt
 
     for i in $(cat $wblabelfile | grep -v '#' | sed -n '9,$p' | \
-    grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF' | awk '{print $1}' ); do
+    grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF|Thalamus|Forebrain' | awk '{print $1}' ); do
       THISTAU=$(cat $TMPDIR/alltau.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
       THISTAUPVC=$(cat $TMPDIR/alltaupvc.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
       THISAMY=$(cat $TMPDIR/allamy.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}')
@@ -250,23 +250,21 @@ WBTAULABELRIGHTNUMS=("31 33 170 122 134" "172 102 132 154 166" "124 200 126 162 
 
 WBTAU=""
 # extract measurements
-for wbtype in $wbsegtoants $wholebrainseg ; do 
-  for tautype in $t1tausuvr $t1tausuvrpvc ; do 
-    for side in left right; do
-      for ((i=0;i<${#WBTAULABELIDS[*]}; i++)); do
-        if [[ -f $wbtype && -f $tautype ]]; then
-          if [[ $side == "left" ]]; then
-            REPRULE=$(for lab in ${WBTAULABELLEFTNUMS[i]}; do echo $lab 999; done)
-          else
-            REPRULE=$(for lab in ${WBTAULABELRIGHTNUMS[i]}; do echo $lab 999; done)
-          fi
-          WBTAU="$WBTAU,$(c3d $wbtype -replace $REPRULE -thresh 999 999 1 0 -as SEG \
-            $tautype -int 0 -reslice-identity \
-            -push SEG -lstat | awk '{print $2}' | tail -n 1)"
+for tautype in $t1tausuvr $t1tausuvrpvc ; do 
+  for side in left right; do
+    for ((i=0;i<${#WBTAULABELIDS[*]}; i++)); do
+      if [[ -f $wbsegtoants && -f $tautype ]]; then
+        if [[ $side == "left" ]]; then
+          REPRULE=$(for lab in ${WBTAULABELLEFTNUMS[i]}; do echo $lab 999; done)
         else
-          WBTAU="$WBTAU,"
+          REPRULE=$(for lab in ${WBTAULABELRIGHTNUMS[i]}; do echo $lab 999; done)
         fi
-      done
+        WBTAU="$WBTAU,$(c3d $wbsegtoants -replace $REPRULE -thresh 999 999 1 0 -as SEG \
+          $tautype -int 0 -reslice-identity \
+          -push SEG -lstat | awk '{print $2}' | tail -n 1)"
+      else
+        WBTAU="$WBTAU,"
+      fi
     done
   done
 done
