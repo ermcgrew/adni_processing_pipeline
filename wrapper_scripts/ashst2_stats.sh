@@ -12,8 +12,10 @@ cleanup_right=$6
 
 
 RID=$(echo $id | cut -f 3 -d "_")
+thick=$(c3d $cleanup_left -info-full | grep Spacing | \
+  sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" | awk '{print $3}')
 
-statline="${RID},${id},${mridate}"
+statline="${RID},${id},${mridate},${thick}"
 
 #do stats for each hemisphere:
 for side in left right; do

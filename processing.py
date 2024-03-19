@@ -521,7 +521,7 @@ class MRI:
                     {self.wbseg_propagated} {wblabel_file} {self.icv_volumes_file} \
                     {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
                     {t1tau} {t1tausuvr} {t1taupvc} {t2tau} {t1amy} {t2amy} \
-                    {pet_stats_txt}")
+                    {pet_stats_txt} {self.t1ashs_seg_prefix}")
                 # os.system(f"bash /project/wolk/ADNI2018/scripts/adni_processing_pipeline/wrapper_scripts/pet_stats.sh \
                 #     {self.id} {self.mridate} {taudate} {amydate} {self.wbseg_nifti} \
                 #     {self.wbseg_propagated} {wblabel_file} {self.icv_volumes_file} \
@@ -719,31 +719,34 @@ if __name__ == "__main__":
     ### Define class instance
     # mri_to_process = MRI("018_S_2155", "2022-11-21")    
     # mri_to_process = MRI("033_S_0734", "2018-10-10")
-    mri_to_process = MRI("114_S_6917","2021-04-16") 
+    # mri_to_process = MRI("114_S_6917","2021-04-16") 
     # mri_to_process = MRI("135_S_4722","2017-06-22") 
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
     # mri_to_process = MRI('141_S_6779','2020-10-27')
     # mri_to_process = MRI('007_S_2394','2023-10-26')
+    mri_to_process = MRI("022_S_6796","2020-09-09")
    
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
     # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
     # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
     # amy_to_process = AmyloidPET("135_S_4722","2017-06-20")
-
+    amy_to_process = AmyloidPET("022_S_6796","2021-08-24")
 
     # tau_to_process = TauPET("099_S_6175", "2020-07-09")
     # tau_to_process = TauPET("114_S_6917", "2021-08-11")
     # tau_to_process = TauPET("135_S_4722", "2017-06-22")
+    tau_to_process = TauPET("022_S_6796","2020-09-23")
 
-    # mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
-    # mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
+
+    mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
+    mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
 
 
     ### MRI processing
     # mri_to_process.superres_test()
     # mri_to_process.cortical_thick()
-    mri_to_process.flair_skull_strip()
+    # mri_to_process.flair_skull_strip()
     # mri_to_process.neck_trim()
     # mri_to_process.superres() 
     # mri_to_process.t1ashs(dry_run=True)
@@ -761,10 +764,10 @@ if __name__ == "__main__":
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
     # mri_to_process.prc_cleanup(dry_run=True)
-    # mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
-    #     t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
-    #     t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
-    #     taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate)
+    mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
+        t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
+        t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
+        taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate, dry_run = True)   #
 
 
     # mri_to_process.structure_stats()
