@@ -53,6 +53,13 @@ function write_header()
     done
     done
 
+  # ASHST1-tau
+  for side in L R M; do
+  for sub in AHippo PHippo ERC BA35 BA36 PHC ERCBA35  WholeHippo MTLCortex All; do
+    HEADER="$HEADER,${side}_${sub}_tau_ASHST1_3T"
+  done
+  done
+
   elif [[ $mode == "structure" ]] ; then 
     for roi in $(cat $wblabels | grep -v '#' | sed -n '9,$p' \
       | grep -v -E 'vessel|Chiasm|Caudate|Putamen|Stem|White|Accumb|Cerebell|subcallo|Vent|allidum|CSF|Thalamus|Forebrain' \
@@ -94,6 +101,7 @@ function write_header()
     done
 
   elif [[ $mode == "ashst2" ]] ; then 
+    HEADER="${HEADER},Slice_Thickness"
     list=$(echo CA1 CA2 CA3 DG MISC SUB ERC BA35 BA36 PHC sulcus CA HIPP EXTHIPPO EXTHIPPOno36 MTLno36)
     for side in left right; do
       for sf in $list; do
