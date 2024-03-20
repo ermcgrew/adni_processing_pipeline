@@ -33,22 +33,23 @@ def reformat_date_slash_to_dash(df):
             df.at[index,'SMARTDATE']=newdate
     return df
 
-###File/directory locations on the cluster
+### File/directory locations on the cluster
 #main file directories in cluster
 adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
 cleanup_dir = f"{analysis_input_dir}/cleanup"
+wmh_prep_dir = f"{analysis_input_dir}/wmh"
+
 analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
 stats_output_dir = f"{analysis_output_dir}/stats"
-# this_output_dir = f"{analysis_output_dir}/{current_date}"
-this_output_dir = f"{analysis_output_dir}"
-if not os.path.exists(this_output_dir):
-    os.system(f"mkdir -p {this_output_dir}")
+
 
 #Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
+thickness_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/crossthickness.sh"
 brain_ex_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/brainx_phil.sh"
 wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
 wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly"
@@ -72,13 +73,13 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 
 
 ###Steps for argparse choices
-##Order matters; values match MRI.method & MRIPetReg.method names
+##Order matters: steps are ordered so dependent processing steps come after their parent processing step
+##Names matter: values match MRI.method & MRIPetReg.method names
 ##for naming: if whole_brain_seg was called "wbseg", it matches to "wbseg_to_ants" and "wbsegqc" as well
-mri_processing_steps = ["ants", "brain_ex", "whole_brain_seg", "wbseg_to_ants", "wbsegqc", "inf_cereb_mask", 
-                        "t1icv", "superres","t1ashs", "t1mtthk","t2ashs", "t2ashs_qconly", "prc_cleanup", 
-                        "wmh", "pmtau", "ashst1_stats", "ashst2_stats", "structpetstats"]
-registration_steps = ["t1_pet_reg", "tau_suvr", "tau_pvc", "t2_pet_reg", "pet_reg_qc", "structpetstats"]
-
+mri_processing_steps = ["neck_trim", "cortical_thick", "ants", "brain_ex", "whole_brain_seg", "wbseg_to_ants", "wbsegqc", "inf_cereb_mask", 
+                        "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "prc_cleanup", 
+                        "wmh_prep", "pmtau", "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
+registration_steps = ["t1_pet_reg", "tau_suvr", "tau_pvc", "t2_pet_reg", "pet_reg_qc", "pet_stats"]
 
 ###Data sheets & derived csvs names and locations
 #list all directories with data sheets, then select those for newest date
@@ -95,7 +96,7 @@ for key in keys:
     basename = [x for x in adni_data_csvs_directories_thisrun if key in x][0]
     datasetup_directories_path[key] = os.path.join(adni_data_setup_directory, basename)
     filenames[key] = {name:name+"_"+key+".csv" for name in scantypes}
-
+# print(filenames)
 #All csv's downloaded from ida.loni.usc.edu
 original_ida_datasheets = os.listdir(datasetup_directories_path["ida_study_datasheets"])
 cleaned_ida_datasheets = [csvfile.replace('.csv', '_clean.csv') for csvfile in original_ida_datasheets]
@@ -112,12 +113,12 @@ previous_filelocs_csvs = os.listdir(fileloc_directory_previousrun)
 
 
 
-###other variables
+### other variables
 sides = ["left", "right"]
 
 
 
-###Log file
-logging.basicConfig(filename=f"{this_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.INFO)
+### Log file
+logging.basicConfig(filename=f"{analysis_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.DEBUG)
 # for testing:
 # logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
