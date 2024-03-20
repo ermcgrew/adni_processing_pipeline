@@ -2,12 +2,13 @@
 
 ##Make a mask of the inferior cerebellum to use in tau-t1 registration calculations
 
-wbesg=$1
-wbdir=$2
-inf_cereb_mask=$3
+wbseg=$1
+inf_cereb_mask=$2
+
+wbdir=$(dirname "$wbseg")
+allcereb="${wbdir}/whole_cerebellum.nii.gz"
 
 ##From Sandy's utility find_infcereb
-allcereb="${wbdir}/whole_cerebellum.nii.gz"
 c3d $wbseg -replace 38 inf 39 inf 40 inf 41 inf 71 inf 72 inf 73 inf -thresh inf inf 1 0 -o $allcereb
 c3d $allcereb -cmv -oo $wbdir/coordmap%d.nii.gz
 

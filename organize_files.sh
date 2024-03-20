@@ -3,7 +3,7 @@
 date=$1
 logdir=$2
 
-logfile=${logdir}/unzipdicoms_rsync_${date}.txt
+logfile=${logdir}/${date}_unzipdicoms_rsync.txt
 touch $logfile
 
 alldicoms_zipped="/project/wolk/all_adni/adni_dl_${date}"

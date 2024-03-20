@@ -7,11 +7,12 @@ type=$4
 outputlog_dir=$5
 raw_dicom_dir="/project/wolk/PUBLIC/dicom"
 
-# echo $id
-# echo $scandate
-# echo $uid 
-
 dicoms=($(find ${raw_dicom_dir}/${id}/*/${scandate}*/*/*I${uid}.dcm))
+
+if [[ ! -f ${dicoms[0]} ]] ; then 
+    ## newer dicoms don't end with the UID, find with folder one level up
+    dicoms=($(find ${raw_dicom_dir}/${id}/*/${scandate}*/I${uid}/*))
+fi
 
 if [[ ! -f ${dicoms[0]} ]] ; then 
     status="no dicom file"
@@ -37,7 +38,6 @@ else
         now=$(date '+%F_%T')
         outputlogfile="${outputlog_dir}/dcmtonii_${uid}_${now}.txt"
         mkdir -p $nifti_dir
-        # echo bsub -J dcmtonii_${id}_${scandate}_${type} -o ${outputlog_dir} c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
         bsub -J dcmtonii_${id}_${scandate}_${type} -o ${outputlogfile} c3d -dicom-series-read "${dicoms[0]}" "${series_id}" -o $nifti_file
 
         while [[ ! -f $outputlogfile ]]; do
@@ -48,12 +48,10 @@ else
             status="conversion to nifti sucessful"
         else
             status="conversion to nifti failed"
-        fi
-        
+        fi 
     else
-        status="nifti file already exists"
+        status="nifti file already exists in PUBLIC/nifti"
     fi
-
 fi
 
 echo $status
