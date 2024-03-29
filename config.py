@@ -44,6 +44,7 @@ cleanup_dir = f"{analysis_input_dir}/cleanup"
 wmh_prep_dir = f"{analysis_input_dir}/wmh"
 
 analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
+log_output_dir = f"{analysis_output_dir}/logs"
 stats_output_dir = f"{analysis_output_dir}/stats"
 
 
@@ -78,7 +79,8 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 ##for naming: if whole_brain_seg was called "wbseg", it matches to "wbseg_to_ants" and "wbsegqc" as well
 mri_processing_steps = ["neck_trim", "cortical_thick", "ants", "brain_ex", "whole_brain_seg", "wbseg_to_ants", "wbsegqc", "inf_cereb_mask", 
                         "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "prc_cleanup", 
-                        "wmh_prep", "pmtau", "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
+                        "flair_skull_strip", "wmh_seg", "pmtau", 
+                        "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
 registration_steps = ["t1_pet_reg", "tau_suvr", "tau_pvc", "t2_pet_reg", "pet_reg_qc", "pet_stats"]
 
 ###Data sheets & derived csvs names and locations
@@ -119,6 +121,6 @@ sides = ["left", "right"]
 
 
 ### Log file
-logging.basicConfig(filename=f"{analysis_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.DEBUG)
+logging.basicConfig(filename=f"{log_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.DEBUG)
 # for testing:
 # logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)

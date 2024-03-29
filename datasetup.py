@@ -135,7 +135,7 @@ def preprocess_new(csvfilename, registry=None):
                 df.at[i, 'T1ACCE'] = 0
 
             # Preprocess Flair
-            if "FLAIR" in seq:
+            if "FLAIR" in seq:# and "AXIAL" not in seq:  ### filter out 'Axial (T2) FLAIR' sequences
                 # print(seq)
                 df.at[i, 'FLAIR'] = 1
             else:
@@ -216,6 +216,9 @@ def preprocess_new(csvfilename, registry=None):
     df.to_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"], csvfilename.replace('.csv', '_clean.csv')),
                 index=False, quoting=csv.QUOTE_ALL,
                 date_format='%Y-%m-%d')
+    # df.to_csv(os.path.join("/project/wolk/ADNI2018/analysis_input", csvfilename.replace('.csv', '_20240329_clean.csv')),
+    #             index=False, quoting=csv.QUOTE_ALL,
+    #             date_format='%Y-%m-%d')
     return
 
 
@@ -239,6 +242,7 @@ def create_mri_uid_list():
     mrilist_csv = [file for file in csvs_mri_merge if "LIST" in file][0]
     mrimeta_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],meta_csv))
     mrilist_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],mrilist_csv))
+    # mrilist_df = pd.read_csv("/project/wolk/ADNI2018/analysis_input/MRILIST_12Jun2023_20240329_clean.csv")
     mrilist_df = mrilist_df.loc[(mrilist_df['MAGSTRENGTH'] != 1.5) & (mrilist_df['MAGSTRENGTH'] != 1.494)]
     # print(mrilist_df.head())
 
@@ -334,6 +338,7 @@ def create_mri_uid_list():
     # print(alloutput.info())
     # print(alloutput.head())
     alloutput.to_csv(os.path.join(datasetup_directories_path["uids"],filenames['uids']['mri']),header=True,index=False)
+    # alloutput.to_csv("/project/wolk/ADNI2018/analysis_input/mri_uids_flairfixed_20240329.csv",header=True,index=False)
     return
 
 
@@ -609,10 +614,11 @@ def main():
 
 if __name__ == "__main__":
     print("running datasetup.py directly.")
-    # registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
+    registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
     # preprocess_new("PET_META_LIST_30Jun2023.csv",registry=registry_df)   
+    # preprocess_new("MRILIST_12Jun2023.csv",registry=registry_df)   
 
-    # create_mri_uid_list()
+    create_mri_uid_list()
     # create_pet_uid_list() 
     # create_tau_anchored_uid_list()
 
@@ -624,9 +630,9 @@ if __name__ == "__main__":
     #     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/tau_filelocations_copyof_taulist_dec15_2022_fileloc_2022-12-20.csv", \
     #     "tau")
     
-    identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_uids/anchored_uids.csv",\
-                        "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/anchored_processing_status_copyof_20210909oldsheet.csv",\
-                        "anchored")
+    # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_uids/anchored_uids.csv",\
+    #                     "/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230628_filelocations/anchored_processing_status_copyof_20210909oldsheet.csv",\
+    #                     "anchored")
 
 
     # for key in filenames["uids"]:
