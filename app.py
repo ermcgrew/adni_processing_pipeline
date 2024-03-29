@@ -16,13 +16,13 @@ def unpack_dicoms(date):
     ### Symlinks zip files to /PUBLIC, unpack dicoms to /PUBLIC/ADNI, 
     ### rsync /PUBLIC/ADNI with /PUBLIC/dicoms
     logging.info(f"Running organize_files.sh on zip file adni_dl_{date}")
-    os.system(f"bsub -J '{current_date}_unzip_rsync' -o {analysis_output_dir}/{current_date_time}_unzip_rsync.txt \
-        bash organize_files.sh {date} {analysis_output_dir}") 
+    os.system(f"bsub -J '{current_date}_unzip_rsync' -o {log_output_dir}/{current_date_time}_unzip_rsync.txt \
+        bash organize_files.sh {date}") 
 
 def data_setup():
     #### adni spreadsheets must already be added to cluster
     ### get UID & processing status lists for new batches of scans to process
-    os.system(f"bsub -J '{current_date}_datasteup' -o {analysis_output_dir}/{current_date_time}_datasetup.txt \
+    os.system(f"bsub -J '{current_date}_datasteup' -o {log_output_dir}/{current_date_time}_datasetup.txt \
         python datasetup.py") 
 
 def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
@@ -42,7 +42,8 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
         
             logging.info(f"Running dicom to nifti conversion and nifti symlink for scantype {scantype} sessions in csv {csv_to_read}")
 
-            df=pd.read_csv(csv_to_read)
+            ########
+            df=pd.read_csv(csv_to_read,index_col=False)
 
             if scantype == 'mri':
                 df_newscans = df.loc[(df['NEW_T1'] == 1) | (df['NEW_T2'] == 1) | (df['NEW_FLAIR'] == 1 )]
@@ -107,7 +108,7 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                             df_newscans.at[index,f"{key}_CONVERT_STATUS"] = -1
                             df_newscans.at[index,f"{key}_DATASET_NIFTI"] = "dicom does not exist"
 
-                        ##Symlink PUBLIC/nifti file to ADNI2018/dataset version:
+                        #Symlink PUBLIC/nifti file to ADNI2018/dataset version:
                         if not os.path.exists(uids[key][1]) and nifti_file_loc_public:
                             os.system(f"ln -sf {nifti_file_loc_public} {uids[key][1]}")
 
@@ -115,17 +116,17 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
 
                 ##MRI only step:
-                if scantype == "mri":
-                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
-                    #site's vendor & model info
-                    site = scan_to_process.id.split("_")[0]
-                    siteinfo_result = subprocess.run(
-                        ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
-                        capture_output=True, text=True)
-                    siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
-                    siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
-                    for i in range(0,len(siteinfo_result_list)):
-                        df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
+                # if scantype == "mri":
+                #     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
+                #     #site's vendor & model info
+                #     site = scan_to_process.id.split("_")[0]
+                #     siteinfo_result = subprocess.run(
+                #         ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
+                #         capture_output=True, text=True)
+                #     siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
+                #     siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
+                #     for i in range(0,len(siteinfo_result_list)):
+                #         df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
 
             ### after all rows in iterrows, log conversion stats
             logging.info(f"{scantype}:Conversion status records (1=successful conversion, 0=failed conversion, -1=no dicom UID/dicom not found in cluster):")
@@ -178,10 +179,12 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
         ##processing steps will return either a job name if needed for subsequent steps, or 'None' if no other steps depend on its output
         parent_job=''
         for step in steps_ordered:
+            if step == "wmh_seg":
+                continue
             if (step == "t2ashs" or step == "prc_cleanup") and not os.path.exists(scan_to_process.t2nifti):
                 logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:No T2 file.")
                 continue              
-            elif "stats" not in step and not os.path.exists(scan_to_process.t1nifti):
+            elif "stats" not in step and not os.path.exists(scan_to_process.t1nifti):  #and step != "flair_skull_strip"
                 logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:No T1 file.")
                 continue
             elif "stats" in step:
@@ -199,13 +202,16 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
                     parent_job = getattr(scan_to_process,step)(dry_run = dry_run)
     
     ## Run all WMH--only spin up container once
-    if "wmh_prep" in steps_ordered:
+    if "wmh_seg" in steps_ordered:
         if dry_run:
             print(f"all flair files moved to wmh/date, now run wmh_seg container, then cp files to session folders")
         else:
-            sing_output = f"{analysis_output_dir}/{current_date_time}_wmh_singularity_%J.txt"
+            sing_output = f"{log_output_dir}/{current_date_time}_wmh_singularity_%J.txt"
             logging.info(f"Running WMH singularity for all files, check results at {sing_output}.")
-            os.system(f"bsub -o {sing_output} bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date}/ ")
+            if "flair_skull_strip" in steps_ordered:
+                os.system(f'bsub -o {sing_output} -w "done(*_flair_skull_strip)" bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date}')
+            else: 
+                os.system(f"bsub -o {sing_output} bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date} ")
 
 
 def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
@@ -293,12 +299,12 @@ def final_data_sheets(mode,wait):
         logging.info(f"With wait == {wait}: Compiling individual session stats data from analysis_output/stats/ for stats type {stats_type}.")
         if wait: 
             # job to watch queue for status of all image processing & individual stats collection
-            os.system(f'bsub -J "{current_date}_queuewatch" -o {analysis_output_dir}/{current_date_time}_queuewatch_%J.txt ./queue_watch.sh')
+            os.system(f'bsub -J "{current_date}_queuewatch" -o {log_output_dir}/{current_date_time}_queuewatch_%J.txt ./queue_watch.sh')
             os.system(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" \
-                -o {analysis_output_dir}/{current_date_time}_createstatssheets_{stats_type}_%J.txt \
+                -o {log_output_dir}/{current_date_time}_createstatssheets_{stats_type}_%J.txt \
                 ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {stats_type}')
         else:
-            os.system(f'bsub -J "{current_date}_datasheets" -o {analysis_output_dir}/{current_date_time}_createstatssheets_{stats_type}_%J.txt \
+            os.system(f'bsub -J "{current_date}_datasheets" -o {log_output_dir}/{current_date_time}_createstatssheets_{stats_type}_%J.txt \
                 ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {stats_type}')
     
 

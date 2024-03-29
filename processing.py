@@ -29,7 +29,7 @@ def ready_to_process(processing_step, id, date, input_files = [], output_files =
             logging.info(f"{id}:{date}: Cannot run {processing_step}, missing these input file(s) {missingfiles}")
             return False
 
-
+### -w argument has to be in double quotes
 def set_submit_options(this_job_name, output_dir, parent_job_name):
     jobname = f"-J {this_job_name}"
     output = f"-o {output_dir}/{this_job_name}_{current_date_time}.txt"
@@ -403,25 +403,26 @@ class MRI:
             if dry_run:
                 print('do skull stripping')
             else:
-                os.system(f"bsub {submit_options} bash ./wrapper_scripts/flair_skull_strip_hdbet.sh {self.filepath} {self.date_id_prefix}")
+                os.system(f"bsub {submit_options} bash ./wrapper_scripts/flair_skull_strip_hdbet.sh \
+                    {self.filepath} {self.date_id_prefix} {wmh_prep_dir}/{current_date}")
             return this_job_name
         else:
             return
 
 
-    def wmh_prep(self, parent_job_name = "", dry_run = False):
-        this_function = MRI.wmh_prep.__name__
-        this_job_name=f"{self.date_id_prefix}_{this_function}"
-        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair_noskull], output_files=[self.wmh]):
-            if not os.path.exists(f"{wmh_prep_dir}/{current_date}"):
-                logging.info(f"making directory {current_date} in analysis_input/wmh/ for WMH analysis.")               
-                os.system(f"mkdir -p {wmh_prep_dir}/{current_date}/data_for_inference/")
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)        
-            if dry_run:
-                print('copy flair file to wmh/date/data_for_inference')
-            else:
-                os.system(f"bsub {submit_options} cp {self.flair_noskull} {wmh_prep_dir}/{current_date}/data_for_inference/{self.mridate}_{self.id}_flair_skullstrip_0000.nii.gz")
-                return
+    # def wmh_prep(self, parent_job_name = "", dry_run = False):
+    #     this_function = MRI.wmh_prep.__name__
+    #     this_job_name=f"{self.date_id_prefix}_{this_function}"
+    #     if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair_noskull], output_files=[self.wmh]):
+    #         if not os.path.exists(f"{wmh_prep_dir}/{current_date}"):
+    #             logging.info(f"making directory {current_date} in analysis_input/wmh/ for WMH analysis.")               
+    #             os.system(f"mkdir -p {wmh_prep_dir}/{current_date}/data_for_inference/")
+    #         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)        
+    #         if dry_run:
+    #             print('copy flair file to wmh/date/data_for_inference')
+    #         else:
+    #             os.system(f"bsub {submit_options} cp {self.flair_noskull} {wmh_prep_dir}/{current_date}/data_for_inference/{self.mridate}_{self.id}_flair_skullstrip_0000.nii.gz")
+    #             return
 
     def pmtau(self, parent_job_name = "", dry_run = False):
         this_function = MRI.pmtau.__name__
@@ -725,28 +726,29 @@ if __name__ == "__main__":
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
     # mri_to_process = MRI('141_S_6779','2020-10-27')
     # mri_to_process = MRI('007_S_2394','2023-10-26')
-    mri_to_process = MRI("022_S_6796","2020-09-09")
-   
+    # mri_to_process = MRI("022_S_6796","2020-09-09")
+    mri_to_process = MRI("024_S_6846",'2021-05-20')
+
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
     # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
     # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
     # amy_to_process = AmyloidPET("135_S_4722","2017-06-20")
-    amy_to_process = AmyloidPET("022_S_6796","2021-08-24")
+    # amy_to_process = AmyloidPET("022_S_6796","2021-08-24")
 
     # tau_to_process = TauPET("099_S_6175", "2020-07-09")
     # tau_to_process = TauPET("114_S_6917", "2021-08-11")
     # tau_to_process = TauPET("135_S_4722", "2017-06-22")
-    tau_to_process = TauPET("022_S_6796","2020-09-23")
+    # tau_to_process = TauPET("022_S_6796","2020-09-23")
 
 
-    mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
-    mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
+    # mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
+    # mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
 
 
     ### MRI processing
     # mri_to_process.superres_test()
     # mri_to_process.cortical_thick()
-    # mri_to_process.flair_skull_strip()
+    mri_to_process.flair_skull_strip()
     # mri_to_process.neck_trim()
     # mri_to_process.superres() 
     # mri_to_process.t1ashs(dry_run=True)
@@ -764,10 +766,10 @@ if __name__ == "__main__":
     #                 t1amy = mri_amy_reg_to_process.t1_reg_nifti, t2amy = mri_amy_reg_to_process.t2_reg_nifti)
 
     # mri_to_process.prc_cleanup(dry_run=True)
-    mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
-        t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
-        t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
-        taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate, dry_run = True)   #
+    # mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
+    #     t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
+    #     t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
+    #     taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate, dry_run = True)   #
 
 
     # mri_to_process.structure_stats()
