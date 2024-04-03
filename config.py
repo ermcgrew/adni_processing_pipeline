@@ -81,7 +81,7 @@ mri_processing_steps = ["neck_trim", "cortical_thick", "ants", "brain_ex", "whol
                         "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "prc_cleanup", 
                         "flair_skull_strip", "wmh_seg", "pmtau", 
                         "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
-registration_steps = ["t1_pet_reg", "tau_suvr", "tau_pvc", "t2_pet_reg", "pet_reg_qc", "pet_stats"]
+registration_steps = ["t1_pet_reg", "t1_suvr", "pet_reg_qc", "pet_stats"]
 
 ###Data sheets & derived csvs names and locations
 #list all directories with data sheets, then select those for newest date

@@ -1,0 +1,32 @@
+saved files: 
+    T1_tau_reg
+    T1_amy_reg
+    T1_tau_reg_suvr
+    T1_amy_reg_suvr
+
+
+
+for tau, amy:
+    T1_to_T2_transform x T1_pet_reg_suvr = T2_pet_reg_suvr
+        ****what file is the T1_to_T2_transform?
+    for suvr, pvc:
+        if pvc: 
+            T1_pet_reg_suvr x c3d = T1_pet_reg_suvr_pvc
+            T1_to_T2_transform x T1_pet_reg_suvr_pvc = T2_pet_reg_suvr_pvc
+
+        for left, right: 
+            ASHST2 
+
+            if tau:
+                wbseg Braak 
+                ASHST1 
+
+            if right: 
+                ASHST2 'Both' 
+                T1 wbseg
+
+                if amy & suvr: 
+                    compSUVR
+
+
+    
