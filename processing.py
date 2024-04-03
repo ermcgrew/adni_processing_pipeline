@@ -620,8 +620,8 @@ class MRIPetReg:
 
         self.t1_reg_RAS = f"{self.filepath}/{self.reg_prefix}_T10GenericAffine_RAS.mat"
         self.t1_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T1.nii.gz"
-        self.t1_SUVR = f"{self.filepath}/{self.reg_prefix}_T1_SUVR_infcereb.nii.gz"
-        self.t1_PVC = f"{self.filepath}/{self.reg_prefix}_T1_SUVR_infcereb_pvc.nii.gz"
+        self.t1_SUVR = f"{self.filepath}/{self.reg_prefix}_T1_SUVR.nii.gz"
+        self.t1_PVC = f"{self.filepath}/{self.reg_prefix}_T1_SUVR_pvc.nii.gz"
         self.t1_reg_qc = f"{self.filepath}/{self.reg_prefix}_T1_qa.png"
 
         self.t2_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T2.nii.gz"
@@ -649,20 +649,20 @@ class MRIPetReg:
             return     
         
 
-    def t2_pet_reg(self, parent_job_name = "", dry_run = False):
-        this_function = f"{self.pet_type}_{MRIPetReg.t2_pet_reg.__name__}"
-        this_job_name=f"{self.mridate}_{self.id}_{this_function}"
-        if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", \
-                            input_files = [self.t2nifti, self.pet_nifti, self.t2ashs_flirt_reg, self.t1_reg_RAS], \
-                            output_files = [self.t2_reg_nifti], parent_job = parent_job_name):
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)        
-            if dry_run:
-                print(f"bsub {submit_options} ./wrapper_scripts/t2_pet_registration.sh {self.t2nifti} \
-                      {self.pet_nifti} {self.t2_reg_nifti} {self.t2ashs_flirt_reg} {self.t1_reg_RAS}")
-            else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/t2_pet_registration.sh {self.t2nifti} \
-                        {self.pet_nifti} {self.t2_reg_nifti} {self.t2ashs_flirt_reg} {self.t1_reg_RAS}")
-            return
+    # def t2_pet_reg(self, parent_job_name = "", dry_run = False):
+    #     this_function = f"{self.pet_type}_{MRIPetReg.t2_pet_reg.__name__}"
+    #     this_job_name=f"{self.mridate}_{self.id}_{this_function}"
+    #     if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", \
+    #                         input_files = [self.t2nifti, self.pet_nifti, self.t2ashs_flirt_reg, self.t1_reg_RAS], \
+    #                         output_files = [self.t2_reg_nifti], parent_job = parent_job_name):
+    #         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)        
+    #         if dry_run:
+    #             print(f"bsub {submit_options} ./wrapper_scripts/t2_pet_registration.sh {self.t2nifti} \
+    #                   {self.pet_nifti} {self.t2_reg_nifti} {self.t2ashs_flirt_reg} {self.t1_reg_RAS}")
+    #         else:
+    #             os.system(f"bsub {submit_options} ./wrapper_scripts/t2_pet_registration.sh {self.t2nifti} \
+    #                     {self.pet_nifti} {self.t2_reg_nifti} {self.t2ashs_flirt_reg} {self.t1_reg_RAS}")
+    #         return
 
  
     def pet_reg_qc(self, parent_job_name = "", dry_run = False):
@@ -680,9 +680,9 @@ class MRIPetReg:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/registered_image_qc.sh \
                     {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
             return
-        
-    def tau_suvr(self, parent_job_name = "", dry_run = False):
-        this_function = f"{self.pet_type}_{MRIPetReg.tau_suvr.__name__}"
+
+    def t1_suvr(self, parent_job_name = "", dry_run = False):
+        this_function = f"{self.pet_type}_{MRIPetReg.t1_suvr.__name__}"
         this_job_name=f"{self.mridate}_{self.id}_{this_function}" 
         if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", 
                             input_files = [self.t1_reg_nifti, self.mriwbseg], 
@@ -697,19 +697,19 @@ class MRIPetReg:
             return
         
     
-    def tau_pvc(self, parent_job_name = "", dry_run = False):
-        this_function = f"{self.pet_type}_{MRIPetReg.tau_pvc.__name__}"
-        this_job_name=f"{self.mridate}_{self.id}_{this_function}" 
-        if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", 
-                            input_files = [self.t1_SUVR], 
-                            output_files = [self.t1_PVC],
-                            parent_job = parent_job_name):
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-            if dry_run:
-                print(f"tau pvc")
-            else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/pvc.sh {self.t1_SUVR} {self.t1_PVC}")
-            return
+    # def tau_pvc(self, parent_job_name = "", dry_run = False):
+    #     this_function = f"{self.pet_type}_{MRIPetReg.tau_pvc.__name__}"
+    #     this_job_name=f"{self.mridate}_{self.id}_{this_function}" 
+    #     if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", 
+    #                         input_files = [self.t1_SUVR], 
+    #                         output_files = [self.t1_PVC],
+    #                         parent_job = parent_job_name):
+    #         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+    #         if dry_run:
+    #             print(f"tau pvc")
+    #         else:
+    #             os.system(f"bsub {submit_options} ./wrapper_scripts/pvc.sh {self.t1_SUVR} {self.t1_PVC}")
+    #         return
 
 
  
@@ -742,13 +742,13 @@ if __name__ == "__main__":
 
 
     # mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
-    # mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
+    mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
 
 
     ### MRI processing
     # mri_to_process.superres_test()
     # mri_to_process.cortical_thick()
-    mri_to_process.flair_skull_strip()
+    # mri_to_process.flair_skull_strip()
     # mri_to_process.neck_trim()
     # mri_to_process.superres() 
     # mri_to_process.t1ashs(dry_run=True)

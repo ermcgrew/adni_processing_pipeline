@@ -263,7 +263,7 @@ def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
             ##processing steps will return either a job name if needed for subsequent steps, or 'None' if no other steps depend on its output
             parent_job=''
             for pet_reg_class in [mri_tau_reg_to_process, mri_amy_reg_to_process]:
-                logging.info(f"{pet_reg_class.id}:{pet_reg_class.mridate}:{pet_reg_class.petdate}:{pet_reg_class.pet_type}:Now processing")
+                # logging.info(f"{pet_reg_class.id}:{pet_reg_class.mridate}:{pet_reg_class.petdate}:{pet_reg_class.pet_type}:Now processing")
                 for step in steps_ordered:
                     if step != "pet_stats":
                         if (step == "t1_pet_reg" or step == "pet_reg_qc") and not os.path.exists(mri_to_process.t1nifti):
