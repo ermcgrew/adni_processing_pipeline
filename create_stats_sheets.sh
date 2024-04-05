@@ -111,7 +111,7 @@ function write_header()
 
 
   elif [[ $mode == "wmh" ]] ; then 
-    HEADER="$HEADER,WMH_vol"
+    HEADER="$HEADER,FLAIR_sequence_resolution,WMH_vol"
   fi 
 
   echo -e "${HEADER}" > $statfile
