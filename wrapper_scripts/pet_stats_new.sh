@@ -6,13 +6,12 @@
 # wholebrainseg wbsegtoants wblabelfile
 # icv.txt 
 # cleanup/seg_left cleanup/seg_right cleanup/seg_both
-# t1tau t1tausuvr t1tausuvrpvc t2taureg t1amyreg t2amyreg 
+# t1tausuvr t1amysuvr 
 # stats_output_file 
 # ASHST1dir/final/${id}  
 
 
 # export DOERODE=true
-# TMPDIR=$(mktemp -d)
 # export TMPDIR
 
 # id=$1  
@@ -29,58 +28,69 @@
 # cleanup_left=$9
 # cleanup_right=${10}
 # cleanup_both=${11}
-# t1tausuvr=${13}
-# t1tau=${12}
-# t1tausuvrpvc=${14}
-# t2tau=${15} 
-# t1amy=${16} 
-# t2amy=${17} 
 
-# stats_output_file=${18}
+# t1tausuvr=${}
+# t1amysuvr=${}
 
-# t1_ashs_seg_prefix=${19}
+# stats_output_file=${}
 
-module load PETPVC/1.2.10
+# t1_ashs_seg_prefix=${}
+
+# t1_to_t2_transform=${}   ##from sfsegnibtend/flirt_t2_to_t1/
+# t2_nifti={}
+# t1trim={}   ##for creating transform if it's not saved in ashs folder)
+
 
 t1tausuvr=taupet6mm_to_mprageANTS_suvr.nii.gz
 t1amysuvr=amypet6mm_to_mprageANTS_suvr.nii.gz
-T1_to_T2_transform="tmp.nii.gz"
+t1_to_t2_transform="flirt_t2_to_t1_inv.mat" 
 
 TMPDIR=tmpdir
+
+
+
+module load PETPVC/1.2.10
+
 # TMPDIR=$(mktemp -d)
 
 for pettype in tau amy ; do 
     # echo "Doing stats for ${pettype}"
     if [ "$pettype" == "tau" ] ; then
-        T1_pet_suvr=$t1tausuvr
+        t1_pet_suvr=$t1tausuvr
     else
-        T1_pet_suvr=$t1amysuvr
+        t1_pet_suvr=$t1amysuvr
     fi
 
     echo Make T2 to ${pettype} suvr registration
-    # echo c3d command: T1_to_T2_transform x T1_pet_suvr = T2_pet_suvr
-    T2_pet_suvr="$TMPDIR/T2_${pettype}pet_suvr.nii.gz"
+
+    if [[ ! -f $t1_to_t2_transform ]] ; then 
+        echo First make T1 to T2 transform file
+        mkdir -p $SDROOT/$id/$tp/${SFSEG}/flirt_t2_to_t1
+		c3d $t2_nifti -resample 100x100x500% -region 20x20x0% 60x60x100% -type short -o $TMPDIR/tse_iso.nii.gz
+		/project/hippogang_1/srdas/homebin/greedy -d 3 -a -dof 6 -m MI -n 100x100x10 -i $TMPDIR/tse_iso.nii.gz $t1trim -ia-identity -o $t1_to_t2_transform
+    fi
+
+    t2_pet_suvr="$TMPDIR/T2_${pettype}pet_suvr.nii.gz"
+    c3d $t2_nifti $t1_pet_suvr -reslice-matrix $t1_to_t2_transform -o $t2_pet_suvr
 
     for suvr_or_pvc in suvr pvc ; do 
         # echo "doing stats for ${suvr_or_pvc}"
         if [ "$suvr_or_pvc" == "suvr" ] ; then
-
-            t1_pet_touse=$T1_pet_suvr
-            t2_pet_touse=$T2_pet_suvr
-
+            t1_pet_touse=$t1_pet_suvr
+            t2_pet_touse=$t2_pet_suvr
         else 
             echo Make PVC versions of petreg images
             ##### T1 PVC
-            T1_pet_pvc=$TMPDIR/T1_${pettype}pet_pvc.nii.gz
-            # pvc_vc $T1_pet_suvr $T1_pet_pvc -x 8.0 -y 8.0 -z 8.0
+            t1_pet_pvc=$TMPDIR/T1_${pettype}pet_pvc.nii.gz
+            pvc_vc $T1_pet_suvr $T1_pet_pvc -x 8.0 -y 8.0 -z 8.0
             
-            ##### T2 PVC
-            # echo T2_pet_pvc=T1_to_T2_transform x $T1_pet_pvc
-            T2_pet_pvc="$TMPDIR/T2_${pettype}pet_pvc.nii.gz"
+            ##### Make T2 PVC
+            t2_pet_pvc="$TMPDIR/T2_${pettype}pet_pvc.nii.gz"
+            c3d $t2_nifti $t1_pet_pv -reslice-matrix $t1_to_t2_transform -o $t2_pet_pvc
 
             ##### set pvc file to variables for loop
-            t1_pet_touse=$T1_pet_pvc
-            t2_pet_touse=$T2_pet_pvc
+            t1_pet_touse=$t1_pet_pvc
+            t2_pet_touse=$t2_pet_pvc
 
         fi
 

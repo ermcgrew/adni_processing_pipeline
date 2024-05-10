@@ -13,7 +13,7 @@ flair_resolution=$( c3d $flair -info-full | grep Spacing | \
   sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" | awk '{print $3}' )
 
 ###White matter hyperintensity from FLAIR nifti (volume of region 1)
-wmh_vol=$( c3d $flair $wmh_mask -lstat | awk '{print $7}' | tail -n 1 )
+wmh_vol=$( c3d $wmh_mask $flair -interp NN -reslice-identity $wmh_mask -lstat | awk '{print $7}' | tail -n 1 )
 
 
 echo -e $RID,$id,$mridate,$flair_resolution,$wmh_vol | tee $outputfile
