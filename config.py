@@ -41,12 +41,17 @@ adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
 cleanup_dir = f"{analysis_input_dir}/cleanup"
+# cleanup_dir = f"{adni_data_dir}/cleanup"
+# cleanup_dir = f"/project/wolk/ADNI2018/scripts/pipeline_test_data/existing_cleanup"
+
 wmh_prep_dir = f"{analysis_input_dir}/wmh"
 
 analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
 log_output_dir = f"{analysis_output_dir}/logs"
 stats_output_dir = f"{analysis_output_dir}/stats"
-
+# stats_output_dir = f"{analysis_output_dir}/thick_stats_wbseg_noprop"
+# stats_output_dir = f"{adni_data_dir}/stats"
+# stats_output_dir=f"/project/wolk/ADNI2018/scripts/pipeline_test_data/existing_stats"
 
 #Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
@@ -78,12 +83,58 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 ##Names matter: values match MRI.method & MRIPetReg.method names
 ##for naming: if whole_brain_seg was called "wbseg", it matches to "wbseg_to_ants" and "wbsegqc" as well
 # "ants",
-mri_processing_steps = ["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
-                        "wbsegqc", "inf_cereb_mask", 
-                        "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "prc_cleanup", 
-                        "flair_skull_strip", "wmh_seg", "pmtau", 
-                        "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
-registration_steps = ["t1_pet_reg", "t1_suvr", "pet_reg_qc", "pet_stats"]
+# , "wmh_seg",
+
+processing_steps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
+            "wbsegqc", "inf_cereb_mask", "pmtau", 
+            "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "t2ashs_qconly","prc_cleanup", 
+            "flair_skull_strip",
+            "t1_pet_reg", "t1_pet_suvr", "pet_reg_qc",
+            "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
+
+
+def determine_parent_step(step_to_do):
+    if step_to_do == "neck_trim":
+        # print('first step, no parent job')
+        return []
+    elif step_to_do == "cortical_thick" or step_to_do == "brain_ex" or step_to_do == "t1icv" \
+        or step_to_do == "superres" or step_to_do == "t2ashs" or step_to_do == "t1_pet_reg":
+        return ["neck_trim"]
+    elif step_to_do == "whole_brain_seg":
+        return ["brain_ex"]
+    elif step_to_do == "wbseg_to_ants":
+        return ["whole_brain_seg", "cortical_thick"]
+    elif step_to_do == "wbsegqc" or step_to_do == "inf_cereb_mask":
+        return ["whole_brain_seg"]
+    elif step_to_do == "t1ashs":
+        return ["superres"]
+    elif step_to_do == "t1mtthk":
+        return ["t1ashs"]
+    elif step_to_do == "prc_cleanup":
+        return ["t2ashs"]
+    elif step_to_do == "pmtau":
+        return ["cortical_thick"]
+    elif step_to_do == "t1_pet_suvr":
+        ##inf_cereb_mask implies wbseg already done
+        ## amy doesn't use inf_cereb_mask ... 
+        return ["t1_pet_reg", "inf_cereb_mask"]
+    elif step_to_do == "pet_reg_qc":
+        return ["t1_pet_reg"]
+    elif step_to_do == "flair_skull_strip": 
+        return []
+    else:
+        # print("step is stats, use *date_id as wait code ")
+        return []
+
+# mri_processing_steps = ["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
+#                         "wbsegqc", "inf_cereb_mask", 
+#                         "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "prc_cleanup", 
+#                         "flair_skull_strip", "wmh_seg", "pmtau", 
+#                         "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
+# registration_steps = ["t1_pet_reg", "t1_suvr", "pet_reg_qc", "pet_stats"]
+
+
+
 
 ###Data sheets & derived csvs names and locations
 #list all directories with data sheets, then select those for newest date
