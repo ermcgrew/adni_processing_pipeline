@@ -1,40 +1,64 @@
 # #!/usr/bin/bash
-# cd /project/wolk/ADNI2018/scripts/pipeline_test_data/
-mridata="/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_processing_status/mri_processing_status.csv"
-
-foldertestone=necktrim_trimtestants_ashsroot_pauly
-foldertesttwo=necktrim_trimtestants_ashsroot_lxie
-# testfolder=necktrim_preprocessedInput
 
 testroot="/project/wolk/ADNI2018/scripts/pipeline_test_data"
-dataroot="/project/wolk/ADNI2018/dataset"
-csvtoread="/project/wolk/ADNI2018/analysis_input/testversions_processingstatuscsvs/anchored_processing_status.csv"
+testdatacsv="${testroot}/pet_testdata.csv"
 
-cat $csvtoread | while read line ; do 
+mkdir ${testroot}/test_data_moved_20240408/
+
+cat $testdatacsv | while read line ; do 
     id=$( echo $line | cut -d "," -f 1 )
-    taudate=$( echo $line | cut -d "," -f 6)
-    mridate=$( echo $line | cut -d "," -f 15)
-    amydate=$( echo $line | cut -d "," -f 36)
+    taudate=$( echo $line | cut -d "," -f 3)
+    mridate=$( echo $line | cut -d "," -f 2)
+    amydate=$( echo $line | cut -d "," -f 4)
     echo $id, $taudate, $mridate, $amydate
 
     if [[ $id == "ID" ]] ; then
         continue 
     else
-        taudir="${id}/${taudate}"
-        amydir="${id}/${amydate}"
-        mridir="${id}/${mridate}"
-
-        mkdir -p "${testroot}/${taudir}"
-        cp ${dataroot}/${taudir}/*taupet.nii.gz "${testroot}/${taudir}"
-
-        mkdir -p "${testroot}/${amydir}"
-        cp ${dataroot}/${amydir}/*amypet.nii.gz "${testroot}/${amydir}"
-
-        mkdir -p "${testroot}/${mridir}"
-        cp ${dataroot}/${mridir}/*T1w.nii.gz ${dataroot}/${mridir}/*T2w.nii.gz "${testroot}/${mridir}"
+        ls ${testroot}/${id}
+        cp -r ${testroot}/${id} ${testroot}/test_data_moved_20240408/
     fi
 
 done
+
+
+# cd /project/wolk/ADNI2018/scripts/pipeline_test_data/
+# mridata="/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_processing_status/mri_processing_status.csv"
+
+# foldertestone=necktrim_trimtestants_ashsroot_pauly
+# foldertesttwo=necktrim_trimtestants_ashsroot_lxie
+# # testfolder=necktrim_preprocessedInput
+
+# testroot="/project/wolk/ADNI2018/scripts/pipeline_test_data"
+# dataroot="/project/wolk/ADNI2018/dataset"
+# csvtoread="/project/wolk/ADNI2018/analysis_input/testversions_processingstatuscsvs/anchored_processing_status.csv"
+
+# cat $csvtoread | while read line ; do 
+#     id=$( echo $line | cut -d "," -f 1 )
+#     taudate=$( echo $line | cut -d "," -f 6)
+#     mridate=$( echo $line | cut -d "," -f 15)
+#     amydate=$( echo $line | cut -d "," -f 36)
+#     echo $id, $taudate, $mridate, $amydate
+
+#     if [[ $id == "ID" ]] ; then
+#         continue 
+#     else
+#         taudir="${id}/${taudate}"
+#         amydir="${id}/${amydate}"
+#         mridir="${id}/${mridate}"
+
+#         mkdir -p "${testroot}/${taudir}"
+#         cp ${dataroot}/${taudir}/*taupet.nii.gz "${testroot}/${taudir}"
+
+#         mkdir -p "${testroot}/${amydir}"
+#         cp ${dataroot}/${amydir}/*amypet.nii.gz "${testroot}/${amydir}"
+
+#         mkdir -p "${testroot}/${mridir}"
+#         cp ${dataroot}/${mridir}/*T1w.nii.gz ${dataroot}/${mridir}/*T2w.nii.gz "${testroot}/${mridir}"
+#     fi
+
+# done
+
 # cat $mridata | while read line ; do 
 #     id=$( echo $line | cut -d "," -f 3 )
 #     date=$( echo $line | cut -d "," -f 2)
