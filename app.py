@@ -11,6 +11,7 @@ from processing import MRI, AmyloidPET, TauPET, MRIPetReg
 from config import *
 # from convert_symlink import convert_symlink_function
 
+
 def unpack_dicoms(date):
     #### zip files of new dicoms must already be added to cluster
     ### Symlinks zip files to /PUBLIC, unpack dicoms to /PUBLIC/ADNI, 
@@ -19,11 +20,13 @@ def unpack_dicoms(date):
     os.system(f"bsub -J '{current_date}_unzip_rsync' -o {log_output_dir}/{current_date_time}_unzip_rsync.txt \
         bash organize_files.sh {date}") 
 
+
 def data_setup():
     #### adni spreadsheets must already be added to cluster
     ### get UID & processing status lists for new batches of scans to process
     os.system(f"bsub -J '{current_date}_datasteup' -o {log_output_dir}/{current_date_time}_datasetup.txt \
         python datasetup.py") 
+
 
 def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
     # print("run dicom to nifti conversion")
@@ -151,15 +154,22 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                 all_filelocs.to_csv(new_fileloc_path,index=False,header=True)
  
 
-def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
+def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
     if all_steps:
-        steps_ordered = mri_processing_steps
+        steps_ordered = processing_steps
     else:
         if len(steps) == 1:
             steps_ordered = steps
         else:
-            ##variable mri_processing_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
-            steps_ordered = [method for method in mri_processing_steps for step in steps if step in method]
+            ##variable processing_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
+            steps_ordered = [method for method in processing_steps for step in steps if step in method]
+    
+    pet_check = [x for x in steps_ordered if "pet" in x]
+    if len(pet_check) > 0:
+        pet_steps=True
+    else:
+        pet_steps=False
+    # print("There are pet steps to do in the command")
 
     if csv:
         csv_to_read = csv
@@ -171,37 +181,77 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
     
     logging.info(f"DRY_RUN={dry_run}: Running MRI image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
 
+    #### For each session in dataframe
     for index,row in df.iterrows():
+        jobs_running = []
         subject = str(row['ID'])
-        scandate = str(row['SMARTDATE'])
-        scan_to_process = MRI(subject,scandate)
-        ##first processing step will always run without a parent job.
-        ##processing steps will return either a job name if needed for subsequent steps, or 'None' if no other steps depend on its output
-        parent_job=''
+        scandate = str(row['SMARTDATE.mri'])
+        mri_to_process = MRI(subject,scandate)
+
+        if pet_steps == True: 
+            if 'SMARTDATE.tau' in df.columns:
+                taudate = str(row['SMARTDATE.tau'])
+                tau_to_process = TauPET(subject, taudate)
+                mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process) 
+
+            if "SMARTDATE.amy" in df.columns:
+                amydate = str(row['SMARTDATE.amy'])
+                amy_to_process = AmyloidPET(subject, amydate)
+                mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
+
         for step in steps_ordered:
-            if step == "wmh_seg":
-                continue
-            if (step == "t2ashs" or step == "prc_cleanup") and not os.path.exists(scan_to_process.t2nifti):
-                logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:No T2 file.")
+            print(f"*************** Doing step {step}")
+            if (step == "t2ashs" or step == "prc_cleanup") and not os.path.exists(mri_to_process.t2nifti):
+                logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:No T2 file.")
                 continue              
-            elif "stats" not in step and not os.path.exists(scan_to_process.t1nifti):  #and step != "flair_skull_strip"
-                logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:No T1 file.")
+            elif "stats" not in step and (step == "t1_pet_reg" or step == "pet_reg_qc") and not os.path.exists(mri_to_process.t1nifti):  #and step != "flair_skull_strip"
+                logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:No T1 file.")
                 continue
             elif "stats" in step:
+                # print(f"Running a stats step")
                 ##if only doing stats, no need to wait for image processing jobs to complete
                 if len(steps_ordered) == len([x for x in steps_ordered if "stats" in x]):
-                    getattr(scan_to_process,step)(dry_run = dry_run) 
+                    jobname_prefix_this_subject = ""
                 else:
-                    getattr(scan_to_process,step)(wait_code=f"{scan_to_process.mridate}_{scan_to_process.id}*", dry_run = dry_run)
+                    jobname_prefix_this_subject = f"{mri_to_process.mridate}_{mri_to_process.id}*"
+                
+                if step == "pet_stats":
+                    mri_to_process.pet_stats(wait_code = jobname_prefix_this_subject,
+                                            t1tausuvr = mri_tau_reg_to_process.t1_SUVR,
+                                            t1amysuvr = mri_amy_reg_to_process.t1_SUVR,
+                                            taudate = mri_tau_reg_to_process.petdate,
+                                            amydate = mri_amy_reg_to_process.petdate,
+                                            dry_run = dry_run) 
+                elif step == "old_pet_stats":
+                    mri_to_process.old_pet_stats(wait_code = jobname_prefix_this_subject,
+                                                t1tau = mri_tau_reg_to_process.eightmm_t1_reg_nifti, 
+                                                t2tau = mri_tau_reg_to_process.eightmm_t2_reg_nifti,
+                                                t1amy = mri_amy_reg_to_process.eightmm_t1_reg_nifti,
+                                                t2amy = mri_amy_reg_to_process.eightmm_t2_reg_nifti, 
+                                                taudate = mri_tau_reg_to_process.petdate,
+                                                amydate = mri_amy_reg_to_process.petdate,
+                                                dry_run = dry_run)
+                else:
+                    getattr(mri_to_process,step)(wait_code = jobname_prefix_this_subject, dry_run = dry_run)
             else:
-                if parent_job: 
-                    ##Call processing step function on class instance with the parent job name
-                    parent_job = getattr(scan_to_process,step)(parent_job_name = parent_job, dry_run = dry_run)
+                parent_step = determine_parent_step(step)
+                wait_code = [job for job in jobs_running for pstep in parent_step if pstep in job]
+                # print(f"Parent step for {step} is {parent_step}")
+                # print(f"Jobs running are {jobs_running}")
+                # print(f"Submit with wait code {wait_code}")
+                if "pet" in step: 
+                    # print('doing pet step')
+                    for pet_reg_class in [mri_tau_reg_to_process, mri_amy_reg_to_process]:
+                        ## wait code needs to match pet_reg_class as well as pstep in jobs running
+                        pet_wait_code = [code for code in wait_code if pet_reg_class.pet_type in code]
+                        job_name = getattr(pet_reg_class,step)(parent_job_name = pet_wait_code, dry_run = dry_run)
+                        jobs_running.append(job_name)
                 else:
-                    ##Call processing step function on class instance with no parent job 
-                    parent_job = getattr(scan_to_process,step)(dry_run = dry_run)
-    
-    ## Run all WMH--only spin up container once
+                    job_name = getattr(mri_to_process,step)(parent_job_name = wait_code, dry_run = dry_run)
+                    # print(job_name)
+                    jobs_running.append(job_name)
+
+    # Run all WMH--only spin up container once
     if "wmh_seg" in steps_ordered:
         if dry_run:
             print(f"all flair files moved to wmh/date, now run wmh_seg container, then cp files to session folders")
@@ -212,86 +262,6 @@ def mri_image_processing(steps=[], all_steps=False, csv="", dry_run=False):
                 os.system(f'bsub -o {sing_output} -w "done(*_flair_skull_strip)" bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date}')
             else: 
                 os.system(f"bsub -o {sing_output} bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date} ")
-
-
-def mri_pet_registration(steps=[], all_steps=False, csv="", dry_run=False):
-    if all_steps==True:
-        steps_ordered = registration_steps
-    else:
-        if len(steps) == 1:
-            steps_ordered = steps
-        else:
-            ##variable registration_steps from config.py is ordered so steps with inputs that depend on other steps' outputs are listed after the other steps.
-            steps_ordered = [method for method in registration_steps for step in steps if step in method]
-    # print(f"Run pet-mri registration steps: {steps_ordered}")
-
-    if csv:
-        csv_to_read = csv
-        df = pd.read_csv(csv_to_read)
-    else:
-        csv_to_read = os.path.join(datasetup_directories_path["processing_status"],"anchored_processing_status.csv")
-        df_newscans = pd.read_csv(csv_to_read)
-        df = df_newscans.loc[(df_newscans['NEW_anchored'] == 1)]
-
-    logging.info(f"With DRY_RUN={dry_run}: Running MRI-PET registration steps {steps_ordered} for sessions in csv {csv_to_read}")
-    
-    # print(df.head())
-    for index,row in df.iterrows():
-        subject = str(row['ID'])
-        mridate = str(row['SMARTDATE.mri'])
-        taudate = str(row['SMARTDATE.tau'])
-        amydate = str(row['SMARTDATE.amy'])
-    
-        mri_to_process = MRI(subject,mridate)
-        tau_to_process = TauPET(subject, taudate)
-        mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process) 
-        amy_to_process = AmyloidPET(subject, amydate)
-        mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
-
-        if "pet_stats" in steps_ordered and len(steps_ordered) == 1:
-            ##if only doing stats, no wait code from image processing functions
-            logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:{mri_tau_reg_to_process.petdate}:{mri_amy_reg_to_process.petdate}:Running pet stats.")
-            # print(f"submit without wait code")
-            mri_to_process.pet_stats(t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
-                                        t2tau = mri_tau_reg_to_process.t2_reg_nifti,
-                                        t1amy = mri_amy_reg_to_process.t1_reg_nifti,
-                                        t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
-                                        taudate = mri_tau_reg_to_process.petdate,
-                                        amydate = mri_amy_reg_to_process.petdate, dry_run = dry_run) 
-        else:
-            ##first processing step will always run without a parent job.
-            ##processing steps will return either a job name if needed for subsequent steps, or 'None' if no other steps depend on its output
-            parent_job=''
-            for pet_reg_class in [mri_tau_reg_to_process, mri_amy_reg_to_process]:
-                # logging.info(f"{pet_reg_class.id}:{pet_reg_class.mridate}:{pet_reg_class.petdate}:{pet_reg_class.pet_type}:Now processing")
-                for step in steps_ordered:
-                    if step != "pet_stats":
-                        if (step == "t1_pet_reg" or step == "pet_reg_qc") and not os.path.exists(mri_to_process.t1nifti):
-                            logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:No T1 file.")
-                            continue              
-                        elif "t2" in step and not os.path.exists(mri_to_process.t2nifti):
-                            logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:No T2 file.")
-                            continue
-                        else:
-                            if parent_job: 
-                                ##Call processing step function on class instance with the parent job name
-                                parent_job = getattr(pet_reg_class,step)(parent_job_name = parent_job, dry_run = dry_run)
-                            else:
-                                ##Call processing step function on class instance with no parent job 
-                                parent_job = getattr(pet_reg_class,step)(dry_run = dry_run)
-
-                    elif step == "pet_stats" and pet_reg_class.pet_type == "amypet":
-                        ###only run once, don't need for both tau and amy petreg classes
-                        # print(f'submit with id date wait code')
-                        logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:{mri_tau_reg_to_process.petdate}:{mri_amy_reg_to_process.petdate}:Running pet stats.")
-                        jobname_prefix_this_subject = f"{mri_to_process.mridate}_{mri_to_process.id}*"
-                        mri_to_process.pet_stats(wait_code=jobname_prefix_this_subject,
-                                                    t1tau = mri_tau_reg_to_process.t1_reg_nifti, 
-                                                    t2tau = mri_tau_reg_to_process.t2_reg_nifti,
-                                                    t1amy = mri_amy_reg_to_process.t1_reg_nifti,
-                                                    t2amy = mri_amy_reg_to_process.t2_reg_nifti, 
-                                                    taudate = mri_tau_reg_to_process.petdate,
-                                                    amydate = mri_amy_reg_to_process.petdate, dry_run = dry_run) 
         
 
 def final_data_sheets(mode,wait):
@@ -340,31 +310,21 @@ convert_parser.add_argument("-o","--outputcsv", required=False, help="Full filep
 convert_parser.set_defaults(func=convert_symlink)
 
 
-###mri_image_processing
-mri_image_proc_parser = subparsers.add_parser("mri_image_processing", help="process mri images")
-mristep_or_all_group = mri_image_proc_parser.add_mutually_exclusive_group(required=True)
-mristep_or_all_group.add_argument("-s", '--steps', nargs="+", choices=mri_processing_steps, help="Processing step(s) to run.")
-mristep_or_all_group.add_argument("-a", "--all_steps", action="store_true", help=f"Run all processing steps: {mri_processing_steps}")
-mri_image_proc_parser.add_argument("-c", "--csv", required=False, help="csv with column 'ID' in format 999_S_9999 and \
-    column 'SMARTDATE' in format YYYY-MM-DD of sessions to process if not using default.")
-mri_image_proc_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, help = "Run program but don't submit any jobs.")
-mri_image_proc_parser.set_defaults(func=mri_image_processing)
-
-
-###mri_pet_registration
-mri_pet_reg_parser = subparsers.add_parser("mri_pet_registration", help="Do mri-pet registration and stats.")
-reg_step_or_all_group = mri_pet_reg_parser.add_mutually_exclusive_group(required=True)
-reg_step_or_all_group.add_argument("-s", '--steps', nargs="+", choices=registration_steps, help="Select processing step(s) to run.")
-reg_step_or_all_group.add_argument("-a", "--all_steps", action="store_true", help=f"Run all processing steps: {registration_steps}")
-mri_pet_reg_parser.add_argument("-c", "--csv", required=False, help="csv with column 'ID' in format 999_S_9999, columns \
-    'SMARTDATE.tau', 'SMARTDATE.mri', 'SMARTDATE.amy', all in format YYY-MM-DD of sessions to process if not using default.")
-mri_pet_reg_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, help = "Run program but don't submit any jobs.")
-mri_pet_reg_parser.set_defaults(func=mri_pet_registration)
+###image_processing
+image_proc_parser = subparsers.add_parser("image_processing", help="process mri images")
+step_or_all_group = image_proc_parser.add_mutually_exclusive_group(required=True)
+step_or_all_group.add_argument("-s", '--steps', nargs="+", choices=processing_steps, help="Processing step(s) to run.")
+step_or_all_group.add_argument("-a", "--all_steps", action="store_true", help=f"Run all processing steps: {processing_steps}")
+image_proc_parser.add_argument("-c", "--csv", required=False, help="Optional csv of sessions to run if not using default csv produced by datasetup.py. \
+    Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD. \
+    If processing pet scans, include columns 'SMARTDATE.tau' and 'SMARTDATE.amy', both as YYYY-MM-DD")
+image_proc_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, help = "Run program but don't submit any jobs.")
+image_proc_parser.set_defaults(func=image_processing)
 
 
 ###final_data_sheets
 final_data_sheet_parser = subparsers.add_parser("final_data_sheets", help = "Collect individual stats into final sheets.")
-final_data_sheet_parser.add_argument("-m", "--mode", nargs = "+", choices = ["pet", "structure", "ashst1", "ashst2","wmh"], help="Select which type(s) of stats to compile into a final sheet")
+final_data_sheet_parser.add_argument("-m", "--mode", nargs = "+", choices = ["pet", "petold", "structure", "ashst1", "ashst2","wmh"], help="Select which type(s) of stats to compile into a final sheet")
 final_data_sheet_parser.add_argument("-w", "--wait", action="store_true", help = "Run with queuewatch to wait for all image processing to complete")
 final_data_sheet_parser.set_defaults(func=final_data_sheets)
 

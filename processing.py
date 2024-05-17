@@ -113,7 +113,6 @@ class MRI:
         self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
         self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
         self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
-        # self.t2ashs_tse = f"/project/hippogang_1/srdas/wd/ADNI23/{self.id}/{self.mridate}/sfsegnibtend/tse.nii.gz"
 
         self.t2ashs_flirt_reg = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1.mat"
         self.t1_to_t2_transform = f"{self.filepath}/sfsegnibtend/flirt_t2_to_t1/flirt_t2_to_t1_inv.mat"
@@ -136,6 +135,7 @@ class MRI:
         self.t2ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst2.txt"
         self.structure_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_structure.txt"
         self.wmh_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_wmh.txt"
+
 
     def neck_trim(self, parent_job_name = "", dry_run = False):
         this_function = MRI.neck_trim.__name__
@@ -184,6 +184,7 @@ class MRI:
         else:
             return ""
 
+
     def ants(self, parent_job_name = "", dry_run = False):
         this_function = MRI.ants.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
@@ -208,6 +209,7 @@ class MRI:
             else:
                 return
 
+
     def whole_brain_seg(self, parent_job_name = "", dry_run = False):
         this_function = MRI.whole_brain_seg.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
@@ -226,6 +228,7 @@ class MRI:
         else:
             return ""
 
+
     def wbsegqc(self, parent_job_name = "", dry_run = False):
         this_function = MRI.wbsegqc.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
@@ -239,6 +242,7 @@ class MRI:
                     {self.t1trim} {self.wbseg_nifti} {wblabel_file} {self.wbsegqc_image}")
         return  ""        
 
+
     def wbseg_to_ants(self, parent_job_name = "", dry_run = False):
         this_function = MRI.wbseg_to_ants.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
@@ -251,6 +255,7 @@ class MRI:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/wbseg_to_ants.sh {self.ants_brainseg} {self.wbseg_nifti}")
         return ""
     
+
     def inf_cereb_mask(self, parent_job_name = "", dry_run = False):
         this_function = MRI.inf_cereb_mask.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
@@ -296,7 +301,6 @@ class MRI:
             return ""
 
 
-
     def superres_test(self, parent_job_name = "", dry_run = False):
         this_function = MRI.superres.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
@@ -328,7 +332,6 @@ class MRI:
             return ""
 
 
-
     def t1ashs(self, parent_job_name = "", dry_run = False):
         this_function = MRI.t1ashs.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
@@ -349,6 +352,7 @@ class MRI:
         else:
             return ""
     
+
     def t1mtthk(self, parent_job_name = "", dry_run = False):
         this_function = MRI.t1mtthk.__name__
         for side in sides:
@@ -406,6 +410,7 @@ class MRI:
         else:
             return
 
+
     def prc_cleanup(self, parent_job_name = "", dry_run = False):
         this_function = MRI.prc_cleanup.__name__
         this_job_name = f"{self.date_id_prefix}_{this_function}"
@@ -429,28 +434,12 @@ class MRI:
             if dry_run:
                 print('do skull stripping')
             else:
-                # os.system(f"bsub {submit_options} bash ./wrapper_scripts/flair_skull_strip_hdbet.sh \
-                #     {self.filepath} {self.date_id_prefix} {wmh_prep_dir}/all_to_do_20240411")
                 os.system(f"bsub {submit_options} bash ./wrapper_scripts/flair_skull_strip_hdbet.sh \
                     {self.filepath} {self.date_id_prefix} {wmh_prep_dir}/{current_date}")
             return this_job_name
         else:
             return ""
 
-
-    # def wmh_prep(self, parent_job_name = "", dry_run = False):
-    #     this_function = MRI.wmh_prep.__name__
-    #     this_job_name=f"{self.date_id_prefix}_{this_function}"
-    #     if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair_noskull], output_files=[self.wmh]):
-    #         if not os.path.exists(f"{wmh_prep_dir}/{current_date}"):
-    #             logging.info(f"making directory {current_date} in analysis_input/wmh/ for WMH analysis.")               
-    #             os.system(f"mkdir -p {wmh_prep_dir}/{current_date}/data_for_inference/")
-    #         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)        
-    #         if dry_run:
-    #             print('copy flair file to wmh/date/data_for_inference')
-    #         else:
-    #             os.system(f"bsub {submit_options} cp {self.flair_noskull} {wmh_prep_dir}/{current_date}/data_for_inference/{self.mridate}_{self.id}_flair_skullstrip_0000.nii.gz")
-    #             return
 
     def pmtau(self, parent_job_name = "", dry_run = False):
         this_function = MRI.pmtau.__name__
@@ -516,6 +505,7 @@ class MRI:
                     {pmtau_template_dir} {self.id} {self.mridate}")
         return ""
 
+
     def wmh_stats(self, wait_code = "", dry_run = False):
         this_function = MRI.wmh_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
@@ -531,38 +521,31 @@ class MRI:
         return ""
 
 
+    ## function pet_stats has to be in mri class, since it takes both tau and amy reg at the same time
+    def old_pet_stats(self, wait_code = "",t1tau = "null", t2tau = "null", t1amy = "null", t2amy = "null", \
+                        taudate = "null", amydate = "null", dry_run = False):
+        this_function = MRI.old_pet_stats.__name__
+        this_job_name=f"{this_function}_{self.date_id_prefix}"
+        pet_stats_txt = f"{stats_output_dir}/stats_tau_{taudate}_amy_{amydate}_mri_{self.mridate}_{self.id}_pet_oldversion.txt"
+        ## too many input files, so pass blank list to get stats related to any existing images & prevent overwriting stats output
+        if ready_to_process(this_function, self.id, self.mridate, input_files = [t1amy], \
+                            output_files = [pet_stats_txt], parent_job = wait_code):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
+            if dry_run:
+                print('running old 8mm, SUV, wbseg not prop pet stats')
+            else:
+                os.system(f"bsub {submit_options} ./wrapper_scripts/old_version_pet_stats.sh \
+                    {self.id} {self.mridate} {taudate} {amydate} {self.wbseg_nifti} \
+                    {wblabel_file} {self.icv_volumes_file} \
+                    {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
+                    {t1tau} {t2tau} {t1amy} {t2amy} \
+                    {pet_stats_txt} {self.t1ashs_seg_prefix}")    
+        return ""
 
-    ##has to be in mri class, since it takes both tau and amy reg at the same time
-    # def pet_stats(self, wait_code = "",t1tau="null",t2tau="null",t1amy="null",t2amy="null", \
-    #                     t1tausuvr="null",t1taupvc="null",taudate="null",amydate="null", dry_run = False):
-    #     this_function = MRI.pet_stats.__name__
-    #     this_job_name=f"{this_function}_{self.date_id_prefix}"
-    #     pet_stats_txt = f"{stats_output_dir}/stats_tau_{taudate}_amy_{amydate}_mri_{self.mridate}_{self.id}_pet.txt"
-    #     ## too many input files, so pass blank list to get stats related to any existing images & prevent overwriting stats output
-    #     if ready_to_process(this_function, self.id, self.mridate, input_files = [], \
-    #                         output_files = [pet_stats_txt], parent_job = wait_code):
-    #         submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
-    #         if dry_run:
-    #             print('running pet stats')
-    #         else:
-    #             os.system(f"bsub {submit_options} ./wrapper_scripts/pet_stats.sh \
-    #                 {self.id} {self.mridate} {taudate} {amydate} {self.wbseg_nifti} \
-    #                 {self.wbseg_propagated} {wblabel_file} {self.icv_volumes_file} \
-    #                 {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
-    #                 {t1tau} {t1tausuvr} {t1taupvc} {t2tau} {t1amy} {t2amy} \
-    #                 {pet_stats_txt} {self.t1ashs_seg_prefix}")
-    #             # os.system(f"bash /project/wolk/ADNI2018/scripts/adni_processing_pipeline/wrapper_scripts/pet_stats.sh \
-    #             #     {self.id} {self.mridate} {taudate} {amydate} {self.wbseg_nifti} \
-    #             #     {self.wbseg_propagated} {wblabel_file} {self.icv_volumes_file} \
-    #             #     {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
-    #             #     {t1tau} {t1tausuvr} {t1taupvc} {t2tau} {t1amy} {t2amy} \
-    #             #     {pet_stats_txt}")
-    
-    #     return ""
 
-    def pet_stats_new(self, wait_code = "", t1tausuvr="null", t1amysuvr="null",\
+    def pet_stats(self, wait_code = "", t1tausuvr="null", t1amysuvr="null",\
                         taudate="null", amydate="null", dry_run = False):
-        this_function = MRI.pet_stats_new.__name__
+        this_function = MRI.pet_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
         pet_stats_txt = f"{stats_output_dir}/stats_tau_{taudate}_amy_{amydate}_mri_{self.mridate}_{self.id}_pet.txt"
         ## too many input files, so pass blank list to get stats related to any existing images & prevent overwriting stats output
@@ -570,15 +553,9 @@ class MRI:
                             output_files = [pet_stats_txt], parent_job = wait_code):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
             if dry_run:
-                print(f"{self.id} {self.mridate} {taudate} {amydate} \
-                    {self.wbseg_nifti} {self.wbseg_propagated} {wblabel_file} \
-                    {self.icv_volumes_file} {self.t2ashs_cleanup_left} \
-                    {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
-                    {t1tausuvr} {t1amysuvr} \
-                    {pet_stats_txt} {self.t1ashs_seg_prefix} \
-                    {self.t1_to_t2_transform} {self.t2nifti} {self.t1trim}")
+                print(f"running pet stats")
             else:
-                os.system(f"./wrapper_scripts/pet_stats_new.sh \
+                os.system(f"bsub {submit_options} ./wrapper_scripts/pet_stats.sh \
                     {self.id} {self.mridate} {taudate} {amydate} \
                     {self.wbseg_nifti} {self.wbseg_propagated} {wblabel_file} \
                     {self.icv_volumes_file} {self.t2ashs_cleanup_left} \
@@ -586,7 +563,6 @@ class MRI:
                     {t1tausuvr} {t1amysuvr} \
                     {pet_stats_txt} {self.t1ashs_seg_prefix} \
                     {self.t1_to_t2_transform} {self.t2nifti} {self.t1trim}")
-                    # bsub {submit_options} 
         return ""
 
 
@@ -597,7 +573,7 @@ class AmyloidPET:
         self.scandate = amydate
         self.filepath=f"{adni_data_dir}/{self.id}/{self.scandate}"
         self.date_id_prefix = f"{self.scandate}_{self.id}"
-        # self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet.nii.gz"        
+        self.eightmm_amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet.nii.gz"        
         self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet6mm.nii.gz"        
 
         self.log_output_dir = f"{self.filepath}/logs"
@@ -611,7 +587,7 @@ class TauPET:
         self.scandate = taudate
         self.filepath = f"{adni_data_dir}/{self.id}/{self.scandate}"
         self.date_id_prefix = f"{self.scandate}_{self.id}"
-        # self.tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet.nii.gz"
+        self.eightmm_tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet.nii.gz"
         self.tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet6mm.nii.gz"
 
         self.log_output_dir = f"{self.filepath}/logs"
@@ -634,12 +610,12 @@ class MRIPetReg:
         if self.pet_type == "AmyloidPET":
             self.petdate = PET.scandate
             self.pet_nifti = PET.amy_nifti
-            # self.pettype_filename = "amypet"
+            self.eightmm_pettype_filename = "amypet"
             self.pettype_filename = "amypet6mm"
         elif self.pet_type == "TauPET":
             self.petdate = PET.scandate
             self.pet_nifti = PET.tau_nifti
-            # self.pettype_filename = "taupet"            
+            self.eightmm_pettype_filename = "taupet"            
             self.pettype_filename = "taupet6mm"
 
         self.filepath = f"{adni_data_dir}/{self.id}/{self.petdate}"
@@ -648,10 +624,14 @@ class MRIPetReg:
         self.t1_reg_RAS = f"{self.filepath}/{self.reg_prefix}_T10GenericAffine_RAS.mat"
         self.t1_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T1.nii.gz"
         self.t1_SUVR = f"{self.filepath}/{self.reg_prefix}_T1_SUVR.nii.gz"
-        # self.t1_PVC = f"{self.filepath}/{self.reg_prefix}_T1_SUVR_pvc.nii.gz"
         self.t1_reg_qc = f"{self.filepath}/{self.reg_prefix}_T1_qa.png"
 
-        # self.t2_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T2.nii.gz"
+        self.t2_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T2.nii.gz"
+
+        ## used for old 8mm pet stats
+        self.eightmm_reg_prefix = f"{self.petdate}_{self.id}_{self.eightmm_pettype_filename}_to_{self.mridate}"
+        self.eightmm_t1_reg_nifti = f"{self.filepath}/{self.eightmm_reg_prefix}_T1.nii.gz"
+        self.eightmm_t2_reg_nifti = f"{self.filepath}/{self.eightmm_reg_prefix}_T2.nii.gz"
 
         self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
@@ -703,7 +683,7 @@ class MRIPetReg:
                             parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
-                print(f"make suvr")
+                print(f"make suvr {submit_options}")
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/suvr.sh {self.mriwbseg} {self.mri_infcereb} \
                           {self.t1_reg_nifti} {self.t1_SUVR}")
@@ -758,15 +738,14 @@ if __name__ == "__main__":
 
     # mri_to_process.prc_cleanup(dry_run=True)
 
-    # mri_to_process.pet_stats(t1tau=mri_tau_reg_to_process.t1_reg_nifti,t2tau=mri_tau_reg_to_process.t2_reg_nifti,\
-    #     t1amy=mri_amy_reg_to_process.t1_reg_nifti,t2amy=mri_amy_reg_to_process.t2_reg_nifti, \
-    #     t1tausuvr=mri_tau_reg_to_process.t1_SUVR,t1taupvc=mri_tau_reg_to_process.t1_PVC,\
-    #     taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate, dry_run = True)   
+    # mri_to_process.old_pet_stats(t1tau=mri_tau_reg_to_process.eightmm_t1_reg_nifti,t2tau=mri_tau_reg_to_process.eightmm_t2_reg_nifti,\
+    #     t1amy=mri_amy_reg_to_process.eightmm_t1_reg_nifti,t2amy=mri_amy_reg_to_process.eightmm_t2_reg_nifti, \
+    #     taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate)   #, dry_run = True
    
-    mri_to_process.pet_stats_new(t1tausuvr=mri_tau_reg_to_process.t1_SUVR,
-                                t1amysuvr=mri_amy_reg_to_process.t1_SUVR,
-                                taudate=mri_tau_reg_to_process.petdate,
-                                amydate=mri_amy_reg_to_process.petdate)
+    # mri_to_process.pet_stats_new(t1tausuvr=mri_tau_reg_to_process.t1_SUVR,
+    #                             t1amysuvr=mri_amy_reg_to_process.t1_SUVR,
+    #                             taudate=mri_tau_reg_to_process.petdate,
+    #                             amydate=mri_amy_reg_to_process.petdate)
    
    
     # mri_to_process.structure_stats()
