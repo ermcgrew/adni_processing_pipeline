@@ -32,4 +32,5 @@ if [[ ! -d ${current_wmh_prep_dir} ]] ; then
     mkdir -p ${current_wmh_prep_dir}/data_for_inference/
 fi
 
+echo copying flair skull strip for ${date_id_prefix} to ${current_wmh_prep_dir}/data_for_inference
 cp ${session_filepath}/${date_id_prefix}_flair_skullstrip.nii.gz ${current_wmh_prep_dir}/data_for_inference/${date_id_prefix}_flair_wmh_0000.nii.gz
