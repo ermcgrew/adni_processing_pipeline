@@ -21,7 +21,6 @@ fi
 #standard options
 options="-a $atlas -g $t1trim -f $(readlink -f $t2link) \
           -w $output_directory -T -d -I ${id}"
-        #   -N -t 1"
 
 if [[ $t2link =~ "T2w" ]] ; then 
     ##symlink this run data to SDROOT where all T2 runs are stored
@@ -44,8 +43,8 @@ fi
 $ASHS_ROOT/bin/ashs_main.sh $options
           
 #Remove intermediate files
-rm -rf $output_directory/multiatlas $output_directory/bootstrap $output_directory/*raw.nii.gz
-##keep bootstrap and multiatlas for ADNI T2
+rm -rf $output_directory/*raw.nii.gz
+##keep bootstrap and multiatlas for ADNI T2$output_directory/multiatlas $output_directory/bootstrap
 
 
 # Options:
