@@ -129,7 +129,7 @@ class MRI:
 
         self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
-            os.system(f"mkdir -p {self.log_output_dir}")
+            os.makedirs(self.log_output_dir)
 
         self.t1ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst1.txt"
         self.t2ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst2.txt"
@@ -527,7 +527,7 @@ class MRI:
         this_function = MRI.old_pet_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
         pet_stats_txt = f"{stats_output_dir}/stats_tau_{taudate}_amy_{amydate}_mri_{self.mridate}_{self.id}_pet_oldversion.txt"
-        ## too many input files, so pass blank list to get stats related to any existing images & prevent overwriting stats output
+        ## developed this for Xueying's need of amyloid SUVRs
         if ready_to_process(this_function, self.id, self.mridate, input_files = [t1amy], \
                             output_files = [pet_stats_txt], parent_job = wait_code):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
