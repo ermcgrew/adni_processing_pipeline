@@ -111,7 +111,6 @@ def determine_parent_step(step_to_do):
     elif step_to_do == "flair_skull_strip": 
         return []
     else:
-        # print("step is stats, use *date_id as wait code ")
         return []
 
 

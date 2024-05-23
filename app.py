@@ -169,7 +169,6 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
         pet_steps=True
     else:
         pet_steps=False
-    # print("There are pet steps to do in the command")
 
     if csv:
         csv_to_read = csv
@@ -181,7 +180,7 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
     
     logging.info(f"DRY_RUN={dry_run}: Running MRI image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
 
-    #### For each session in dataframe
+    #### For each session
     for index,row in df.iterrows():
         jobs_running = []
         subject = str(row['ID'])
@@ -278,6 +277,34 @@ def final_data_sheets(mode,wait):
                 ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {stats_type}')
     
 
+def longitudinal_processing(csv = "" ,dry_run = False):
+    csv_to_read = csv
+    df = pd.read_csv(csv_to_read)
+    subjects = df['ID'].unique()
+    logging.info(f"Running ants_longitudinal_t1_processing for {len(subjects)} subjects")
+    for subject in subjects:
+        output_dir = f'{analysis_output_dir}/long_ants_tests/{subject}'
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        id_allrows=df.loc[df['ID']== subject]
+        alldates=id_allrows['SMARTDATE.mri'].values.tolist()
+        mri_list=[]
+        for i in range(0,len(alldates)):
+            mri_list.append(MRI(subject,alldates[i]))
+        t1images=" ".join([x.t1nifti for x in mri_list])
+
+        logging.info(f"{subject}: passing {len(mri_list)} images to wrapper script.")
+        
+        result = subprocess.run(["bsub", "-o", f"{output_dir}/log_longants_%J.txt", \
+            "/project/wolk/ADNI2018/scripts/adni_processing_pipeline/wrapper_scripts/long_ants.sh",\
+            t1images, output_dir, str(dry_run)], capture_output=True, text=True)
+        if result.returncode != 0:
+            logging.warning(f"{subject}: long_ants.sh error {result.returncode}:{result.stderr}")
+            continue
+        logging.info(result.stdout) 
+
+
 #Arguments
 global_parser = argparse.ArgumentParser()
 subparsers = global_parser.add_subparsers(title="Subcommands", help="Sections of ADNI processing pipeline.")
@@ -327,6 +354,14 @@ final_data_sheet_parser = subparsers.add_parser("final_data_sheets", help = "Col
 final_data_sheet_parser.add_argument("-m", "--mode", nargs = "+", choices = ["pet", "petold", "structure", "ashst1", "ashst2","wmh"], help="Select which type(s) of stats to compile into a final sheet")
 final_data_sheet_parser.add_argument("-w", "--wait", action="store_true", help = "Run with queuewatch to wait for all image processing to complete")
 final_data_sheet_parser.set_defaults(func=final_data_sheets)
+
+
+###longitudinal processing
+long_process_parser = subparsers.add_parser("longitudinal_processing", help = "Longitudinal processing")
+long_process_parser.add_argument("-c", "--csv", help="Required csv of sessions to run. \
+    Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD.")
+long_process_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, help = "Run program but don't submit any jobs.")
+long_process_parser.set_defaults(func=longitudinal_processing)
 
 
 ###Parse args

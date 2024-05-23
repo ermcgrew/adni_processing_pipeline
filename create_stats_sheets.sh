@@ -123,31 +123,29 @@ function write_header()
     done
 
   elif [[ $mode == "ashst1" ]] ; then 
-    HEADER="$HEADER,ICV_ASHSICV"
+    HEADER="$HEADER,ICV"
 
     # ASHS T1 baseline volume and thickness
-    for type in VOL; do
     for side in L R M; do
-    for sub in AHippo PHippo ERC BA35 BA36 PHC; do
-      HEADER="$HEADER,${side}_${sub}_${type}_ASHST1_3T"
-    done
-    done
+      for sub in AHippo PHippo ERC BA35 BA36 PHC; do
+        HEADER="$HEADER,${side}_${sub}_VOL_ASHST1_3T"
+      done
     done
 
     # thickness
     for side in L R M; do
-    for type in MeanTHK MedianTHK; do
-    for sub in Hippo ERC BA35 BA36 PHC; do
-      HEADER="$HEADER,${side}_${sub}_${type}_MSTTHKMT_ASHST1_3T"
-    done
-    done
+      for type in MeanTHK MedianTHK; do
+        for sub in Hippo ERC BA35 BA36 PHC; do
+          HEADER="$HEADER,${side}_${sub}_${type}_MSTTHKMT_ASHST1_3T"
+        done
+      done
     done
 
     # thickness quality of fit
     for side in L R; do
-    for sub in Hippo ERC BA35 BA36 PHC ALL; do
-      HEADER="$HEADER,${side}_${sub}_${type}_MSTFitQuality_ASHST1_3T"
-    done
+      for sub in Hippo ERC BA35 BA36 PHC ALL; do
+        HEADER="$HEADER,${side}_${sub}_MSTFitQuality_ASHST1_3T"
+      done
     done
 
   elif [[ $mode == "ashst2" ]] ; then 
