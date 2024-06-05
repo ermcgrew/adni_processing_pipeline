@@ -283,6 +283,7 @@ def longitudinal_processing(csv = "" ,dry_run = False):
     subjects = df['ID'].unique()
     logging.info(f"Running ants_longitudinal_t1_processing for {len(subjects)} subjects")
     for subject in subjects:
+    #   if subject == "099_S_6632" or subject == "128_S_4742":
         output_dir = f'{analysis_output_dir}/long_ants_tests/{subject}'
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -292,17 +293,21 @@ def longitudinal_processing(csv = "" ,dry_run = False):
         mri_list=[]
         for i in range(0,len(alldates)):
             mri_list.append(MRI(subject,alldates[i]))
-        t1images=" ".join([x.t1nifti for x in mri_list])
+        t1images=" ".join([x.t1trim for x in mri_list])
 
         logging.info(f"{subject}: passing {len(mri_list)} images to wrapper script.")
-        
-        result = subprocess.run(["bsub", "-o", f"{output_dir}/log_longants_%J.txt", \
-            "/project/wolk/ADNI2018/scripts/adni_processing_pipeline/wrapper_scripts/long_ants.sh",\
-            t1images, output_dir, str(dry_run)], capture_output=True, text=True)
-        if result.returncode != 0:
-            logging.warning(f"{subject}: long_ants.sh error {result.returncode}:{result.stderr}")
-            continue
-        logging.info(result.stdout) 
+
+        if dry_run == True: 
+            print(f"{output_dir} {t1images}")
+        else:
+            result = subprocess.run(["bsub", "-o", f"{output_dir}/antsct-aging_longitudinal_%J.txt", "-q", "bsc_long", \
+                "-n", "4", "-R", "rusage[mem=16000]", \
+                "/project/wolk/ADNI2018/scripts/adni_processing_pipeline/wrapper_scripts/long_ants.sh",\
+                output_dir, t1images], capture_output=True, text=True)
+            if result.returncode != 0:
+                logging.warning(f"{subject}:long_ants.sh error:{result.returncode}:{result.stderr}")
+                continue
+            logging.info(result.stdout) 
 
 
 #Arguments

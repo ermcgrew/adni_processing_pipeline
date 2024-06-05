@@ -1,13 +1,44 @@
 #!/usr/bin/bash 
-module load singularity
+### copied from Phil's script /project/picsl/cookpa/antsctAgingLongTest/run_subject.sh
 
-t1_images=$1
-output_dir=$2
-dry_run=$3
+container=/project/picsl/cookpa/antsct-aging/antsct-aging-0.5.1.sif
 
-if [[ $dry_run == "True" ]] ; then 
-    echo Run these images: $t1_images
-    echo Store output in dir: $output_dir
-else
-    singularity run --containall /project/picsl/cookpa/antsct-aging/antsct-aging-0.5.0.sif --anatomical-images $t1_images --longitudinal --output-dir $output_dir
+if [[ $# -eq 0 ]]; then
+  echo "$0 <output_dir> <t1w> ... <t1w>"
+  exit 1
 fi
+
+module load singularity/3.8.3
+
+outputDir=$(readlink -f $1)
+shift
+
+mkdir -p ${outputDir}
+
+# When passed from app.py, file names are in one string argument, space-separated, 
+# which are file names we want to pass to the container
+t1w_images=($1) 
+
+# Convert these to absolute paths
+for i in ${!t1w_images[@]}; do
+  t1w_images[$i]=$(readlink -e ${t1w_images[$i]})
+done
+
+# CSV list of input for mounting to container
+t1w_csv=$(IFS=,; echo "${t1w_images[*]}")
+
+tmpDir=$(mktemp -d -p /scratch antsct-aging-long.${LSB_JOBID}.XXXXXX.tmpdir)
+
+export SINGULARITYENV_TMPDIR=/tmp
+
+singularity run --cleanenv -B ${tmpDir}:/tmp \
+    -B $t1w_csv -B ${outputDir}:/data/output \
+    ${container} \
+    --longitudinal \
+    --anatomical-images $(echo "${t1w_images[@]}") \
+    --output-dir /data/output \
+    --num-threads ${LSB_DJOB_NUMPROC} \
+    --trim-neck-mode crop \
+    --run-quick 2
+
+rm -rf ${tmpDir}
