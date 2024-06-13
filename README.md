@@ -2,12 +2,12 @@
 
 ## Key files
 - `config.py`: filepaths for data storage locations and some scripts. 
-- `processing.py`: Use class attributes for storing image filepaths. Use class methods for individual steps of processing. 
+- `processing.py`: class attributes for storing strings of image filepaths, class methods for individual steps of processing. 
 - `app.py`: run script for all steps. See the 'Arguments/Parameters' section for options for each function in app.py.
 
 ## Instructions for use
 ### Get dicoms
-1. Run `download_adni_dicoms.py` from local machine to get dicoms from ida.loni.usc.edu and scp to cluster.
+1. Run `/download_dicoms/download_adni_dicoms.py` from your personal computer (cannot download directly to the bscsub cluster) to download dicoms from ida.loni.usc.edu. Use scp or rsync to move files from personal computer to cluster.
 2. Unzip dicoms & rsync using command: `python app.py unpack_dicoms <options>`
 
 ### Get data sheets
