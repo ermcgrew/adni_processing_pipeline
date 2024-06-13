@@ -310,6 +310,7 @@ def longitudinal_processing(csv = "" ,dry_run = False):
             logging.info(result.stdout) 
 
 
+''' Arguments/Parameters for each function '''
 #Arguments
 global_parser = argparse.ArgumentParser()
 subparsers = global_parser.add_subparsers(title="Subcommands", help="Sections of ADNI processing pipeline.")

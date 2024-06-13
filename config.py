@@ -129,7 +129,7 @@ for key in keys:
     basename = [x for x in adni_data_csvs_directories_thisrun if key in x][0]
     datasetup_directories_path[key] = os.path.join(adni_data_setup_directory, basename)
     filenames[key] = {name:name+"_"+key+".csv" for name in scantypes}
-# print(filenames)
+
 #All csv's downloaded from ida.loni.usc.edu
 original_ida_datasheets = os.listdir(datasetup_directories_path["ida_study_datasheets"])
 cleaned_ida_datasheets = [csvfile.replace('.csv', '_clean.csv') for csvfile in original_ida_datasheets]

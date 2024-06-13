@@ -9,7 +9,7 @@ import subprocess
 
 ## processing class functions only return job name if it's outputs are the inputs for another function
 
-# Shared functions
+''' Shared functions '''
 def ready_to_process(processing_step, id, date, input_files = [], output_files = [], parent_job = ""):
     #output files all "OR" comparisons, as long as 1 is true, output is present
     if [file for file in output_files if os.path.exists(file)]:
@@ -60,7 +60,7 @@ def wait_for_file(file):
         return "Error"
 
 
-#Class definitions
+''' Class definitions '''
 class MRI:
     #strings for MRI filepaths and functions for MRI processing
     def __init__(self, subject, mridate):
@@ -521,7 +521,6 @@ class MRI:
         return ""
 
 
-    ## function pet_stats has to be in mri class, since it takes both tau and amy reg at the same time
     def old_pet_stats(self, wait_code = "",t1tau = "null", t2tau = "null", t1amy = "null", t2amy = "null", \
                         taudate = "null", amydate = "null", dry_run = False):
         this_function = MRI.old_pet_stats.__name__
@@ -542,7 +541,7 @@ class MRI:
                     {pet_stats_txt} {self.t1ashs_seg_prefix}")    
         return ""
 
-
+    ## function pet_stats has to be in mri class, since it takes two instances of class MRIPETReg
     def pet_stats(self, wait_code = "", t1tausuvr="null", t1amysuvr="null",\
                         taudate="null", amydate="null", dry_run = False):
         this_function = MRI.pet_stats.__name__
