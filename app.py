@@ -5,37 +5,32 @@ import logging
 import os
 import pandas as pd
 import subprocess
-# Classes
+## Classes
 from processing import MRI, AmyloidPET, TauPET, MRIPetReg
-#variables
+## variables
 from config import *
-# from convert_symlink import convert_symlink_function
 
+## for raising argument errors
+class ArgumentError(Exception):
+    pass
 
+## Symlinks zip files to /PUBLIC, unpack dicoms to /PUBLIC/ADNI, rsync /PUBLIC/ADNI with /PUBLIC/dicoms
 def unpack_dicoms(date):
     #### zip files of new dicoms must already be added to cluster
-    ### Symlinks zip files to /PUBLIC, unpack dicoms to /PUBLIC/ADNI, 
-    ### rsync /PUBLIC/ADNI with /PUBLIC/dicoms
     logging.info(f"Running organize_files.sh on zip file adni_dl_{date}")
     os.system(f"bsub -J '{current_date}_unzip_rsync' -o {log_output_dir}/{current_date_time}_unzip_rsync.txt \
         bash organize_files.sh {date}") 
 
 
+## get UID & processing status lists for new batches of scans to process
 def data_setup():
     #### adni spreadsheets must already be added to cluster
-    ### get UID & processing status lists for new batches of scans to process
     os.system(f"bsub -J '{current_date}_datasteup' -o {log_output_dir}/{current_date_time}_datasetup.txt \
         python datasetup.py") 
 
 
-def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
-    # print("run dicom to nifti conversion")
-
-    ##TODO: modify this function so it runs via bsub
-    # os.system(f'python -c "from convert_symlink import convert_symlink_function;\
-    #     convert_symlink_function(types={types})"')
-        #works when \'mri\' is passed, but not the variable
-
+## Convert dicom to nifti and symlink nifti to /dataset
+def convert_symlink(type="", all_types=False, inputcsv="", outputcsv=""):
     for scantype in scantypes:
         if types == scantype or all_types == True and scantype != "anchored":
             if inputcsv:
@@ -45,7 +40,6 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
         
             logging.info(f"Running dicom to nifti conversion and nifti symlink for scantype {scantype} sessions in csv {csv_to_read}")
 
-            ########
             df=pd.read_csv(csv_to_read,index_col=False)
 
             if scantype == 'mri':
@@ -119,17 +113,17 @@ def convert_symlink(types="", all_types=False, inputcsv="", outputcsv=""):
                     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
 
                 ##MRI only step:
-                # if scantype == "mri":
-                #     logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
-                #     #site's vendor & model info
-                #     site = scan_to_process.id.split("_")[0]
-                #     siteinfo_result = subprocess.run(
-                #         ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
-                #         capture_output=True, text=True)
-                #     siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
-                #     siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
-                #     for i in range(0,len(siteinfo_result_list)):
-                #         df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
+                if scantype == "mri":
+                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
+                    #site's vendor & model info
+                    site = scan_to_process.id.split("_")[0]
+                    siteinfo_result = subprocess.run(
+                        ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
+                        capture_output=True, text=True)
+                    siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
+                    siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
+                    for i in range(0,len(siteinfo_result_list)):
+                        df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
 
             ### after all rows in iterrows, log conversion stats
             logging.info(f"{scantype}:Conversion status records (1=successful conversion, 0=failed conversion, -1=no dicom UID/dicom not found in cluster):")
@@ -263,11 +257,12 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                 os.system(f"bsub -o {sing_output} bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date} ")
         
 
+## Make csvs of stats
 def final_data_sheets(mode,wait):
     for stats_type in mode:
         logging.info(f"With wait == {wait}: Compiling individual session stats data from analysis_output/stats/ for stats type {stats_type}.")
         if wait: 
-            # job to watch queue for status of all image processing & individual stats collection
+            # job to watch queue, only releases final_data_sheets job when all other jobs complete
             os.system(f'bsub -J "{current_date}_queuewatch" -o {log_output_dir}/{current_date_time}_queuewatch_%J.txt ./queue_watch.sh')
             os.system(f'bsub -J "{current_date}_datasheets" -w "done({current_date}_queuewatch)" \
                 -o {log_output_dir}/{current_date_time}_createstatssheets_{stats_type}_%J.txt \
@@ -277,6 +272,7 @@ def final_data_sheets(mode,wait):
                 ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {stats_type}')
     
 
+## Run longitudinal antsct-aging
 def longitudinal_processing(csv = "" ,dry_run = False):
     csv_to_read = csv
     df = pd.read_csv(csv_to_read)
@@ -313,7 +309,7 @@ def longitudinal_processing(csv = "" ,dry_run = False):
 ''' Arguments/Parameters for each function '''
 #Arguments
 global_parser = argparse.ArgumentParser()
-subparsers = global_parser.add_subparsers(title="Subcommands", help="Sections of ADNI processing pipeline.")
+subparsers = global_parser.add_subparsers(title="Subcommands", help="Sections of ADNI processing pipeline.", dest='subparser_name')
 
 
 ###unpack_dicoms
@@ -330,16 +326,16 @@ datasetup_parser.set_defaults(func=data_setup)
 ###convert_symlink
 convert_parser = subparsers.add_parser("convert_symlink", help="Convert dicoms to nifti, symlink, create csv with filelocations.")
 convert_type_group = convert_parser.add_mutually_exclusive_group(required=True)
-convert_type_group.add_argument("-t","--types", choices=["amy","tau","mri"], help="Run conversion to nifti for tau, amy, OR mri dicoms.")
+convert_type_group.add_argument("-t","--type", choices=["amy","tau","mri"], help="Run conversion to nifti for tau, amy, OR mri dicoms.")
 convert_type_group.add_argument("-a", "--all_types", action = "store_true", help="Run conversion to nifti for tau, amy, AND mri dicoms.")
-##can only use input and output csv args if doing single type
-convert_parser.add_argument("-i", "--inputcsv", required=False, help="csv with column 'ID' in format 999_S_9999, \
-    column 'SMARTDATE' in format YYYY-MM-DD, column 'NEW_' in format 1 if true, 0 if false, and column 'IMAGEUID_T1' \
-        in format '999999' \
-        of sessions to process if not using default.")
-        ##TODO: complete help for pet vs mri csv parameters
-convert_parser.add_argument("-o","--outputcsv", required=False, help="Full filepath and filename to save csv of filelocation information.")
-##TODO: if input, then output and vice versa (if using one, the other is also required)
+convert_parser.add_argument("-i", "--inputcsv", required=False, help="If not using default csv for single type conversion, \
+    filepath of a csv with format:\
+    column 'ID' in format 999_S_9999, \
+    column 'SMARTDATE' in format YYYY-MM-DD, \
+    column 'NEW_T1|T2|FLAIR|PET' in format 1 if true, 0 if false, and \
+    column 'IMAGEUID_T1|T2|FLAIR' (mri) or 'IMAGEID' (pet) in format '999999'")
+convert_parser.add_argument("-o","--outputcsv", required=False, help="If not using default csv for single type conversion,\
+     filepath for output csv with conversion status.")
 convert_parser.set_defaults(func=convert_symlink)
 
 
@@ -370,9 +366,19 @@ long_process_parser.add_argument("-d", "--dry_run", action = "store_true", requi
 long_process_parser.set_defaults(func=longitudinal_processing)
 
 
-###Parse args
+### Parse args
 args = global_parser.parse_args()
-##removes any non-kwargs values to pass to args.func()
+
+## Raise exceptions for convert_symlink arguments that don't go together
+if args.subparser_name == "convert_symlink":
+    if args.all_types and args.inputcsv:
+        raise ArgumentError("Cannot pass -i or -o for option --all_types, must use default csvs.")
+
+    if args.inputcsv and not args.outputcsv:
+        raise ArgumentError("--outputcsv option must be used with the --inputcsv option.")
+    
+## remove any non-kwargs values to pass to args.func()
 args_ = vars(args).copy()
 args_.pop('func', None) 
+args_.pop('subparser_name', None) 
 args.func(**args_)
