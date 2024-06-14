@@ -3,9 +3,9 @@
 ##Make T1 SUVR image
 
 wbseg=$1
-infcereb=$2
-t1reg=$3
-t1suvr=$4
+t1reg=$2
+t1suvr=$3
+infcereb=$4
 
 if [[ $t1reg == *"tau"* ]] ; then 
     # echo "This is a tau file"

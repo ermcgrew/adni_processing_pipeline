@@ -7,7 +7,6 @@ import pandas as pd
 from config import *
 import subprocess
 
-## processing class functions only return job name if it's outputs are the inputs for another function
 
 ''' Shared functions '''
 def ready_to_process(processing_step, id, date, input_files = [], output_files = [], parent_job = ""):
@@ -71,10 +70,7 @@ class MRI:
         self.date_id_prefix = f"{self.mridate}_{self.id}"
         
         self.t1nifti = f"{self.filepath}/{self.date_id_prefix}_T1w.nii.gz"
-        
         self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trim.nii.gz"
-        ####for testing--trim created from ANTS neckmask
-        # self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trimtestants.nii.gz"
 
         self.thick_dir = f"{self.filepath}/thickness"
         self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
@@ -185,7 +181,8 @@ class MRI:
             return ""
 
 
-    def ants(self, parent_job_name = "", dry_run = False):
+    ## New version of getting thickness
+    def antsct_aging(self, parent_job_name = "", dry_run = False):
         this_function = MRI.ants.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         brainx_job_name = f"{self.date_id_prefix}_copybrainx"
@@ -240,7 +237,9 @@ class MRI:
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/segmented_image_qc.sh \
                     {self.t1trim} {self.wbseg_nifti} {wblabel_file} {self.wbsegqc_image}")
-        return  ""        
+            return this_job_name          
+        else:
+            return ""       
 
 
     def wbseg_to_ants(self, parent_job_name = "", dry_run = False):
@@ -250,10 +249,12 @@ class MRI:
                             output_files = [self.wbseg_propagated], parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)       
             if dry_run:
-                print(f"bsub {submit_options} ./wrapper_scripts/wbseg_to_ants.sh {self.ants_brainseg} {self.wbseg_nifti}")
+                print(f"propagate wbseg to ants space")
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/wbseg_to_ants.sh {self.ants_brainseg} {self.wbseg_nifti}")
-        return ""
+            return this_job_name          
+        else:
+            return ""
     
 
     def inf_cereb_mask(self, parent_job_name = "", dry_run = False):
@@ -266,16 +267,16 @@ class MRI:
                 print(f" ./wrapper_scripts/make_inferior_cereb_mask.sh")
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/make_inferior_cereb_mask.sh {self.wbseg_nifti} {self.inferior_cereb_mask}")
-
             return this_job_name
-        return ""
+        else:
+            return ""
 
 
     def t1icv(self, parent_job_name = "", dry_run = False):
         this_function = MRI.t1icv.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], \
-                            output_files=[self.t1icv_seg]):
+                            output_files=[self.t1icv_seg], parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print("submit T1icv")
@@ -283,13 +284,16 @@ class MRI:
                 os.system(f"bsub {submit_options} \
                   ./wrapper_scripts/run_ashs.sh {ashs_root} {icv_atlas} {self.t1trim} {self.t1trim}\
                       {self.filepath}/ASHSICV {self.id} {ashs_mopt_mat_file}")
-        return ""
+            return this_job_name          
+        else:
+            return ""
 
 
     def superres(self, parent_job_name = "", dry_run = False):
         this_function = MRI.superres.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
-        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], output_files=[self.superres_nifti]):
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], \
+                            output_files=[self.superres_nifti], parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print("run superres")
@@ -304,7 +308,8 @@ class MRI:
     def superres_test(self, parent_job_name = "", dry_run = False):
         this_function = MRI.superres.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
-        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], output_files=[self.superres_nifti]):
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], \
+                            output_files=[self.superres_nifti], parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print("run superres")
@@ -374,14 +379,14 @@ class MRI:
                                 ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
                                 {side} {ashs_seg} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
         
-        return ""
+        return "t1mtthk"
               
 
     def t2ashs(self, parent_job_name = "", dry_run = False):
         this_function = MRI.t2ashs.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
-                            output_files=[self.t2ashs_seg_left, self.t2ashs_seg_right]):
+                            output_files=[self.t2ashs_seg_left, self.t2ashs_seg_right], parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print(f"bsub submit t2ashs")
@@ -398,7 +403,7 @@ class MRI:
         this_function = MRI.t2ashs_qconly.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
-                            output_files=[self.t2ashs_qc_left, self.t2ashs_qc_right]):
+                            output_files=[self.t2ashs_qc_left, self.t2ashs_qc_right], parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print(f"bsub submit t2ashs qc only")
@@ -408,7 +413,7 @@ class MRI:
                             {self.filepath}/sfsegnibtend {self.id}")
             return this_job_name
         else:
-            return
+            return ""
 
 
     def prc_cleanup(self, parent_job_name = "", dry_run = False):
@@ -423,13 +428,16 @@ class MRI:
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/cleanup_prc.sh {self.t2ashs_seg_left} \
                     {self.t2ashs_cleanup_left} {self.t2ashs_seg_right} {self.t2ashs_cleanup_right} {self.t2ashs_tse} {self.t2ashs_cleanup_both}")
-        return ""
+            return this_job_name          
+        else:
+            return ""
 
     
     def flair_skull_strip(self, parent_job_name = "", dry_run = False):
         this_function = MRI.flair_skull_strip.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
-        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair], output_files=[self.flair_noskull]):
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair], \
+                            output_files=[self.flair_noskull], parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)        
             if dry_run:
                 print('do skull stripping')
@@ -451,6 +459,8 @@ class MRI:
                 print('run pmtau')
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/pmtau.sh {self.id} {self.mridate} {self.filepath}/thickness")
+            return this_job_name          
+        else:
             return ""
 
 
@@ -470,6 +480,8 @@ class MRI:
                     {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
                     {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} \
                     {self.icv_volumes_file}") 
+            return this_job_name          
+        else:
             return ""
 
 
@@ -487,6 +499,8 @@ class MRI:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/ashst2_stats.sh \
                         {self.id} {self.mridate} {stats_output_dir} {self.t2nifti} \
                         {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right}") 
+            return this_job_name          
+        else:
             return ""
 
    
@@ -503,7 +517,9 @@ class MRI:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/structure_stats.sh \
                     {self.wbseg_propagated} {self.thickness} {wblabel_file} {self.structure_stats_txt} \
                     {pmtau_template_dir} {self.id} {self.mridate}")
-        return ""
+            return this_job_name          
+        else:
+            return ""
 
 
     def wmh_stats(self, wait_code = "", dry_run = False):
@@ -518,7 +534,9 @@ class MRI:
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/wmh_stats.sh \
                   {self.id} {self.mridate} {self.flair} {self.wmh} {self.wmh_stats_txt}")
-        return ""
+            return this_job_name          
+        else:
+            return ""
 
 
     def old_pet_stats(self, wait_code = "",t1tau = "null", t2tau = "null", t1amy = "null", t2amy = "null", \
@@ -539,7 +557,10 @@ class MRI:
                     {self.t2ashs_cleanup_left} {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
                     {t1tau} {t2tau} {t1amy} {t2amy} \
                     {pet_stats_txt} {self.t1ashs_seg_prefix}")    
-        return ""
+            return this_job_name          
+        else:
+            return ""
+
 
     ## function pet_stats has to be in mri class, since it takes two instances of class MRIPETReg
     def pet_stats(self, wait_code = "", t1tausuvr="null", t1amysuvr="null",\
@@ -562,7 +583,9 @@ class MRI:
                     {t1tausuvr} {t1amysuvr} \
                     {pet_stats_txt} {self.t1ashs_seg_prefix} \
                     {self.t1_to_t2_transform} {self.t2nifti} {self.t1trim}")
-        return ""
+            return this_job_name          
+        else:
+            return ""
 
 
 class AmyloidPET:
@@ -646,8 +669,7 @@ class MRIPetReg:
                             ### why is the RAS file the output to check for? why not use the t1regnifti?
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
-                print(f"bsub {submit_options} {t1petreg_script} \
-                    {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
+                print(f"do t1 to pet registration")
             else:
                 os.system(f"bsub {submit_options} {t1petreg_script} \
                         {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
@@ -665,11 +687,12 @@ class MRIPetReg:
                             parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
-                print(f"bsub {submit_options} ./wrapper_scripts/registered_image_qc.sh\
-                    {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
+                print(f"qc pet registration")
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/registered_image_qc.sh \
                     {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
+            return this_job_name          
+        else:
             return ""
 
 
@@ -682,10 +705,12 @@ class MRIPetReg:
                             parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
-                print(f"make suvr {submit_options}")
+                print(f"make t1-pet suvr")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/suvr.sh {self.mriwbseg} {self.mri_infcereb} \
-                          {self.t1_reg_nifti} {self.t1_SUVR}")
+                os.system(f"bsub {submit_options} ./wrapper_scripts/suvr.sh {self.mriwbseg} \
+                    {self.t1_reg_nifti} {self.t1_SUVR} {self.mri_infcereb}")
+            return this_job_name          
+        else:
             return ""
 
  
