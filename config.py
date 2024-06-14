@@ -34,8 +34,8 @@ def reformat_date_slash_to_dash(df):
     return df
 
 ### File/directory locations on the cluster
-adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+# adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
+adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
 cleanup_dir = f"{analysis_input_dir}/cleanup"
@@ -68,24 +68,54 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 # ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
 
 
-###Steps for argparse choices
-##Order matters: steps are ordered so dependent processing steps come after their parent processing step
-##Names matter: values match MRI.method & MRIPetReg.method names
-##for naming: if whole_brain_seg was called "wbseg", it matches to "wbseg_to_ants" and "wbsegqc" as well
-# "ants",
-# , "wmh_seg",
+#####  Processing steps for class methods and argparse  #####
+## Order matters: steps are ordered so dependent processing steps come after their parent processing step
+## Names matter: values match MRI.method & MRIPetReg.method names
+## Note on naming: if whole_brain_seg was called "wbseg", it matches to "wbseg_to_ants" and "wbsegqc" as well
+
+# replace "cortical_thick" with "antsct_aging" when new ants code is ready
 processing_steps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
             "wbsegqc", "inf_cereb_mask", "pmtau", 
-            "t1icv", "superres","t1ashs", "t1mtthk", "t2ashs", "t2ashs_qconly","prc_cleanup", 
-            "flair_skull_strip",
+            "t1icv", "superres", "t1ashs", "t1mtthk", "t2ashs", "t2ashs_qconly","prc_cleanup", 
+            "flair_skull_strip", "wmh_seg",
             "t1_pet_reg", "t1_pet_suvr", "pet_reg_qc",
             "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats", "old_pet_stats"]
 
+## based on files required for each stats category
+ashst1steps=["neck_trim", "t1icv", "superres", "t1ashs", "t1mtthk", "ashst1_stats"]
+ashst2steps=["neck_trim", "t2ashs", "prc_cleanup", "ashst2_stats"]
+structuresteps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
+                "pmtau", "structure_stats"]
+wmhsteps=["flair_skull_strip", "wmh_seg", "wmh_stats"]
+petsteps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
+            "inf_cereb_mask", "t1icv", "superres", "t1ashs", "t2ashs", "prc_cleanup", 
+            "t1_pet_reg", "t1_pet_suvr", "pet_stats"]  
+
+test_steps_dict={"neck_trim":"neck_trim", "cortical_thick":"cortical_thick", "brain_ex":"brain_ex", 
+                "whole_brain_seg":"whole_brain_seg", "wbseg_to_ants":"wbseg_to_ants", 
+                "wbsegqc":"wbsegqc", "inf_cereb_mask":"inf_cereb_mask", "pmtau":"pmtau", 
+                "t1icv":"t1icv", "superres":"superres", "t1ashs":"t1ashs", "t1mtthk":"t1mtthk", 
+                "t2ashs":"t2ashs", "t2ashs_qconly":"t2ashs_qconly", "prc_cleanup":"prc_cleanup", 
+                "flair_skull_strip":"flair_skull_strip", "wmh_seg":"wmh_seg",
+                "t1_pet_reg":"t1_pet_reg", "t1_pet_suvr":"t1_pet_suvr", "pet_reg_qc":"pet_reg_qc",
+                "ashst1_stats":"ashst1_stats", "ashst2_stats":"ashst2_stats", "wmh_stats":"wmh_stats",
+                "structure_stats":"structure_stats", "pet_stats":"pet_stats", "old_pet_stats":"old_pet_stats",
+                "ashst1steps":["neck_trim", "t1icv", "superres", "t1ashs", "t1mtthk", "ashst1_stats"],
+                "ashst2steps":["neck_trim", "t2ashs", "prc_cleanup", "ashst2_stats"],
+                "structuresteps":["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
+                                "pmtau", "structure_stats"],
+                "wmhsteps":["flair_skull_strip", "wmh_seg", "wmh_stats"],
+                "petsteps":["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
+                            "inf_cereb_mask", "t1icv", "superres", "t1ashs", "t2ashs", "prc_cleanup", 
+                            "t1_pet_reg", "t1_pet_suvr", "pet_stats"]  
+    }
+
+
+
+
 
 def determine_parent_step(step_to_do):
-    if step_to_do == "neck_trim":
-        return []
-    elif step_to_do == "cortical_thick" or step_to_do == "brain_ex" or step_to_do == "t1icv" \
+    if step_to_do == "cortical_thick" or step_to_do == "brain_ex" or step_to_do == "t1icv" \
         or step_to_do == "superres" or step_to_do == "t2ashs" or step_to_do == "t1_pet_reg":
         return ["neck_trim"]
     elif step_to_do == "whole_brain_seg":
@@ -103,13 +133,10 @@ def determine_parent_step(step_to_do):
     elif step_to_do == "pmtau":
         return ["cortical_thick"]
     elif step_to_do == "t1_pet_suvr":
-        ##inf_cereb_mask implies wbseg already done
-        ## amy doesn't use inf_cereb_mask ... 
+        ## amy doesn't use inf_cereb_mask, this wait code dependency weeded out in app.py code 
         return ["t1_pet_reg", "inf_cereb_mask"]
     elif step_to_do == "pet_reg_qc":
         return ["t1_pet_reg"]
-    elif step_to_do == "flair_skull_strip": 
-        return []
     else:
         return []
 
@@ -122,7 +149,7 @@ adni_data_csvs_directories_thisrun = adni_data_csvs_directories_allruns[0:4]
 
 #Create dictionary structures to hold datasetup directory full file paths and file names
 keys = ["ida_study_datasheets", "uids", "processing_status", "filelocations"]
-scantypes = ["amy","tau","mri","anchored"] #,"fdg" between amy and tau if needed in the future
+scantypes = ["amy","tau","mri","anchored"]
 datasetup_directories_path = {}
 filenames = {}
 for key in keys:
@@ -153,5 +180,3 @@ sides = ["left", "right"]
 
 ### Log file
 logging.basicConfig(filename=f"{log_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.DEBUG)
-# for testing:
-# logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
