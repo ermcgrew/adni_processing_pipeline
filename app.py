@@ -300,23 +300,29 @@ def final_data_sheets(mode,wait):
 def longitudinal_processing(csv = "" ,dry_run = False):
     csv_to_read = csv
     df = pd.read_csv(csv_to_read)
-    subjects = df['ID'].unique()
+    subjects = df['ID'].unique().tolist()
     logging.info(f"Running ants_longitudinal_t1_processing for {len(subjects)} subjects")
     for subject in subjects:
-        print(f"Processing subject x of {len(subjects)}")
-    #   if subject == "099_S_6632" or subject == "128_S_4742":
-        output_dir = f'{analysis_output_dir}/long_ants_tests/{subject}'
+        print(f"Processing subject {(subjects.index(subject)) + 1} of {len(subjects)}")
+        output_dir = f'{adni_data_dir}/{subject}/longitudinal_ants'
+        # output_dir = f'{analysis_output_dir}/long_ants_tests/{subject}'
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        id_allrows=df.loc[df['ID']== subject]
+        id_allrows=df.loc[df['ID'] == subject]
         alldates=id_allrows['SMARTDATE.mri'].values.tolist()
         mri_list=[]
         for i in range(0,len(alldates)):
             mri_list.append(MRI(subject,alldates[i]))
         t1images=" ".join([x.t1trim for x in mri_list])
-
-        logging.info(f"{subject}: passing {len(mri_list)} images to wrapper script.")
+        if len(mri_list) == 1:
+            logging.info(f"{subject}: skipping, only one timepoint available.")
+            continue
+        elif len(mri_list) >= 4: 
+            logging.info(f"{subject}: skipping for now, 4 or more timepoints.")
+            continue
+        else:
+            logging.info(f"{subject}: passing {len(mri_list)} images to wrapper script.")
 
         if dry_run == True: 
             print(f"{output_dir} {t1images}")
@@ -366,33 +372,9 @@ convert_parser.set_defaults(func=convert_symlink)
 
 ###image_processing
 image_proc_parser = subparsers.add_parser("image_processing", help="process mri images")
-
-
-## change this to another subparser called steps? 
-# sp2 = image_proc_parser.add_subparsers()
-# step_parser = sp2.add_parser("steps", help="which steps to run")
-# step_parser.add_argument("-s", '--choose_steps', nargs="+", choices=processing_steps, help="Processing step(s) to run.")
-# step_parser.add_argument("-a", "--all_steps", action="store_const", const=processing_steps, help=f"Run all processing steps: {processing_steps}")
-# step_parser.add_argument("-o", '--ashst1_steps', action="store_const", const=ashst1steps, help="Processing step(s) to run.")
-# step_parser.add_argument("-t", '--ashst2_steps', action="store_const", const=ashst2steps, help="Processing step(s) to run.")
-# step_parser.add_argument("-r", '--structure_steps', action="store_const", const=structuresteps, help="Processing step(s) to run.")
-# step_parser.add_argument("-w", '--wmh_steps', action="store_const", const=wmhsteps, help="Processing step(s) to run.")
-# step_parser.add_argument("-p", '--pet_steps', action="store_const", const=petsteps, help="Processing step(s) to run.")
-
-
 which_steps = image_proc_parser.add_mutually_exclusive_group(required=True)
 which_steps.add_argument("-s", '--steps', nargs="+", choices=processing_steps, help="Processing step(s) to run.")
 which_steps.add_argument("-a", "--all_steps", action="store_true", help=f"Run all processing steps: {processing_steps}")
-# which_steps.add_argument("-a", "--all_steps", action="store_const", const=processing_steps, help=f"Run all processing steps: {processing_steps}")
-# which_steps.add_argument("-o", '--ashst1_steps', action="store_const", const=ashst1steps, help="Processing step(s) to run.")
-# which_steps.add_argument("-t", '--ashst2_steps', action="store_const", const=ashst2steps, help="Processing step(s) to run.")
-# which_steps.add_argument("-r", '--structure_steps', action="store_const", const=structuresteps, help="Processing step(s) to run.")
-# which_steps.add_argument("-w", '--wmh_steps', action="store_const", const=wmhsteps, help="Processing step(s) to run.")
-# which_steps.add_argument("-p", '--pet_steps', action="store_const", const=petsteps, help="Processing step(s) to run.")
-
-
-# image_proc_parser.add_argument("-s", "--steps", nargs="+",choices=test_steps_dict, help='')
-
 image_proc_parser.add_argument("-c", "--csv", required=False, help="Optional csv of sessions to run if not using default csv produced by datasetup.py. \
     Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD. \
     If processing pet scans, include columns 'SMARTDATE.tau' and 'SMARTDATE.amy', both as YYYY-MM-DD")
@@ -425,19 +407,6 @@ if args.subparser_name == "convert_symlink":
 
     if args.inputcsv and not args.outputcsv:
         raise ArgumentError("--outputcsv option must be used with the --inputcsv option.")
-
-# if args.subparser_name == "image_processing":
-#     print(args)
-    # test =vars(args)
-    # print(test)
-    # step_namespaces=["user_steps", "all_steps", "ashst1_steps", 'ashst2_steps', 'structure_steps', 'wmh_steps', 'pet_steps']
-    # print(args.user_steps)
-
-    # for x in step_namespaces:
-    #     print(x)
-        # print(ar gs.x)
-    # print(arg for arg in args if "step" in arg)
-
 
 ## remove any non-kwargs values to pass to args.func()
 args_ = vars(args).copy()
