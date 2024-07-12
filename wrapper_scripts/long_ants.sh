@@ -1,6 +1,8 @@
 #!/usr/bin/bash 
 ### copied from Phil's script /project/picsl/cookpa/antsctAgingLongTest/run_subject.sh
 
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=${LSB_DJOB_NUMPROC}
+
 container=/project/picsl/cookpa/antsct-aging/antsct-aging-0.5.1.sif
 
 if [[ $# -eq 0 ]]; then
