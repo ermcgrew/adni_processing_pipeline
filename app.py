@@ -301,6 +301,7 @@ def longitudinal_processing(csv = "" ,dry_run = False):
     csv_to_read = csv
     df = pd.read_csv(csv_to_read)
     subjects = df['ID'].unique().tolist()
+    logging.info(f"Reading from csv: {csv}.")
     logging.info(f"Running ants_longitudinal_t1_processing for {len(subjects)} subjects")
     for subject in subjects:
         print(f"Processing subject {(subjects.index(subject)) + 1} of {len(subjects)}")
@@ -319,10 +320,13 @@ def longitudinal_processing(csv = "" ,dry_run = False):
             logging.info(f"{subject}: skipping, only one timepoint available.")
             continue
         elif len(mri_list) >= 4: 
-            logging.info(f"{subject}: skipping for now, 4 or more timepoints.")
-            continue
-        else:
+            # logging.info(f"{subject}: skipping for now, 4 or more timepoints.")
             logging.info(f"{subject}: passing {len(mri_list)} images to wrapper script.")
+            # continue
+        else:
+            # logging.info(f"{subject}: passing {len(mri_list)} images to wrapper script.")
+            logging.info(f"{subject}:skipping, already did 2 and 3 timepoint subs.")
+            continue
 
         if dry_run == True: 
             print(f"{output_dir} {t1images}")
@@ -334,7 +338,8 @@ def longitudinal_processing(csv = "" ,dry_run = False):
             if result.returncode != 0:
                 logging.warning(f"{subject}:long_ants.sh error:{result.returncode}:{result.stderr}")
                 continue
-            logging.info(result.stdout) 
+            result_list = result.stdout.split("\n") ## strips new line out of result.stdout
+            logging.info(result_list[0]) 
 
 
 ''' Arguments/Parameters for each function '''
