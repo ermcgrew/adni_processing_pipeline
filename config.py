@@ -140,6 +140,10 @@ def determine_parent_step(step_to_do):
     else:
         return []
 
+## all mri except flair steps:
+## app.py image_processing -s neck_trim cortical_thick brain_ex whole_brain_seg wbseg_to_ants wbsegqc inf_cereb_mask pmtau t1icv superres t1ashs t1mtthk t2ashs prc_cleanup ashst1_stats ashst2_stats structure_stats
+
+
 
 ###Data sheets & derived csvs names and locations
 #list all directories with data sheets, then select those for newest date

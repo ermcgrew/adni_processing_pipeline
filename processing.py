@@ -142,12 +142,11 @@ class MRI:
             if dry_run:
                 print('run neck trim')
             else:      
-                os.system(f"bsub {submit_options} /home/lxie/pkg/trim_neck_rf.sh \
+                os.system(f"bsub {submit_options} ./processing_scripts/trim_neck.sh \
                             {self.t1nifti} {self.t1trim}")
             return this_job_name
         else: 
             return ""
-        #  sandy's script: /project/hippogang_1/srdas/homebin/ashsharpicvscripts/trim_neck.sh -w $(mktemp -d)
 
 
     ## old version of getting thickness
@@ -235,7 +234,7 @@ class MRI:
             if dry_run:
                 print("run WBSEG QC")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/segmented_image_qc.sh \
+                os.system(f"bsub {submit_options} ./processing_scripts/segmented_image_qc.sh \
                     {self.t1trim} {self.wbseg_nifti} {wblabel_file} {self.wbsegqc_image}")
             return this_job_name          
         else:
@@ -251,7 +250,7 @@ class MRI:
             if dry_run:
                 print(f"propagate wbseg to ants space")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/wbseg_to_ants.sh {self.ants_brainseg} {self.wbseg_nifti}")
+                os.system(f"bsub {submit_options} ./processing_scripts/wbseg_to_ants.sh {self.ants_brainseg} {self.wbseg_nifti}")
             return this_job_name          
         else:
             return ""
@@ -264,9 +263,9 @@ class MRI:
                             output_files = [self.inferior_cereb_mask], parent_job = parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)       
             if dry_run:
-                print(f" ./wrapper_scripts/make_inferior_cereb_mask.sh")
+                print(f" ./processing_scripts/make_inferior_cereb_mask.sh")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/make_inferior_cereb_mask.sh {self.wbseg_nifti} {self.inferior_cereb_mask}")
+                os.system(f"bsub {submit_options} ./processing_scripts/make_inferior_cereb_mask.sh {self.wbseg_nifti} {self.inferior_cereb_mask}")
             return this_job_name
         else:
             return ""
@@ -298,7 +297,7 @@ class MRI:
             if dry_run:
                 print("run superres")
             else:
-                os.system(f"bsub {submit_options} -M 4G -n 1 ./wrapper_scripts/super_resolution.sh \
+                os.system(f"bsub {submit_options} -M 4G -n 1 ./processing_scripts/super_resolution.sh \
                     {self.filepath} {self.t1trim} {self.superres_nifti}")
             return this_job_name
         else:
@@ -426,7 +425,7 @@ class MRI:
             if dry_run:
                 print(f"running prc_cleanup")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/cleanup_prc.sh {self.t2ashs_seg_left} \
+                os.system(f"bsub {submit_options} ./processing_scripts/cleanup_prc.sh {self.t2ashs_seg_left} \
                     {self.t2ashs_cleanup_left} {self.t2ashs_seg_right} {self.t2ashs_cleanup_right} {self.t2ashs_tse} {self.t2ashs_cleanup_both}")
             return this_job_name          
         else:
@@ -458,7 +457,7 @@ class MRI:
             if dry_run:
                 print('run pmtau')
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/pmtau.sh {self.id} {self.mridate} {self.filepath}/thickness")
+                os.system(f"bsub {submit_options} ./processing_scripts/pmtau.sh {self.id} {self.mridate} {self.filepath}/thickness")
             return this_job_name          
         else:
             return ""
@@ -669,10 +668,10 @@ class MRIPetReg:
                             ### why is the RAS file the output to check for? why not use the t1regnifti?
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
-                print(f"do t1 to pet registration")
+                print(f"do t1 to pet registration")    
             else:
                 os.system(f"bsub {submit_options} {t1petreg_script} \
-                        {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
+                    {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
             return this_job_name
         else:
             return ""     
@@ -689,7 +688,7 @@ class MRIPetReg:
             if dry_run:
                 print(f"qc pet registration")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/registered_image_qc.sh \
+                os.system(f"bsub {submit_options} ./processing_scripts/registered_image_qc.sh \
                     {self.t1trim} {self.t1_reg_nifti} {self.t1_reg_qc}")
             return this_job_name          
         else:
@@ -707,7 +706,7 @@ class MRIPetReg:
             if dry_run:
                 print(f"make t1-pet suvr")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/suvr.sh {self.mriwbseg} \
+                os.system(f"bsub {submit_options} ./processing_scripts/suvr.sh {self.mriwbseg} \
                     {self.t1_reg_nifti} {self.t1_SUVR} {self.mri_infcereb}")
             return this_job_name          
         else:
@@ -721,7 +720,7 @@ if __name__ == "__main__":
     ### Define class instance
     # mri_to_process = MRI("018_S_2155", "2022-11-21")    
     # mri_to_process = MRI("033_S_0734", "2018-10-10")
-    mri_to_process = MRI("114_S_6917","2021-04-16") 
+    # mri_to_process = MRI("114_S_6917","2021-04-16") 
     # mri_to_process = MRI("135_S_4722","2017-06-22") 
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
@@ -729,21 +728,23 @@ if __name__ == "__main__":
     # mri_to_process = MRI('007_S_2394','2023-10-26')
     # mri_to_process = MRI("022_S_6796","2020-09-09")
     # mri_to_process = MRI("024_S_6846",'2021-05-20')
+    mri_to_process = MRI("135_S_6703",'2021-04-20')
 
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
-    amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
+    # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
     # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
     # amy_to_process = AmyloidPET("135_S_4722","2017-06-20")
     # amy_to_process = AmyloidPET("022_S_6796","2021-08-24")
+    amy_to_process = AmyloidPET("135_S_6703","2021-04-20")
 
     # tau_to_process = TauPET("099_S_6175", "2020-07-09")
-    tau_to_process = TauPET("114_S_6917", "2021-08-11")
+    # tau_to_process = TauPET("114_S_6917", "2021-08-11")
     # tau_to_process = TauPET("135_S_4722", "2017-06-22")
     # tau_to_process = TauPET("022_S_6796","2020-09-23")
 
 
     mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
-    mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
+    # mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
 
 
     ### MRI processing
@@ -788,6 +789,6 @@ if __name__ == "__main__":
     # mri_tau_reg_to_process.do_t2_pet_reg([f"{mri_to_process.mridate}_{mri_to_process.id}_t1taupetreg",f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
 
 
-    # mri_amy_reg_to_process.t1_pet_reg()
+    mri_amy_reg_to_process.t1_pet_reg(dry_run=True)
     # mri_amy_reg_to_process.t2_pet_reg()
     # mri_amy_reg_to_process.pet_reg_qc()

@@ -1,14 +1,16 @@
-# PICSL's ADNI MRI and PET processing pipeline
+# PICSL's MRI and PET processing pipeline for ADNI data
 
 ## Key files
 - `config.py`: filepaths for data storage locations and some scripts. 
-- `processing.py`: class attributes for storing strings of image filepaths, class methods for individual steps of processing. 
+- `processing.py`: Defines MRI, PET, and MRI-PET reg classes, with attributes for storing strings of standard image filepaths and methods for individual steps of processing. 
 - `app.py`: run script for all steps. See the 'Arguments/Parameters' section for options for each function in app.py.
 
 ## Instructions for use
 ### Get dicoms
-1. Run `/download_dicoms/download_adni_dicoms.py` from your personal computer (cannot download directly to the bscsub cluster) to download dicoms from ida.loni.usc.edu. Use scp or rsync to move files from personal computer to cluster.
-2. Unzip dicoms & rsync using command: `python app.py unpack_dicoms <options>`
+1. Follow instructions in `/download_dicoms/download_dicoms_procedure.txt` to gather new scans from ida.loni.usc.edu database and get download links.
+2. Add download https strings to a copy of `/download_dicoms/download_adni_dicoms.py` on your personal computer (cannot download directly to the bscsub cluster) to download dicoms from ida.loni.usc.edu. 
+3. Use scp or rsync to move files from personal computer to cluster.
+4. Run command `python app.py unpack_dicoms <options>` to unzip dicoms and rsync between cluster locations.
 
 ### Get data sheets
 1. Manually download these csvs from ida.loni.usc.edu:
@@ -28,3 +30,6 @@
 1. Convert all new images to nifti using command: `python app.py convert_symlink <options>`
 2. Run image processing and statistics steps using command: `python app.py image_processing <options>`
 3. Compile all statistics using command `python app.py final_data_sheets <options>`
+
+
+## Arguments/Parameters for app.py functions

@@ -1,0 +1,52 @@
+Updating ADNI data--getting the dicom files
+Go to https://ida.loni.usc.edu/pages/access/search.jsp (Advanced search (beta))
+
+Search Parameters
+    FOR ALL: 
+        Project/Phase: ADNI4
+
+    FOR MRI FILES:
+        Image Type: Original (on the left menu) 
+        Image: Modality: MRI
+            for T1:
+                Image: Image Description field: %MPRAGE%
+                Image: Image Description field: %SPGR%
+            for T2:
+                Image: Image Description field: %Hippo%
+            for FLAIR:
+                Image: Image Description field: %FLAIR%
+
+    FOR PET FILES:
+        Image Type: Pre-processed (on the left menu) 
+        Image: Modality: PET
+            for Amyloid PET:
+                Image: Image Description field: %AV45 C%Uniform%
+                Image: Image Description field: %FBB C%Uniform%
+                 (**Note: the " C%" in the search filters out scans with "Early" in the sequence name, because those are not the correct sequence.)
+            for Tau PET:
+                Image: Image Description field: %AV1451 C%Uniform%
+            for FDG PET:
+                Image: Image Description field: %Uniform%
+                Imaging Protocol: Radiopharmaceutical: F18-FDG and FDG
+        
+        *** 6/2023: PET sequence naming convention changed from "...Uniform Resolution" to "...Uniform 6mm Res"
+
+Once search parameters return results, select all and click "add to collection":
+Existing collections:
+    ADNI4_T1_todownload
+    ADNI4_T2_todownload
+    ADNI4_FLAIR_todownload
+    ADNI4_Amy_todownload
+    ADNI4_Tau_todownload
+    ADNI4_FDG_todownload
+
+From Data Collections tab: 
+    for each collection, 
+        select "not downloaded" part (from left menu bar)
+        select all scans
+        get advanced download link (right click, "copy link address")
+        paste into proper part of download_adni_dicoms.py
+        update date in download_adni_dicoms.py
+        run script download_adni_dicoms.py 
+        run scp command to copy zip files to cluster
+

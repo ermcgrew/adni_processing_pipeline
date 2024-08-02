@@ -15,7 +15,9 @@ module load singularity/3.8.3
 outputDir=$(readlink -f $1)
 shift
 
-mkdir -p ${outputDir}
+if [[ ! -d $outputDir ]] ; then
+  mkdir -p ${outputDir}
+fi
 
 # When passed from app.py, file names are in one string argument, space-separated, 
 # which are file names we want to pass to the container
