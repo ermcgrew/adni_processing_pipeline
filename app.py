@@ -30,9 +30,9 @@ def data_setup():
 
 
 ## Convert dicom to nifti and symlink nifti to /dataset
-def convert_symlink(type="", all_types=False, inputcsv="", outputcsv=""):
+def convert_symlink(single_type="", all_types=False, inputcsv="", outputcsv=""):
     for scantype in scantypes:
-        if types == scantype or all_types == True and scantype != "anchored":
+        if single_type == scantype or all_types == True and scantype != "anchored":
             if inputcsv:
                 csv_to_read = inputcsv
             else:
@@ -130,6 +130,10 @@ def convert_symlink(type="", all_types=False, inputcsv="", outputcsv=""):
             logging.info(f"{scantype}:Conversion status records (1=successful conversion, 0=failed conversion, -1=no dicom UID/dicom not found in cluster):")
             for column in [col for col in df_newscans.columns if "CONVERT_STATUS" in col]:
                 logging.info(f"{df_newscans[column].value_counts()}")
+            
+            ### len(conver_status) is 1 == imageuid_col not null
+                ## otherwise there's an issue
+
 
             ### Save conversion status dataframe to csv
             if outputcsv:
@@ -198,7 +202,7 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                 mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
 
         for step in steps_ordered:
-            print(f"*************** On step {step}")
+            # print(f"*************** On step {step}")
             if step == "wmh_seg": 
                 continue
             elif (step == "flair_skull_strip" or step == "wmh_stats") and not os.path.exists(mri_to_process.flair):
@@ -215,6 +219,7 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                 ##if only doing stats jobs, no need to wait for image processing jobs to complete
                 if len(steps_ordered) == len([x for x in steps_ordered if "stats" in x]):
                     jobname_prefix_this_subject = ""
+                ### if  len(jobs_running) == 0, no wait code
                 else:
                     jobname_prefix_this_subject = f"{mri_to_process.mridate}_{mri_to_process.id}*"
                 
@@ -239,9 +244,9 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
             else:
                 parent_step = determine_parent_step(step)
                 wait_code = [job for job in jobs_running for pstep in parent_step if pstep in job]
-                print(f"Parent step for {step} is {parent_step}")
-                print(f"Jobs running are {jobs_running}")
-                print(f"Submit with wait code {wait_code}")
+                # print(f"Parent step for {step} is {parent_step}")
+                # print(f"Jobs running are {jobs_running}")
+                # print(f"Submit with wait code {wait_code}")
                 if "pet" in step: 
                     for pet_reg_class in [mri_tau_reg_to_process, mri_amy_reg_to_process]:
                         ## check files exist
@@ -260,7 +265,7 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                             ## wait code needs to match pet_reg_class as well as pstep in jobs running
                             pet_wait_code = [code for code in wait_code if pet_reg_class.pet_type in code]
                         
-                        print(f"PET wait code {pet_wait_code}")
+                        # print(f"PET wait code {pet_wait_code}")
 
                         job_name = getattr(pet_reg_class,step)(parent_job_name = pet_wait_code, dry_run = dry_run)
                         jobs_running.append(job_name)
@@ -317,11 +322,11 @@ def longitudinal_processing(csv = "" ,dry_run = False):
             mri_list.append(MRI(subject,alldates[i]))
         t1images=" ".join([x.t1trim for x in mri_list])
         if len(mri_list) == 1:
-            logging.info(f"{subject}: skipping, only one timepoint available.")
+            logging.info(f"{subject}:skipping, only one timepoint available.")
             continue
         elif len(mri_list) >= 4: 
             # logging.info(f"{subject}: skipping for now, 4 or more timepoints.")
-            logging.info(f"{subject}: passing {len(mri_list)} images to wrapper script.")
+            logging.info(f"{subject}:passing {len(mri_list)} images to wrapper script.")
             # continue
         else:
             # logging.info(f"{subject}: passing {len(mri_list)} images to wrapper script.")
@@ -362,7 +367,7 @@ datasetup_parser.set_defaults(func=data_setup)
 ###convert_symlink
 convert_parser = subparsers.add_parser("convert_symlink", help="Convert dicoms to nifti, symlink, create csv with filelocations.")
 convert_type_group = convert_parser.add_mutually_exclusive_group(required=True)
-convert_type_group.add_argument("-t","--type", choices=["amy","tau","mri"], help="Run conversion to nifti for tau, amy, OR mri dicoms.")
+convert_type_group.add_argument("-t","--single_type", choices=["amy","tau","mri"], help="Run conversion to nifti for tau, amy, OR mri dicoms.")
 convert_type_group.add_argument("-a", "--all_types", action = "store_true", help="Run conversion to nifti for tau, amy, AND mri dicoms.")
 convert_parser.add_argument("-i", "--inputcsv", required=False, help="If not using default csv for single type conversion, \
     filepath of a csv with format:\
