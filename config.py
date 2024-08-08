@@ -76,7 +76,7 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 # replace "cortical_thick" with "antsct_aging" when new ants code is ready
 processing_steps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
             "wbsegqc", "inf_cereb_mask", "pmtau", 
-            "t1icv", "superres", "t1ashs", "t1mtthk", "t2ashs", "t2ashs_qconly","prc_cleanup", 
+            "t1icv", "superres", "t1ashs", "t1mtthk", "t2ashs","prc_cleanup", 
             "flair_skull_strip", "wmh_seg",
             "t1_pet_reg", "t1_pet_suvr", "pet_reg_qc",
             "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats", "old_pet_stats"]
@@ -141,7 +141,7 @@ def determine_parent_step(step_to_do):
         return []
 
 ## all mri except flair steps:
-## app.py image_processing -s neck_trim cortical_thick brain_ex whole_brain_seg wbseg_to_ants wbsegqc inf_cereb_mask pmtau t1icv superres t1ashs t1mtthk t2ashs prc_cleanup ashst1_stats ashst2_stats structure_stats
+## app.py image_processing -s neck_trim cortical_thick brain_ex whole_brain_seg wbseg_to_ants wbsegqc inf_cereb_mask pmtau t1icv superres t1ashs t1mtthk t2ashs prc_cleanup 
 
 
 
