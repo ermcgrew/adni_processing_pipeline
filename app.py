@@ -179,7 +179,7 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
         df_full = pd.read_csv(csv_to_read)
         df = df_full.loc[(df_full['NEW_T1'] == 1) | (df_full['NEW_T2'] == 1) | (df_full['NEW_FLAIR'] == 1)]
     
-    logging.info(f"DRY_RUN={dry_run}: Running image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
+    logging.info(f"DRY_RUN={dry_run}: Doing image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
 
     #### For each session
     for index,row in df.iterrows():

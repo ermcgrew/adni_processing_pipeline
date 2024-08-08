@@ -16,4 +16,4 @@ unzip "${alldicoms_zipped}/*.zip" -d $public_dir
 #sync between PUBLIC/ADNI and PUBLIC/dicom
 echo "Starting rsync from PUBLIC/ADNI to PUBLIC/dicom" 
 rsync -avh --ignore-existing ${public_dir}/ADNI/ ${public_dir}/dicom/ 
-##rsync error message "failed to set times" is not significant for our purposes
+## rsync error message "failed to set times" is not significant for our purposes

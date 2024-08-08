@@ -14,7 +14,7 @@ icv_txt=$8
 RID=$(echo $id | cut -f 3 -d "_")
 
 ################ICV VOL#############
-# icv_txt=/project/wolk/ADNI2018/dataset/067_S_6117/2021-08-04/ASHSICV/final/067_S_6117_left_corr_nogray_volumes.txt
+# icv_txt=/ASHSICV/final/${id}_left_corr_nogray_volumes.txt
 ICV=$(cat $icv_txt | cut -d " " -f 5)
 # echo $ICV
 
