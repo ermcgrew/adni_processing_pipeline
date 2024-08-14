@@ -1,0 +1,40 @@
+#!/bin/bash
+# Find axis (x/y/z) for the given anatoical view
+
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 image.nii ax|sag|cor"
+  exit 1
+fi
+
+im=$1
+dir=$2
+
+ORIENT=$(c3d $im -info | head -n 1 | awk '{print $NF}' )
+if [ "$dir" == "ax" ]; then
+  pos=$(echo $ORIENT | grep -b -o "I")
+  dir=pos
+  if [ "$pos" == "" ]; then
+    pos=$(echo $ORIENT | grep -b -o "S")
+    dir=neg
+  fi
+  echo $(expr ${pos:0:1}  + 1 ) $dir
+elif [ "$dir" == "sag" ]; then 
+  pos=$(echo $ORIENT | grep -b -o "L")
+  dir=pos
+  if [ "$pos" == "" ]; then
+    pos=$(echo $ORIENT | grep -b -o "R")
+    dir=neg
+  fi
+  echo $(expr ${pos:0:1}  + 1 ) $dir
+elif [ "$dir" == "cor" ]; then 
+  pos=$(echo $ORIENT | grep -b -o "A")
+  dir=neg
+  if [ "$pos" == "" ]; then
+    pos=$(echo $ORIENT | grep -b -o "P")
+    dir=pos
+  fi
+  echo $(expr ${pos:0:1}  + 1 ) $dir
+else
+  echo "Unknown anatomical view specification. Use ax/sag/cor"
+  exit 1
+fi

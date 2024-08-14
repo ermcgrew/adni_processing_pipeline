@@ -32,7 +32,7 @@ c3d -verbose  $IM2 -stretch 1% 99% 0 255 -clip 0 255 -resample-mm $res -as IM2  
   -push IM2 -slice x 50% -type uchar -o $TMPDIR/im2x.png 
 
 for fn in $TMPDIR/im??.png; do
-  /project/wolk/ADNI2018/scripts/adni_processing_pipeline/wrapper_scripts/ashs_grid.sh -o 0.25 -s 25 -c white $fn $fn
+  /project/wolk/ADNI2018/scripts/adni_processing_pipeline/utilities/ashs_grid.sh -o 0.25 -s 25 -c white $fn $fn
 done
 
 montage -tile 3x -geometry +3+3 -mode Concatenate $TMPDIR/im1?.png $TMPDIR/im2?.png $OUT

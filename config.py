@@ -52,7 +52,7 @@ wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itk
 wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly"
 wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
 ashs_mopt_mat_file = "/home/lxie/ADNI2018/scripts/identity.mat"
-t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
+# t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
 pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 
 ##old roots & atlases for ASHS processing

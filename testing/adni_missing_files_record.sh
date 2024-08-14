@@ -1,0 +1,165 @@
+#!/usr/bin/bash
+
+dataset="/project/wolk/ADNI2018/dataset"
+mricsv="/project/wolk/ADNI2018/analysis_input/Jul2024_all_uids_lists/ADNI_mri_uids_20240807.csv"
+record="/project/wolk/ADNI2018/analysis_output/file_exist_record_20240809.csv"
+
+header="ID,MRIDATE,T1exist,trimexist,thickexist,brainxexist,wbsegexist,superresexist,t1ashsexist,icvashsexist,t2exist,t2ashsexist,prccleanupLexist,prccleanupRexist,prccleanupBexist"
+echo $header > $record
+
+cat $mricsv | while read line ; do
+    id=$(echo $line | cut -d , -f 2)
+    mridate=$(echo $line | cut -d , -f 3)
+
+    if [[ $id != "ID" ]] ; then 
+        row="${id},${mridate}"
+        sessiondir="${dataset}/${id}/${mridate}"
+
+        tone="${sessiondir}/${mridate}_${id}_T1w.nii.gz"
+        tone_trim="${sessiondir}/${mridate}_${id}_T1w_trim.nii.gz"
+        thick="${sessiondir}/thickness/${id}CorticalThickness.nii.gz"
+        brainx="${sessiondir}/${mridate}_${id}_T1w_trim_brainx_ExtractedBrain.nii.gz"
+        wbseg="${sessiondir}/${mridate}_${id}_wholebrainseg/${mridate}_${id}_T1w_trim_brainx_ExtractedBrain/${mridate}_${id}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
+        
+        superres="${sessiondir}/${mridate}_${id}_T1w_trim_denoised_SR.nii.gz"
+        ashst1="${sessiondir}/ASHST1/final/${id}_left_lfseg_heur.nii.gz"
+        ashsicv="${sessiondir}/ASHSICV/final/${id}_left_lfseg_corr_nogray.nii.gz"
+       
+        ttwo="${sessiondir}/${mridate}_${id}_T2w.nii.gz"
+        ashst2="${sessiondir}/sfsegnibtend/final/${id}_left_lfseg_corr_nogray.nii.gz"
+        ashstse="${sessiondir}/sfsegnibtend/tse.nii.gz"
+        prc_cleanup_left="/project/wolk/ADNI2018/analysis_input/cleanup/${id}_${mridate}_seg_left.nii.gz"
+        prc_cleanup_right="/project/wolk/ADNI2018/analysis_input/cleanup/${id}_${mridate}_seg_right.nii.gz"
+        prc_cleanup_both="/project/wolk/ADNI2018/analysis_input/cleanup/${id}_${mridate}_seg_both.nii.gz"
+
+        # echo $t1
+        if [[ ! -f $tone ]] ; then 
+            # echo "missing T1"
+            row=$row,0,0,0,0,0,0,0,0
+        else
+            # echo 'found T1'
+            row=$row,1
+            
+            ## Check for Trim
+            if [[ ! -f $tone_trim ]] ; then 
+                # echo 'missing trim'
+                row=$row,0,0,0,0,0,0,0
+            else 
+                # echo 'found trim'
+                row=$row,1
+
+                ## Thickness
+                if [[ ! -f $thick ]] ; then 
+                    # echo 'missing thick'
+                    row=$row,0
+                else 
+                    # echo 'found thick'
+                    row=$row,1
+                fi
+
+                ## Whole brain extraction 
+                if [[ ! -f $brainx ]] ; then 
+                    # echo 'missing brainx'
+                    row=$row,0
+                else 
+                    # echo 'found brainx'
+                    row=$row,1
+                fi
+
+                ## Whole brain seg
+                if [[ ! -f $wbseg ]] ; then 
+                    # echo 'missing wbseg'
+                    row=$row,0
+                else 
+                    # echo 'found wbseg'
+                    row=$row,1
+                fi
+
+                ## Super resolution
+                if [[ ! -f $superres ]] ; then 
+                    # echo 'missing superres'
+                    row=$row,0,0
+                else 
+                    # echo 'found superres'
+                    row=$row,1
+                    
+                    ## ASHS T1
+                    if [[ ! -f $ashst1 ]] ; then 
+                        # echo 'missing ashs t1'
+                        row=$row,0
+                    else 
+                        # echo 'found ashs t1'
+                        row=$row,1
+                    fi
+                fi
+
+                ## ASHS ICV
+                if [[ ! -f $ashsicv ]] ; then 
+                    # echo 'missing ashs icv'
+                    row=$row,0
+                else 
+                    # echo 'found ashs icv'
+                    row=$row,1
+                fi
+            fi
+        fi
+
+        if [[ ! -f $ttwo ]] ; then 
+        #  echo "missing T2"
+            row=$row,0,0,0,0,0,0
+        else
+            # echo 'found T2'
+            row=$row,1
+
+            ## t2 ASHS
+            if [[ ! -f $ashst2 ]] ; then 
+                # echo 'missing t2 ashs'
+                row=$row,0
+            else 
+                # echo 'found  t2 ashs'
+                row=$row,1
+            fi
+
+            ## t2 ASHS tse (for making prc-cleanup)
+            if [[ ! -f $ashstse ]] ; then 
+                # echo 'missing t2 ashs tse'
+                row=$row,0
+            else 
+                # echo 'found  t2 ashs tse'
+                row=$row,1
+            fi
+
+            ## prc-cleanup left
+            if [[ ! -f $prc_cleanup_left ]] ; then 
+                # echo 'missing prc_cleanup left'
+                row=$row,0
+            else  
+                # echo 'found prc_cleanup left'
+                row=$row,1
+            fi
+
+            ## prc-cleanup right
+            if [[ ! -f $prc_cleanup_right ]] ; then 
+                # echo 'missing prc_cleanup right'
+                row=$row,0
+            else 
+                # echo 'found prc_cleanup right'
+                row=$row,1
+            fi
+
+            ## prc-cleanup both
+            if [[ ! -f $prc_cleanup_both ]] ; then 
+                # echo 'missing prc_cleanup both'
+                row=$row,0
+            else 
+                # echo 'found prc_cleanup both'
+                row=$row,1
+            fi
+        fi
+
+        # tee $row >> $record
+        echo $row
+        echo $row >> $record
+        # sleep 0.1
+    fi
+done

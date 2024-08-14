@@ -670,7 +670,7 @@ class MRIPetReg:
             if dry_run:
                 print(f"do t1 to pet registration")    
             else:
-                os.system(f"bsub {submit_options} {t1petreg_script} \
+                os.system(f"bsub {submit_options} ./processing_scripts/coreg_pet.sh \
                     {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
             return this_job_name
         else:

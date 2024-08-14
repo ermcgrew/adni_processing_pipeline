@@ -1,0 +1,2 @@
+/home/longxie/pkg/PatchSuperResolution/build_release/CMakeFiles/NLMDenoise.dir
+/home/longxie/pkg/PatchSuperResolution/build_release/CMakeFiles/NLMUpsample.dir
