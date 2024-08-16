@@ -2,9 +2,11 @@
 
 dataset="/project/wolk/ADNI2018/dataset"
 mricsv="/project/wolk/ADNI2018/analysis_input/Jul2024_all_uids_lists/ADNI_mri_uids_20240807.csv"
-record="/project/wolk/ADNI2018/analysis_output/file_exist_record_20240809.csv"
+record="/project/wolk/ADNI2018/analysis_output/file_exist_record_20240816.csv"
 
-header="ID,MRIDATE,T1exist,trimexist,thickexist,brainxexist,wbsegexist,superresexist,t1ashsexist,icvashsexist,t2exist,t2ashsexist,prccleanupLexist,prccleanupRexist,prccleanupBexist"
+header="ID,MRIDATE,T1_exist,trim_exist,thick_exist,brainx_exist,wbseg_exist,infcereb_exist,
+wbsegtoatns_exist,superres_exist,t1ashs_exist,icvashs_exist,t2_exist,t2ashs_exist,t2ashstse_exist,
+prccleanupL_exist,prccleanupR_exist,prccleanupB_exist,flair_exist,flairnoskull_exist,flairwmh_exist,"
 echo $header > $record
 
 cat $mricsv | while read line ; do
@@ -20,7 +22,9 @@ cat $mricsv | while read line ; do
         thick="${sessiondir}/thickness/${id}CorticalThickness.nii.gz"
         brainx="${sessiondir}/${mridate}_${id}_T1w_trim_brainx_ExtractedBrain.nii.gz"
         wbseg="${sessiondir}/${mridate}_${id}_wholebrainseg/${mridate}_${id}_T1w_trim_brainx_ExtractedBrain/${mridate}_${id}_T1w_trim_brainx_ExtractedBrain_wholebrainseg.nii.gz"
-        
+        infcereb="${sessiondir}/${mridate}_${id}_wholebrainseg/${mridate}_${id}_T1w_trim_brainx_ExtractedBrain/inferior_cerebellum.nii.gz"
+        wbsegtoANTs="${sessiondir}/${mridate}_${id}_wholebrainseg/${mridate}_${id}_T1w_trim_brainx_ExtractedBrain/${mridate}_${id}_T1w_trim_brainx_ExtractedBrain_wholebrainseg_cortical_propagate.nii.gz"
+
         superres="${sessiondir}/${mridate}_${id}_T1w_trim_denoised_SR.nii.gz"
         ashst1="${sessiondir}/ASHST1/final/${id}_left_lfseg_heur.nii.gz"
         ashsicv="${sessiondir}/ASHSICV/final/${id}_left_lfseg_corr_nogray.nii.gz"
@@ -32,10 +36,14 @@ cat $mricsv | while read line ; do
         prc_cleanup_right="/project/wolk/ADNI2018/analysis_input/cleanup/${id}_${mridate}_seg_right.nii.gz"
         prc_cleanup_both="/project/wolk/ADNI2018/analysis_input/cleanup/${id}_${mridate}_seg_both.nii.gz"
 
+        flair="${sessiondir}/${mridate}_${id}_flair.nii.gz"
+        flair_noskull="${sessiondir}/${mridate}_${id}_flair_skullstrip.nii.gz"
+        flair_wmh="${sessiondir}/${mridate}_${id}_flair_wmh.nii.gz"
+
         # echo $t1
         if [[ ! -f $tone ]] ; then 
             # echo "missing T1"
-            row=$row,0,0,0,0,0,0,0,0
+            row=$row,0,0,0,0,0,0,0,0,0,0
         else
             # echo 'found T1'
             row=$row,1
@@ -75,6 +83,24 @@ cat $mricsv | while read line ; do
                     row=$row,1
                 fi
 
+                ## inf cereb
+                if [[ ! -f $infcereb ]] ; then 
+                    # echo 'missing infcereb'
+                    row=$row,0
+                else 
+                    # echo 'found infcereb'
+                    row=$row,1
+                fi
+
+                ## whole brain to ANTs
+                if [[ ! -f $wbsegtoANTs ]] ; then 
+                    # echo 'missing wbsegtoANTs'
+                    row=$row,0
+                else 
+                    # echo 'found wbsegtoANTs'
+                    row=$row,1
+                fi
+        
                 ## Super resolution
                 if [[ ! -f $superres ]] ; then 
                     # echo 'missing superres'
@@ -155,6 +181,30 @@ cat $mricsv | while read line ; do
                 # echo 'found prc_cleanup both'
                 row=$row,1
             fi
+        fi
+
+        if [[ ! -f $flair ]] ; then 
+            # echo 'missing flair'
+            row=$row,0,0,0
+        else  
+            # echo 'found flair'
+            row=$row,1
+
+            ## skull strip FLAIR
+            if [[ ! -f $flair_noskull ]] ; then 
+                # echo 'missing skull strip flair'
+                row=$row,0,0
+            else 
+                row=$row,1
+
+                ## WMH 
+                if [[ ! -f $flair_wmh ]] ; then 
+                    # echo 'missing wmh'
+                    row=$row,0
+                else 
+                    row=$row,1
+                fi
+            fi            
         fi
 
         # tee $row >> $record
