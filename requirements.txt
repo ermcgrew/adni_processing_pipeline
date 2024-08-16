@@ -1,0 +1,17 @@
+python3 libraries: argparse, datetime, logging, os, pandas, subprocess
+
+Loadable modules on cluster: 
+c3d  ## nearly everything
+matlab ## mtthk 
+vtk/7.1.1 ## mtthk
+singularity ## longANTs and WMH
+PETPVC/1.2.10 ## t2-pet reg
+ImageMagick ## petreg, ashs
+ANTs ## wbseg to ants 
+
+ASHS installed as part of your PATH
+
+Singularity containers for: 
+LongANTS
+WMH
+flair skull strip 
