@@ -23,7 +23,7 @@ f=$T1
 m=$PET
 OUT=${PET%.nii.gz}_to_${MRIDATE}_T1
 
-/project/wolk/ADNI2018/scripts/adni_processing_pipeline/utilities/antsRegistration -d 3 \
+/home/sudas/bin/ants_cook_Sep012015/antsRegistration -d 3 \
   -m Mattes[  $f, $m , 1 , 32, random , 0.1 ] \
   -t Rigid[ 0.2 ] \
   -c [1000x1000x1000,1.e-7,20]  \

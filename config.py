@@ -48,30 +48,22 @@ utilities_dir = f"{os.path.dirname(__file__)}/utilities"
 #Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
 thickness_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/crossthickness.sh"
+
 brain_ex_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/brainx_phil.sh"
+
 wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
-wbseg_atlas_dir = f"{utilities_dir}/WholeBrain_brainonly"
+wbseg_atlas_dir = f"/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly"
 wblabel_file = f"{utilities_dir}/wholebrainlabels_itksnaplabelfile.txt"
 
-ashs_mopt_mat_file = f"{utilities_dir}/identity.mat"
-pmtau_template_dir = f"{utilities_dir}/pmtau_template"
+pmtau_template_dir = f"/project/wolk/Prisma3T/t1template"
 
-##old roots & atlases for ASHS processing
-# ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
-# icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
-# ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
-
-##new root and atlases for ASHS processing
+##ASHS processing
 ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
-# icv_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_icv"
-# ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
-# ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
+icv_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_icv/final"
+ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
+ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
+ashs_mopt_mat_file = f"{utilities_dir}/identity.mat"
 
-
-## Testing with ashs atlases in /utilities
-icv_atlas = f"{utilities_dir}/ashs_atlas_icv/final"
-ashs_t1_atlas = f"{utilities_dir}/ashsT1_atlas_upennpmc_07202018"
-ashs_t2_atlas = f"{utilities_dir}/ashs_atlas_upennpmc_20170810"
 
 
 #####  Processing steps for class methods and argparse  #####

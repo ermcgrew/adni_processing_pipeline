@@ -2,6 +2,7 @@
 # adapted from /project/hippogang_1/srdas/wd/TAUPET/longnew/pmtau_to_invivot1.sh
 
 utilities=/project/wolk/ADNI2018/scripts/adni_processing_pipeline/utilities
+SANDYROOT="/project/hippogang_1/srdas/wd/TAUPET/longnew/"
 
 sub=$1
 THICKDIR=$2
@@ -11,19 +12,19 @@ pmmap=template_avg_density_cutoff_mild_Tau_tangles.nii.gz
 pmfreq=template_avg_density_Tau_tangles.nii.gz
 
 ${utilities}/antsApplyTransforms -d 3 \
-    -i ${utilities}/pmtau_files/$pmmap -r $THICKDIR/${sub}CorticalThickness.nii.gz \
+    -i ${SANDYROOT}/$pmmap -r $THICKDIR/${sub}CorticalThickness.nii.gz \
     -t [$THICKDIR/${sub}SubjectToTemplate0GenericAffine.mat,1] \
     $THICKDIR/${sub}TemplateToSubject0Warp.nii.gz \
-    ${utilities}/pmtau_files/abc_to_ADNINormal1Warp.nii.gz \
-    ${utilities}/pmtau_files/abc_to_ADNINormal0GenericAffine.mat \
+    ${SANDYROOT}/abc_to_ADNINormal1Warp.nii.gz \
+    ${SANDYROOT}/abc_to_ADNINormal0GenericAffine.mat \
     -o $THICKDIR/${pmmap%.nii.gz}_to_t1.nii.gz
     
 ${utilities}/antsApplyTransforms -d 3 \
-    -i $utilities/pmtau_files/$pmfreq -r $THICKDIR/${sub}CorticalThickness.nii.gz \
+    -i $SANDYROOT/$pmfreq -r $THICKDIR/${sub}CorticalThickness.nii.gz \
     -t [$THICKDIR/${sub}SubjectToTemplate0GenericAffine.mat,1] \
     $THICKDIR/${sub}TemplateToSubject0Warp.nii.gz \
-    $utilities/pmtau_files/abc_to_ADNINormal1Warp.nii.gz \
-    $utilities/pmtau_files/abc_to_ADNINormal0GenericAffine.mat \
+    $SANDYROOT/abc_to_ADNINormal1Warp.nii.gz \
+    $SANDYROOT/abc_to_ADNINormal0GenericAffine.mat \
     -o $THICKDIR/${pmfreq%.nii.gz}_to_t1.nii.gz
     
 echo "$sub warping done"
