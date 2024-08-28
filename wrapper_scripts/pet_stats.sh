@@ -10,9 +10,6 @@
 # stats_output_file 
 # ASHST1dir/final/${id}  
 
-
-# export DOERODE=true
-
 id=$1  
 mridate=$2
 taudate=$3
@@ -50,10 +47,11 @@ statline="$RID,$id,$mridate,$amydate,$taudate,$ICV,$thick"
 
 
 module load PETPVC/1.2.10
+module load greedy
 TMPDIR=$(mktemp -d)
 
 for pettype in tau amy ; do 
-    # echo "Doing stats for ${pettype}"
+    echo "Doing stats for ${pettype}"
     if [ "$pettype" == "tau" ] ; then
         t1_pet_suvr=$t1tausuvr
     else
@@ -66,14 +64,14 @@ for pettype in tau amy ; do
         echo First make T1 to T2 transform file
         mkdir -p $SDROOT/$id/$tp/${SFSEG}/flirt_t2_to_t1
 		c3d $t2_nifti -resample 100x100x500% -region 20x20x0% 60x60x100% -type short -o $TMPDIR/tse_iso.nii.gz
-		/project/hippogang_1/srdas/homebin/greedy -d 3 -a -dof 6 -m MI -n 100x100x10 -i $TMPDIR/tse_iso.nii.gz $t1trim -ia-identity -o $t1_to_t2_transform
+		greedy -d 3 -a -dof 6 -m MI -n 100x100x10 -i $TMPDIR/tse_iso.nii.gz $t1trim -ia-identity -o $t1_to_t2_transform
     fi
 
     t2_pet_suvr="$TMPDIR/T2_${pettype}pet_suvr.nii.gz"
     c3d $t2_nifti $t1_pet_suvr -reslice-matrix $t1_to_t2_transform -o $t2_pet_suvr
 
     for suvr_or_pvc in suvr pvc ; do 
-        # echo "doing stats for ${suvr_or_pvc}"
+        echo "doing stats for ${suvr_or_pvc}"
         if [ "$suvr_or_pvc" == "suvr" ] ; then
             t1_pet_touse=$t1_pet_suvr
             t2_pet_touse=$t2_pet_suvr
@@ -108,7 +106,7 @@ for pettype in tau amy ; do
             for i in $labels; do
                 statline="$statline,$(cat $TMPDIR/statt2pet.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^$i " | awk '{print $2}' )"
             done
-            # echo $statline
+            echo $statline
 
             # Combine CA regions (CA1 + CA2 + CA3) to get total CA values
             c3d $cleanup_seg -replace 2 1 4 1 -as A $t2_pet_touse -interp NN -reslice-identity -push A -lstat > $TMPDIR/statca.txt
@@ -153,7 +151,7 @@ for pettype in tau amy ; do
                     fi
                 done
                 statline="$statline$WBTAU" ##WBTAU variable starts with comma
-                # echo $statline
+                echo $statline
 
                 ####################### ASHST1-tau measures #######################
                 echo "${pettype}:${suvr_or_pvc}:${side}:do ASHST1 regions with:${t1_pet_touse}"
@@ -189,9 +187,11 @@ for pettype in tau amy ; do
                 c3d $cleanup_both -replace 2 1 3 1 4 1 10 1 11 1 -as A $t2_pet_touse -interp NN -reslice-identity -push A -lstat > $TMPDIR/statmtlno36both.txt
                 statline="$statline,$(cat $TMPDIR/statmtlno36both.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}' )"
 
-                ## ?????????????????????? cereb tau and cereb amy?? 
-                ## if yes, add if suvr_or_pvc == suvr. only need once for each pettype
-                statline="$statline,"
+                ## cereb tau and cereb amy
+                ## TODO: get from which files?
+                if [[ ${suvr_or_pvc} == 'suvr' ]] ; then
+                    statline="$statline,"
+                fi
 
                 ####################### T1 Whole Brain ROIs #######################
                 echo "${pettype}:${suvr_or_pvc}:${side}:do T1 wbseg regions with:${t1_pet_touse}"

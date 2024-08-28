@@ -9,7 +9,7 @@ infcereb=$4
 
 if [[ $t1reg == *"tau"* ]] ; then 
     # echo "This is a tau file"
-    if [[! -f $infcereb ]] ; then 
+    if [[ ! -f $infcereb ]] ; then 
         exit 1
     else
         CEREB=$(c3d $wbseg -as SEG \

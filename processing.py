@@ -130,6 +130,8 @@ class MRI:
         self.t1ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst1.txt"
         self.t2ashs_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_ashst2.txt"
         self.structure_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_structure.txt"
+        # self.structure_stats_txt = f"{self.filepath}/stats_mri_{self.mridate}_{self.id}_structure.txt"
+
         self.wmh_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_wmh.txt"
 
 
@@ -298,7 +300,7 @@ class MRI:
                 print("run superres")
             else:
                 os.system(f"bsub {submit_options} -M 4G -n 1 ./processing_scripts/super_resolution.sh \
-                    {self.filepath} {self.t1trim} {self.superres_nifti}")
+                    {self.filepath} {self.t1trim} {self.superres_nifti} {utilities_dir}/build_release")
             return this_job_name
         else:
             return ""
@@ -451,13 +453,14 @@ class MRI:
     def pmtau(self, parent_job_name = "", dry_run = False):
         this_function = MRI.pmtau.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
-        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.thickness], \
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.thickness, self.t1ashs_seg_left], \
                             output_files=[self.pmtau_output], parent_job=parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print('run pmtau')
             else:
-                os.system(f"bsub {submit_options} ./processing_scripts/pmtau.sh {self.id} {self.mridate} {self.filepath}/thickness")
+                os.system(f"bsub {submit_options} ./processing_scripts/pmtau.sh {self.id} \
+                    {self.filepath}/thickness {self.t1ashs_seg_left}")
             return this_job_name          
         else:
             return ""
@@ -515,7 +518,7 @@ class MRI:
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/structure_stats.sh \
                     {self.wbseg_propagated} {self.thickness} {wblabel_file} {self.structure_stats_txt} \
-                    {pmtau_template_dir} {self.id} {self.mridate}")
+                    {self.id} {self.mridate} {pmtau_template_dir}")
             return this_job_name          
         else:
             return ""
@@ -665,13 +668,12 @@ class MRIPetReg:
         if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", \
                             input_files = [self.t1trim, self.pet_nifti], \
                             output_files = [self.t1_reg_RAS], parent_job = parent_job_name):
-                            ### why is the RAS file the output to check for? why not use the t1regnifti?
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print(f"do t1 to pet registration")    
             else:
                 os.system(f"bsub {submit_options} ./processing_scripts/coreg_pet.sh \
-                    {self.id} {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
+                    {self.t1trim} {self.pet_nifti} {self.mridate} {self.filepath}")
             return this_job_name
         else:
             return ""     
@@ -720,7 +722,7 @@ if __name__ == "__main__":
     ### Define class instance
     # mri_to_process = MRI("018_S_2155", "2022-11-21")    
     # mri_to_process = MRI("033_S_0734", "2018-10-10")
-    # mri_to_process = MRI("114_S_6917","2021-04-16") 
+    mri_to_process = MRI("114_S_6917","2021-04-16") 
     # mri_to_process = MRI("135_S_4722","2017-06-22") 
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
@@ -728,67 +730,62 @@ if __name__ == "__main__":
     # mri_to_process = MRI('007_S_2394','2023-10-26')
     # mri_to_process = MRI("022_S_6796","2020-09-09")
     # mri_to_process = MRI("024_S_6846",'2021-05-20')
-    mri_to_process = MRI("135_S_6703",'2021-04-20')
+    # mri_to_process = MRI("135_S_6703",'2021-04-20')
 
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
-    # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
+    amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
     # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
     # amy_to_process = AmyloidPET("135_S_4722","2017-06-20")
     # amy_to_process = AmyloidPET("022_S_6796","2021-08-24")
-    amy_to_process = AmyloidPET("135_S_6703","2021-04-20")
+    # amy_to_process = AmyloidPET("135_S_6703","2021-04-20")
 
     # tau_to_process = TauPET("099_S_6175", "2020-07-09")
-    # tau_to_process = TauPET("114_S_6917", "2021-08-11")
+    tau_to_process = TauPET("114_S_6917", "2021-08-11")
     # tau_to_process = TauPET("135_S_4722", "2017-06-22")
     # tau_to_process = TauPET("022_S_6796","2020-09-23")
 
 
     mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
-    # mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
+    mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
 
 
     ### MRI processing
-    # mri_to_process.superres_test()
-    # mri_to_process.cortical_thick()
-    # mri_to_process.flair_skull_strip()
     # mri_to_process.neck_trim()
-    # mri_to_process.superres() 
-    # mri_to_process.t1ashs(dry_run=True)
-
-    # mri_to_process.brain_ex(dry_run=True)
-    # mri_to_process.wbsegqc()
-    # mri_to_process.wbseg_to_ants()
+    # mri_to_process.cortical_thick()
 
     # mri_to_process.t1icv()
 
+    # mri_to_process.superres() 
+    # mri_to_process.superres_test()
+    # mri_to_process.t1ashs()
+
+    # mri_to_process.brain_ex(dry_run=True)
+    # mri_to_process.whole_brain_seg
+    # mri_to_process.wbsegqc()
+    # mri_to_process.wbseg_to_ants()
+    # mri_to_process.pmtau()
+
+    # mri_to_process.t2ashs()
     # mri_to_process.prc_cleanup(dry_run=True)
 
+    # mri_to_process.flair_skull_strip()
+
+    # mri_to_process.structure_stats()
+    # mri_to_process.ashst2_stats()
+    # mri_to_process.ashst1_stats()
     # mri_to_process.old_pet_stats(t1tau=mri_tau_reg_to_process.eightmm_t1_reg_nifti,t2tau=mri_tau_reg_to_process.eightmm_t2_reg_nifti,\
     #     t1amy=mri_amy_reg_to_process.eightmm_t1_reg_nifti,t2amy=mri_amy_reg_to_process.eightmm_t2_reg_nifti, \
     #     taudate=mri_tau_reg_to_process.petdate,amydate=mri_amy_reg_to_process.petdate)   #, dry_run = True
    
-    # mri_to_process.pet_stats_new(t1tausuvr=mri_tau_reg_to_process.t1_SUVR,
+    # mri_to_process.pet_stats(t1tausuvr=mri_tau_reg_to_process.t1_SUVR,
     #                             t1amysuvr=mri_amy_reg_to_process.t1_SUVR,
     #                             taudate=mri_tau_reg_to_process.petdate,
     #                             amydate=mri_amy_reg_to_process.petdate)
-   
-   
-    # mri_to_process.structure_stats()
-    # mri_to_process.ashst2_stats()
-    # mri_to_process.ashst1_stats()
 
 
     ### PET processing
+    # mri_tau_reg_to_process.t1_pet_reg()
     # mri_tau_reg_to_process.pet_reg_qc()
 
-    # t1_pet_reg_job = mri_tau_reg_to_process.do_t1_pet_reg()
-    # mri_tau_reg_to_process.do_pet_reg_qc(t1_pet_reg_job)
-    # mri_tau_reg_to_process.do_t2_pet_reg(t1_pet_reg_job)
-    # mri_tau_reg_to_process.do_t2_pet_reg()
-    # mri_tau_reg_to_process.do_t2_pet_reg(f"{mri_to_process.mridate}_{mri_to_process.id}_t1taupetreg")
-    # mri_tau_reg_to_process.do_t2_pet_reg([f"{mri_to_process.mridate}_{mri_to_process.id}_t1taupetreg",f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
-
-
-    mri_amy_reg_to_process.t1_pet_reg(dry_run=True)
-    # mri_amy_reg_to_process.t2_pet_reg()
+    # mri_amy_reg_to_process.t1_pet_reg()
     # mri_amy_reg_to_process.pet_reg_qc()

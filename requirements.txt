@@ -1,15 +1,17 @@
 python3 libraries: argparse, datetime, logging, os, pandas, subprocess
 
 Loadable modules on cluster: 
-c3d  ## nearly everything
-matlab ## mtthk 
-vtk/7.1.1 ## mtthk
-singularity ## longANTs and WMH
-PETPVC/1.2.10 ## t2-pet reg
-ImageMagick ## petreg, ashs
 ANTs ## wbseg to ants 
+c3d  ## nearly everything
+greedy ##pet stats make t2 SUVR 
+ImageMagick ## petreg, ashs
+matlab ## mtthk 
+PETPVC/1.2.10 ## t2-pet reg
+singularity ## longANTs and WMH
+vtk/7.1.1 ## mtthk
 
-ASHS installed as part of your PATH
+ASHS installed 
+variable ASHSROOT=<install location> as part of your PATH
 
 Singularity containers for: 
 LongANTS

@@ -1,13 +1,13 @@
 #!/usr/bin/bash
+set -x
 
 wholebrainseg=$1 ###segmentation propagated to ants
 thickness=$2
 wblabelfile=$3
 outputfile=$4
-pmtau_template_dir=$5
-id=$6
-mridate=$7
-
+id=$5
+mridate=$6
+pmtau_template_dir=$7
 
 RID=$(echo $id | cut -f 3 -d "_")
 statline="$RID,$id,$mridate"

@@ -36,7 +36,11 @@ function write_header()
 
           if [ ${side}  == 'right' ] ; then 
             ##Combined hippocampal ROIs and CEREB tau and amy values
-            HEADER="$HEADER,HIPPboth_${pettype}_${suvr_or_pvc}_ASHS3TT2,EXTHIPPno36both_${pettype}_${suvr_or_pvc}_ASHS3TT2,MTLno36both_${pettype}_${suvr_or_pvc}_ASHS3TT2,cereb_${pettype}_${suvr_or_pvc}"
+            HEADER="$HEADER,HIPPboth_${pettype}_${suvr_or_pvc}_ASHS3TT2,EXTHIPPno36both_${pettype}_${suvr_or_pvc}_ASHS3TT2,MTLno36both_${pettype}_${suvr_or_pvc}_ASHS3TT2"
+            
+            if [[ ${suvr_or_pvc} == 'suvr' ]] ; then 
+              HEADER="HEADER,cereb_${pettype}_${suvr_or_pvc}"
+            fi
 
             #Whole brain ROIS
             HEADER="$HEADER,occ_${pettype}_${suvr_or_pvc}_wbtoants,postcing_${pettype}_${suvr_or_pvc}_wbtoants"

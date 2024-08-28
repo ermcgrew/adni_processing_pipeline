@@ -7,7 +7,7 @@ module load c3d
 output_directory=$1
 T1TRIM=$2
 T1SR=$3
-SRPATH=/home/lxie/pkg/PatchSuperResolution/build_release
+SRPATH=$4
 
 $SRPATH/NLMDenoise \
     -i $T1TRIM \

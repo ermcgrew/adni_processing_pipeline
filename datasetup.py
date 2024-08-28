@@ -604,6 +604,10 @@ def main():
 
     create_mri_uid_list()
     create_pet_uid_list() 
+
+    ### add scans from download that may not be in adni datasheets yet 
+
+
     create_tau_anchored_uid_list()
 
     for key in filenames["uids"]:

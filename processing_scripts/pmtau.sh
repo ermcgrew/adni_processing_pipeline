@@ -1,43 +1,40 @@
 #!/usr/bin/bash
 # adapted from /project/hippogang_1/srdas/wd/TAUPET/longnew/pmtau_to_invivot1.sh
 
-ADNIROOT=/project/wolk_2/ADNI2018/dataset
-SANDYROOT=/project/hippogang_1/srdas/wd/TAUPET/longnew
+utilities=/project/wolk/ADNI2018/scripts/adni_processing_pipeline/utilities
 
 sub=$1
-mridate=$2
-THICKDIR=$3
+THICKDIR=$2
+t1ashsseg=$3
 
 pmmap=template_avg_density_cutoff_mild_Tau_tangles.nii.gz
 pmfreq=template_avg_density_Tau_tangles.nii.gz
 
-
-/home/sudas/bin/antsApplyTransforms -d 3 \
-    -i ${SANDYROOT}/pmtau/$pmmap -r $THICKDIR/${sub}CorticalThickness.nii.gz \
+${utilities}/antsApplyTransforms -d 3 \
+    -i ${utilities}/pmtau_files/$pmmap -r $THICKDIR/${sub}CorticalThickness.nii.gz \
     -t [$THICKDIR/${sub}SubjectToTemplate0GenericAffine.mat,1] \
     $THICKDIR/${sub}TemplateToSubject0Warp.nii.gz \
-    ${SANDYROOT}/abc_to_ADNINormal1Warp.nii.gz \
-    ${SANDYROOT}/abc_to_ADNINormal0GenericAffine.mat \
+    ${utilities}/pmtau_files/abc_to_ADNINormal1Warp.nii.gz \
+    ${utilities}/pmtau_files/abc_to_ADNINormal0GenericAffine.mat \
     -o $THICKDIR/${pmmap%.nii.gz}_to_t1.nii.gz
     
-/home/sudas/bin/antsApplyTransforms -d 3 \
-    -i $SANDYROOT/pmtau/$pmfreq -r $THICKDIR/${sub}CorticalThickness.nii.gz \
+${utilities}/antsApplyTransforms -d 3 \
+    -i $utilities/pmtau_files/$pmfreq -r $THICKDIR/${sub}CorticalThickness.nii.gz \
     -t [$THICKDIR/${sub}SubjectToTemplate0GenericAffine.mat,1] \
     $THICKDIR/${sub}TemplateToSubject0Warp.nii.gz \
-    $SANDYROOT/abc_to_ADNINormal1Warp.nii.gz \
-    $SANDYROOT/abc_to_ADNINormal0GenericAffine.mat \
+    $utilities/pmtau_files/abc_to_ADNINormal1Warp.nii.gz \
+    $utilities/pmtau_files/abc_to_ADNINormal0GenericAffine.mat \
     -o $THICKDIR/${pmfreq%.nii.gz}_to_t1.nii.gz
     
-echo "$sub $mridate warping done"
+echo "$sub warping done"
 OUTDIR=$THICKDIR
 
-# Find ASHS segmentation, find the AH/PH boundary using distance map
-SEG=$ADNIROOT/$sub/$mridate/ASHST1/final/${sub}_right_lfseg_corr_nogray.nii.gz
+# Using ASHS segmentation, find the AH/PH boundary using distance map
 MYSEG=$OUTDIR/ashsseg.nii.gz
 c3d $THICKDIR/${sub}CorticalThickness.nii.gz \
-    $SEG -interp NN -reslice-identity -o $MYSEG
+    $t1ashsseg -interp NN -reslice-identity -o $MYSEG
 
-#to determine -thresh values for line 52
+#to determine -thresh values
 voxels=($( c3d $MYSEG  -info | cut -f 3 -d ";" | sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" -e "s/=//" ))
 orientation=($( c3d $MYSEG -info | cut -f 5 -d ";" | cut -f 2 -d "=" | sed 's/[A-Z]/ &/g;s/^ //'))
 for ((i = 0 ; i < "${#orientation[@]}" ; i++)); do
@@ -51,8 +48,8 @@ c3d $MYSEG -as A -thresh 1 1 1 0 -sdt -popas DISTA -push A -thresh 2 2 1 0 -sdt 
     -dup -times -sqrt -push DISTA -dup -times -sqrt  -add \
     -thresh $threshmin $threshmax 1 0 -o $OUTDIR/bndry.nii.gz -cmv -oo $OUTDIR/coordmap%d.nii.gz
 
-pos=$( /home/sudas/bin/findaxisdir $MYSEG cor | awk '{print $1}' )
-dir=$( /home/sudas/bin/findaxisdir $MYSEG cor | awk '{print $2}' )
+pos=$( ${utilities}/findaxisdir $MYSEG cor | awk '{print $1}' )
+dir=$( ${utilities}/findaxisdir $MYSEG cor | awk '{print $2}' )
 bndry_centroid=$(c3d $OUTDIR/bndry.nii.gz -centroid | grep CENTROID_VOX | cut -f 2 -d "[" | cut -f 1 -d "]" | sed -e "s/ //g" | cut -f $pos -d , | awk '{printf("%.f\n",$0)}' )
 
 zeropos=$(echo " $pos - 1 " | bc -l )

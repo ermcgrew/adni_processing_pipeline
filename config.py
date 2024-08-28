@@ -34,8 +34,8 @@ def reformat_date_slash_to_dash(df):
     return df
 
 ### File/directory locations on the cluster
-adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+# adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
+adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
 cleanup_dir = f"{analysis_input_dir}/cleanup"
@@ -43,23 +43,23 @@ wmh_prep_dir = f"{analysis_input_dir}/wmh"
 analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
 log_output_dir = f"{analysis_output_dir}/logs"
 stats_output_dir = f"{analysis_output_dir}/stats"
+utilities_dir = f"{os.path.dirname(__file__)}/utilities"
 
 #Cluster filepaths called in processing functions
 ants_script = "/project/ftdc_pipeline/ftdc-picsl/antsct-aging-0.3.3-p01/antsct-aging.sh"
 thickness_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/crossthickness.sh"
 brain_ex_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/brainx_phil.sh"
 wbseg_script = "/home/sudas/bin/ahead_joint/turnkey/bin/hippo_seg_WholeBrain_itkv4_v3.sh"
-wbseg_atlas_dir = "/home/sudas/bin/ahead_joint/turnkey/data/WholeBrain_brainonly"
-wblabel_file = "/project/wolk/Prisma3T/relong/wholebrainlabels_itksnaplabelfile.txt"
-ashs_mopt_mat_file = "/home/lxie/ADNI2018/scripts/identity.mat"
-# t1petreg_script = "/project/hippogang_1/srdas/wd/TAUPET/longnew/coreg_pet.sh"
-pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
+wbseg_atlas_dir = f"{utilities_dir}/WholeBrain_brainonly"
+wblabel_file = f"{utilities_dir}/wholebrainlabels_itksnaplabelfile.txt"
+
+ashs_mopt_mat_file = f"{utilities_dir}/identity.mat"
+pmtau_template_dir = f"{utilities_dir}/pmtau_template"
 
 ##old roots & atlases for ASHS processing
-# ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
-ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
-icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
-ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
+# ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
+# icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
+# ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
 
 ##new root and atlases for ASHS processing
 ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
@@ -68,11 +68,16 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 # ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
 
 
+## Testing with ashs atlases in /utilities
+icv_atlas = f"{utilities_dir}/ashs_atlas_icv/final"
+ashs_t1_atlas = f"{utilities_dir}/ashsT1_atlas_upennpmc_07202018"
+ashs_t2_atlas = f"{utilities_dir}/ashs_atlas_upennpmc_20170810"
+
+
 #####  Processing steps for class methods and argparse  #####
 ## Order matters: steps are ordered so dependent processing steps come after their parent processing step
 ## Names matter: values match MRI.method & MRIPetReg.method names
 ## Note on naming: if whole_brain_seg was called "wbseg", it matches to "wbseg_to_ants" and "wbsegqc" as well
-
 # replace "cortical_thick" with "antsct_aging" when new ants code is ready
 processing_steps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
             "wbsegqc", "inf_cereb_mask", "pmtau", 
@@ -131,7 +136,7 @@ def determine_parent_step(step_to_do):
     elif step_to_do == "prc_cleanup":
         return ["t2ashs"]
     elif step_to_do == "pmtau":
-        return ["cortical_thick"]
+        return ["cortical_thick", "t1ashs"]
     elif step_to_do == "t1_pet_suvr":
         ## amy doesn't use inf_cereb_mask, this wait code dependency weeded out in app.py code 
         return ["t1_pet_reg", "inf_cereb_mask"]
