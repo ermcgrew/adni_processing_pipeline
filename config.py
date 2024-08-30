@@ -34,16 +34,16 @@ def reformat_date_slash_to_dash(df):
     return df
 
 ### File/directory locations on the cluster
-# adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
+adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
+# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
-# cleanup_dir = f"{analysis_input_dir}/cleanup"
-cleanup_dir = f"/project/wolk/ADNI2018/scripts/pipeline_test_data/analysis_input/cleanup" # for testing
+cleanup_dir = f"{analysis_input_dir}/cleanup"
+# cleanup_dir = f"/project/wolk/ADNI2018/scripts/pipeline_test_data/analysis_input/cleanup" # for testing
 
 wmh_prep_dir = f"{analysis_input_dir}/wmh"
-# analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
-analysis_output_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/analysis_output" # for testing
+analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
+# analysis_output_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/analysis_output" # for testing
 log_output_dir = f"{analysis_output_dir}/logs"
 stats_output_dir = f"{analysis_output_dir}/stats"
 utilities_dir = f"{os.path.dirname(__file__)}/utilities"
@@ -76,7 +76,7 @@ ashs_mopt_mat_file = f"{utilities_dir}/identity.mat"
 # replace "cortical_thick" with "antsct_aging" when new ants code is ready
 processing_steps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
             "wbsegqc", "inf_cereb_mask", "pmtau", 
-            "t1icv", "superres", "t1ashs", "t1mtthk", "t2ashs","prc_cleanup", 
+            "t1icv", "superres", "t1ashs", "t1mtthk", "t2ashs","prc_cleanup", "testmultitemp",
             "flair_skull_strip", "wmh_seg",
             "t1_pet_reg", "t1_pet_suvr", "pet_reg_qc",
             "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
@@ -93,7 +93,7 @@ def determine_parent_step(step_to_do):
         return ["whole_brain_seg"]
     elif step_to_do == "t1ashs":
         return ["superres"]
-    elif step_to_do == "t1mtthk":
+    elif step_to_do == "t1mtthk" or "testmultitemp":
         return ["t1ashs"]
     elif step_to_do == "prc_cleanup":
         return ["t2ashs"]

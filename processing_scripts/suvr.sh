@@ -38,4 +38,7 @@ else
         sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}')
 fi
 
+## Save off Cereb value for use in pet stats 
+echo $CEREB > $( echo $t1suvr | sed 's/.nii.gz/_CEREB.txt/' )
+
 c3d $t1reg -scale $(echo "1 / $CEREB" | bc -l ) -o $t1suvr

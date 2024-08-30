@@ -39,7 +39,7 @@ function write_header()
             HEADER="$HEADER,HIPPboth_${pettype}_${suvr_or_pvc}_ASHS3TT2,EXTHIPPno36both_${pettype}_${suvr_or_pvc}_ASHS3TT2,MTLno36both_${pettype}_${suvr_or_pvc}_ASHS3TT2"
             
             if [[ ${suvr_or_pvc} == 'suvr' ]] ; then 
-              HEADER="HEADER,cereb_${pettype}_${suvr_or_pvc}"
+              HEADER="$HEADER,cereb_${pettype}_${suvr_or_pvc}"
             fi
 
             #Whole brain ROIS

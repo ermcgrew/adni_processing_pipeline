@@ -187,10 +187,10 @@ for pettype in tau amy ; do
                 c3d $cleanup_both -replace 2 1 3 1 4 1 10 1 11 1 -as A $t2_pet_touse -interp NN -reslice-identity -push A -lstat > $TMPDIR/statmtlno36both.txt
                 statline="$statline,$(cat $TMPDIR/statmtlno36both.txt | sed -e 's/  */ /g' -e 's/^ *\(.*\) *$/\1/' | grep "^1 " | awk '{print $2}' )"
 
-                ## cereb tau and cereb amy
-                ## TODO: get from which files?
+                ####################### cereb values from file, saved off during suvr.sh
                 if [[ ${suvr_or_pvc} == 'suvr' ]] ; then
-                    statline="$statline,"
+                    cerebfile=$( echo $t1_pet_touse | sed 's/.nii.gz/_CEREB.txt/' )
+                    statline="$statline,$( cat $cerebfile )"
                 fi
 
                 ####################### T1 Whole Brain ROIs #######################

@@ -377,9 +377,25 @@ class MRI:
                     os.system(f"bsub {submit_options} -M 12G -n 1 \
                                 ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
                                 {side} {ashs_seg} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
-            
         return "t1mtthk"
               
+
+    def testmultitemp(self, parent_job_name = [], dry_run = False):
+        this_function = MRI.t1mtthk.__name__
+        this_job_name = f"{self.date_id_prefix}_{this_function}"
+        if ready_to_process(f"{this_function}", self.id, self.mridate, input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right], output_files=[self.t1mtthk_left,self.t1mtthk_right], 
+                                parent_job = parent_job_name):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+            if dry_run: 
+                print(f"do MTTHK")
+            else:
+                os.system(f"bsub {submit_options} -M 12G -n 1 \
+                            ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
+                            {self.t1ashs_seg_left} {self.t1ashs_seg_right} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
+            return this_job_name
+        else:
+            return  
+
 
     def t2ashs(self, parent_job_name = [], dry_run = False):
         this_function = MRI.t2ashs.__name__
@@ -706,6 +722,7 @@ if __name__ == "__main__":
     # mri_to_process.superres() 
     # mri_to_process.superres_test()
     # mri_to_process.t1ashs()
+    mri_to_process.testmultitemp()
 
     # mri_to_process.brain_ex(dry_run=True)
     # mri_to_process.whole_brain_seg
@@ -731,6 +748,8 @@ if __name__ == "__main__":
     ### PET processing
     # mri_tau_reg_to_process.t1_pet_reg()
     # mri_tau_reg_to_process.pet_reg_qc()
+    # mri_tau_reg_to_process.t1_pet_suvr()
 
     # mri_amy_reg_to_process.t1_pet_reg()
     # mri_amy_reg_to_process.pet_reg_qc()
+    # mri_amy_reg_to_process.t1_pet_suvr()

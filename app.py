@@ -130,10 +130,6 @@ def convert_symlink(single_type="", all_types=False, inputcsv="", outputcsv=""):
             logging.info(f"{scantype}:Conversion status records (1=successful conversion, 0=failed conversion, -1=no dicom UID/dicom not found in cluster):")
             for column in [col for col in df_newscans.columns if "CONVERT_STATUS" in col]:
                 logging.info(f"{df_newscans[column].value_counts()}")
-            
-            ### len(conver_status) is 1 == imageuid_col not null
-                ## otherwise there's an issue
-
 
             ### Save conversion status dataframe to csv
             if outputcsv:
@@ -380,7 +376,7 @@ image_proc_parser.set_defaults(func=image_processing)
 
 ###final_data_sheets
 final_data_sheet_parser = subparsers.add_parser("final_data_sheets", help = "Collect individual stats into final sheets.")
-final_data_sheet_parser.add_argument("-m", "--mode", nargs = "+", choices = ["pet", "petold", "structure", "ashst1", "ashst2","wmh"], help="Select which type(s) of stats to compile into a final sheet")
+final_data_sheet_parser.add_argument("-m", "--mode", nargs = "+", choices = ["pet", "structure", "ashst1", "ashst2","wmh"], help="Select which type(s) of stats to compile into a final sheet")
 final_data_sheet_parser.add_argument("-w", "--wait", action="store_true", help = "Run with queuewatch to wait for all image processing to complete")
 final_data_sheet_parser.set_defaults(func=final_data_sheets)
 
