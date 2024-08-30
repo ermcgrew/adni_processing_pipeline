@@ -9,7 +9,7 @@ import subprocess
 
 
 ''' Shared functions '''
-def ready_to_process(processing_step, id, date, input_files = [], output_files = [], parent_job = ""):
+def ready_to_process(processing_step, id, date, input_files = [], output_files = [], parent_job = []):
     #output files all "OR" comparisons, as long as 1 is true, output is present
     if [file for file in output_files if os.path.exists(file)]:
         logging.info(f"{id}:{date}: {processing_step} already run.")
@@ -133,7 +133,7 @@ class MRI:
         self.wmh_stats_txt = f"{stats_output_dir}/stats_mri_{self.mridate}_{self.id}_wmh.txt"
 
 
-    def neck_trim(self, parent_job_name = "", dry_run = False):
+    def neck_trim(self, parent_job_name = [], dry_run = False):
         this_function = MRI.neck_trim.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1nifti], 
@@ -150,7 +150,7 @@ class MRI:
 
 
     ## old version of getting thickness
-    def cortical_thick(self, parent_job_name = "", dry_run = False):
+    def cortical_thick(self, parent_job_name = [], dry_run = False):
         this_function = MRI.cortical_thick.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], 
@@ -165,7 +165,7 @@ class MRI:
             return
 
 
-    def brain_ex(self, parent_job_name = "", dry_run = False):
+    def brain_ex(self, parent_job_name = [], dry_run = False):
         this_function = MRI.brain_ex.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], 
@@ -181,7 +181,7 @@ class MRI:
 
 
     ## New version of getting thickness
-    def antsct_aging(self, parent_job_name = "", dry_run = False):
+    def antsct_aging(self, parent_job_name = [], dry_run = False):
         this_function = MRI.ants.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         brainx_job_name = f"{self.date_id_prefix}_copybrainx"
@@ -206,7 +206,7 @@ class MRI:
                 return
 
 
-    def whole_brain_seg(self, parent_job_name = "", dry_run = False):
+    def whole_brain_seg(self, parent_job_name = [], dry_run = False):
         this_function = MRI.whole_brain_seg.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.brainx], 
@@ -225,7 +225,7 @@ class MRI:
             return
 
 
-    def wbsegqc(self, parent_job_name = "", dry_run = False):
+    def wbsegqc(self, parent_job_name = [], dry_run = False):
         this_function = MRI.wbsegqc.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim,self.wbseg_nifti], 
@@ -241,7 +241,7 @@ class MRI:
             return       
 
 
-    def wbseg_to_ants(self, parent_job_name = "", dry_run = False):
+    def wbseg_to_ants(self, parent_job_name = [], dry_run = False):
         this_function = MRI.wbseg_to_ants.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.ants_brainseg,self.wbseg_nifti], 
@@ -256,7 +256,7 @@ class MRI:
             return
     
 
-    def inf_cereb_mask(self, parent_job_name = "", dry_run = False):
+    def inf_cereb_mask(self, parent_job_name = [], dry_run = False):
         this_function = MRI.inf_cereb_mask.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.wbseg_nifti], 
@@ -271,7 +271,7 @@ class MRI:
             return
 
 
-    def t1icv(self, parent_job_name = "", dry_run = False):
+    def t1icv(self, parent_job_name = [], dry_run = False):
         this_function = MRI.t1icv.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], \
@@ -288,7 +288,7 @@ class MRI:
             return
 
 
-    def superres(self, parent_job_name = "", dry_run = False):
+    def superres(self, parent_job_name = [], dry_run = False):
         this_function = MRI.superres.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], \
@@ -304,7 +304,7 @@ class MRI:
             return
 
 
-    def superres_test(self, parent_job_name = "", dry_run = False):
+    def superres_test(self, parent_job_name = [], dry_run = False):
         this_function = MRI.superres.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim], \
@@ -336,7 +336,7 @@ class MRI:
             return
 
 
-    def t1ashs(self, parent_job_name = "", dry_run = False):
+    def t1ashs(self, parent_job_name = [], dry_run = False):
         this_function = MRI.t1ashs.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim, self.superres_nifti], 
@@ -357,7 +357,7 @@ class MRI:
             return
     
 
-    def t1mtthk(self, parent_job_name = "", dry_run = False):
+    def t1mtthk(self, parent_job_name = [], dry_run = False):
         this_function = MRI.t1mtthk.__name__
         for side in sides:
             if side == "left":
@@ -381,7 +381,7 @@ class MRI:
         return "t1mtthk"
               
 
-    def t2ashs(self, parent_job_name = "", dry_run = False):
+    def t2ashs(self, parent_job_name = [], dry_run = False):
         this_function = MRI.t2ashs.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t2nifti, self.t1trim], \
@@ -398,7 +398,7 @@ class MRI:
             return
 
 
-    def prc_cleanup(self, parent_job_name = "", dry_run = False):
+    def prc_cleanup(self, parent_job_name = [], dry_run = False):
         this_function = MRI.prc_cleanup.__name__
         this_job_name = f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, \
@@ -415,7 +415,7 @@ class MRI:
             return
 
     
-    def flair_skull_strip(self, parent_job_name = "", dry_run = False):
+    def flair_skull_strip(self, parent_job_name = [], dry_run = False):
         this_function = MRI.flair_skull_strip.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair], \
@@ -431,7 +431,7 @@ class MRI:
             return
 
 
-    def pmtau(self, parent_job_name = "", dry_run = False):
+    def pmtau(self, parent_job_name = [], dry_run = False):
         this_function = MRI.pmtau.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.thickness, self.t1ashs_seg_left], \
@@ -610,7 +610,7 @@ class MRIPetReg:
             os.system(f"mkdir -p {self.log_output_dir}")
 
 
-    def t1_pet_reg(self, parent_job_name = "", dry_run = False):
+    def t1_pet_reg(self, parent_job_name = [], dry_run = False):
         this_function = f"{self.pet_type}_{MRIPetReg.t1_pet_reg.__name__}"
         this_job_name=f"{self.mridate}_{self.id}_{this_function}"
         if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", \
@@ -627,7 +627,7 @@ class MRIPetReg:
             return     
 
  
-    def pet_reg_qc(self, parent_job_name = "", dry_run = False):
+    def pet_reg_qc(self, parent_job_name = [], dry_run = False):
         this_function = f"{self.pet_type}_{MRIPetReg.pet_reg_qc.__name__}"
         this_job_name=f"{self.mridate}_{self.id}_{this_function}" 
         if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", 
@@ -645,7 +645,7 @@ class MRIPetReg:
             return 
 
 
-    def t1_pet_suvr(self, parent_job_name = "", dry_run = False):
+    def t1_pet_suvr(self, parent_job_name = [], dry_run = False):
         this_function = f"{self.pet_type}_{MRIPetReg.t1_pet_suvr.__name__}"
         this_job_name=f"{self.mridate}_{self.id}_{this_function}" 
         if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", 
