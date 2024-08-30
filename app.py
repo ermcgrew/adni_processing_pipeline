@@ -49,7 +49,7 @@ def convert_symlink(single_type="", all_types=False, inputcsv="", outputcsv=""):
 
             ##Start converting dicom to nifti, line by line    
             for index,row in df_newscans.iterrows():
-                print(f"Processing line {index} of {len(df_newscans)}")
+                print(f"Processing line {index + 1} of {len(df_newscans)}")
                 subject = str(row['ID'])
                 scandate = str(row['SMARTDATE'])
                 if scantype == 'mri':
@@ -156,8 +156,6 @@ def convert_symlink(single_type="", all_types=False, inputcsv="", outputcsv=""):
 def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
     if all_steps:
         steps_ordered = processing_steps
-        steps_ordered.remove("t2ashs_qconly")
-        steps_ordered.remove("old_pet_stats")
     else:
         if len(steps) == 1:
             steps_ordered = steps
@@ -183,7 +181,7 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
 
     #### For each session
     for index,row in df.iterrows():
-        print(f"Processing line {index} of {len(df)}")
+        print(f"Processing line {index + 1} of {len(df)}")
 
         jobs_running = []
         subject = str(row['ID'])
@@ -202,7 +200,6 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                 mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
 
         for step in steps_ordered:
-            # print(f"*************** On step {step}")
             if step == "wmh_seg": 
                 continue
             elif (step == "flair_skull_strip" or step == "wmh_stats") and not os.path.exists(mri_to_process.flair):
@@ -216,37 +213,27 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                 ## Every other processing step uses T1 trim at least, including pet steps and all other stats steps
                 continue
             elif "stats" in step:
-                ##if only doing stats jobs, no need to wait for image processing jobs to complete
-                if len(steps_ordered) == len([x for x in steps_ordered if "stats" in x]):
-                    jobname_prefix_this_subject = ""
-                ### if  len(jobs_running) == 0, no wait code
+
+                ## if only doing stats steps, no wait code from image processing jobs OR
+                ## if no other jobs running, no wait code needed
+                if len(steps_ordered) == len([x for x in steps_ordered if "stats" in x]) or len(jobs_running) == 0:
+                    stats_wait_code = ""
                 else:
-                    jobname_prefix_this_subject = f"{mri_to_process.mridate}_{mri_to_process.id}*"
-                
+                    stats_wait_code = [f"{mri_to_process.mridate}_{mri_to_process.id}*"]
+
                 if step == "pet_stats":
-                    mri_to_process.pet_stats(wait_code = jobname_prefix_this_subject,
+                    mri_to_process.pet_stats(wait_code = stats_wait_code,
                                             t1tausuvr = mri_tau_reg_to_process.t1_SUVR,
                                             t1amysuvr = mri_amy_reg_to_process.t1_SUVR,
                                             taudate = mri_tau_reg_to_process.petdate,
                                             amydate = mri_amy_reg_to_process.petdate,
                                             dry_run = dry_run) 
-                elif step == "old_pet_stats":
-                    mri_to_process.old_pet_stats(wait_code = jobname_prefix_this_subject,
-                                                t1tau = mri_tau_reg_to_process.eightmm_t1_reg_nifti, 
-                                                t2tau = mri_tau_reg_to_process.eightmm_t2_reg_nifti,
-                                                t1amy = mri_amy_reg_to_process.eightmm_t1_reg_nifti,
-                                                t2amy = mri_amy_reg_to_process.eightmm_t2_reg_nifti, 
-                                                taudate = mri_tau_reg_to_process.petdate,
-                                                amydate = mri_amy_reg_to_process.petdate,
-                                                dry_run = dry_run)
                 else:
-                    getattr(mri_to_process,step)(wait_code = jobname_prefix_this_subject, dry_run = dry_run)
+                    getattr(mri_to_process,step)(wait_code = stats_wait_code, dry_run = dry_run)
             else:
                 parent_step = determine_parent_step(step)
                 wait_code = [job for job in jobs_running for pstep in parent_step if pstep in job]
-                # print(f"Parent step for {step} is {parent_step}")
-                # print(f"Jobs running are {jobs_running}")
-                # print(f"Submit with wait code {wait_code}")
+
                 if "pet" in step: 
                     for pet_reg_class in [mri_tau_reg_to_process, mri_amy_reg_to_process]:
                         ## check files exist
@@ -265,13 +252,13 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                             ## wait code needs to match pet_reg_class as well as pstep in jobs running
                             pet_wait_code = [code for code in wait_code if pet_reg_class.pet_type in code]
                         
-                        # print(f"PET wait code {pet_wait_code}")
-
                         job_name = getattr(pet_reg_class,step)(parent_job_name = pet_wait_code, dry_run = dry_run)
-                        jobs_running.append(job_name)
+                        if job_name:
+                            jobs_running.append(job_name)
                 else:
                     job_name = getattr(mri_to_process,step)(parent_job_name = wait_code, dry_run = dry_run)
-                    jobs_running.append(job_name)
+                    if job_name:
+                        jobs_running.append(job_name)
 
     # For all sessions in csv, run WMH container--only spin up container once
     if "wmh_seg" in steps_ordered:
@@ -311,7 +298,6 @@ def longitudinal_processing(csv = "" ,dry_run = False):
     for subject in subjects:
         print(f"Processing subject {(subjects.index(subject)) + 1} of {len(subjects)}")
         output_dir = f'{adni_data_dir}/{subject}/longitudinal_ants'
-        # output_dir = f'{analysis_output_dir}/long_ants_tests/{subject}'
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 

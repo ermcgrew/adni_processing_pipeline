@@ -38,9 +38,12 @@ def reformat_date_slash_to_dash(df):
 adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
 analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
-cleanup_dir = f"{analysis_input_dir}/cleanup"
+# cleanup_dir = f"{analysis_input_dir}/cleanup"
+cleanup_dir = f"/project/wolk/ADNI2018/scripts/pipeline_test_data/analysis_input/cleanup" # for testing
+
 wmh_prep_dir = f"{analysis_input_dir}/wmh"
-analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
+# analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
+analysis_output_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data/analysis_output" # for testing
 log_output_dir = f"{analysis_output_dir}/logs"
 stats_output_dir = f"{analysis_output_dir}/stats"
 utilities_dir = f"{os.path.dirname(__file__)}/utilities"
@@ -76,40 +79,7 @@ processing_steps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", 
             "t1icv", "superres", "t1ashs", "t1mtthk", "t2ashs","prc_cleanup", 
             "flair_skull_strip", "wmh_seg",
             "t1_pet_reg", "t1_pet_suvr", "pet_reg_qc",
-            "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats", "old_pet_stats"]
-
-## based on files required for each stats category
-ashst1steps=["neck_trim", "t1icv", "superres", "t1ashs", "t1mtthk", "ashst1_stats"]
-ashst2steps=["neck_trim", "t2ashs", "prc_cleanup", "ashst2_stats"]
-structuresteps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
-                "pmtau", "structure_stats"]
-wmhsteps=["flair_skull_strip", "wmh_seg", "wmh_stats"]
-petsteps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
-            "inf_cereb_mask", "t1icv", "superres", "t1ashs", "t2ashs", "prc_cleanup", 
-            "t1_pet_reg", "t1_pet_suvr", "pet_stats"]  
-
-test_steps_dict={"neck_trim":"neck_trim", "cortical_thick":"cortical_thick", "brain_ex":"brain_ex", 
-                "whole_brain_seg":"whole_brain_seg", "wbseg_to_ants":"wbseg_to_ants", 
-                "wbsegqc":"wbsegqc", "inf_cereb_mask":"inf_cereb_mask", "pmtau":"pmtau", 
-                "t1icv":"t1icv", "superres":"superres", "t1ashs":"t1ashs", "t1mtthk":"t1mtthk", 
-                "t2ashs":"t2ashs", "t2ashs_qconly":"t2ashs_qconly", "prc_cleanup":"prc_cleanup", 
-                "flair_skull_strip":"flair_skull_strip", "wmh_seg":"wmh_seg",
-                "t1_pet_reg":"t1_pet_reg", "t1_pet_suvr":"t1_pet_suvr", "pet_reg_qc":"pet_reg_qc",
-                "ashst1_stats":"ashst1_stats", "ashst2_stats":"ashst2_stats", "wmh_stats":"wmh_stats",
-                "structure_stats":"structure_stats", "pet_stats":"pet_stats", "old_pet_stats":"old_pet_stats",
-                "ashst1steps":["neck_trim", "t1icv", "superres", "t1ashs", "t1mtthk", "ashst1_stats"],
-                "ashst2steps":["neck_trim", "t2ashs", "prc_cleanup", "ashst2_stats"],
-                "structuresteps":["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
-                                "pmtau", "structure_stats"],
-                "wmhsteps":["flair_skull_strip", "wmh_seg", "wmh_stats"],
-                "petsteps":["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
-                            "inf_cereb_mask", "t1icv", "superres", "t1ashs", "t2ashs", "prc_cleanup", 
-                            "t1_pet_reg", "t1_pet_suvr", "pet_stats"]  
-    }
-
-
-
-
+            "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
 
 def determine_parent_step(step_to_do):
     if step_to_do == "cortical_thick" or step_to_do == "brain_ex" or step_to_do == "t1icv" \
