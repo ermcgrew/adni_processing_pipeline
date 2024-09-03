@@ -34,13 +34,14 @@ def reformat_date_slash_to_dash(df):
     return df
 
 ### File/directory locations on the cluster
-adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
-# adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
-analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
+# adni_data_dir = "/project/wolk/ADNI2018/dataset" 
+# analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
+adni_data_dir = "/project/wolk/Prisma3T/relong/LEADS/data"
+analysis_input_dir = "/project/wolk/Prisma3T/relong/LEADS/analysis_input"
 adni_data_setup_directory = f"{analysis_input_dir}/adni_data_setup_csvs" #Location for CSVs downloaded from ida.loni.usc.edu & derivatives
 cleanup_dir = f"{analysis_input_dir}/cleanup"
 wmh_prep_dir = f"{analysis_input_dir}/wmh"
-analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
+analysis_output_dir = "/project/wolk/Prisma3T/relong/LEADS/analysis_output"
 log_output_dir = f"{analysis_output_dir}/logs"
 stats_output_dir = f"{analysis_output_dir}/stats"
 
@@ -57,15 +58,15 @@ pmtau_template_dir = "/project/wolk/Prisma3T/t1template"
 
 ##old roots & atlases for ASHS processing
 # ashs_root = "/project/hippogang_2/longxie/pkg/ashs/ashs-fast"
-ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
-icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
-ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
+# ashs_t1_atlas = "/home/lxie/ASHS_atlases/PMC_3TT1_atlas_noSR"
+# icv_atlas = "/home/lxie/ASHS_atlases/ICVatlas_3TT1"
+# ashs_t2_atlas = "/project/hippogang_2/pauly/wolk/atlases/ashs_atlas_upennpmc_20170810"
 
 ##new root and atlases for ASHS processing
 ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
-# icv_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_icv"
-# ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
-# ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
+icv_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_icv/final"
+ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
+ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
 
 
 #####  Processing steps for class methods and argparse  #####

@@ -22,15 +22,12 @@ fi
 options="-a $atlas -g $t1trim -f $(readlink -f $t2link) \
           -w $output_directory -T -d -I ${id}"
 
-if [[ $t2link =~ "T2w" ]] ; then 
-    ##symlink this run data to SDROOT where all T2 runs are stored
-    mridate=$( echo $output_directory | rev | cut -d "/" -f 2 | rev)
-    link_loc=/project/hippogang_1/srdas/wd/ADNI23/${id}/${mridate}/sfsegnibtend
-    if [[ ! -h $link_loc ]] ; then 
-        ln -sf $output_directory $link_loc
-    fi
+if [[ $t2link =~ "T2w" || $t2link =~ "tse" ]] ; then 
+  echo t2 options
+   options=$options
 else
   #addtional options for T1, ICV ASHS only
+  echo t1 and icv options only
   options="$options -m $m_opt -M"
 fi
 
@@ -44,7 +41,7 @@ $ASHS_ROOT/bin/ashs_main.sh $options
           
 #Remove intermediate files
 rm -rf $output_directory/*raw.nii.gz
-##keep bootstrap and multiatlas for ADNI T2$output_directory/multiatlas $output_directory/bootstrap
+##keep bootstrap and multiatlas for ADNI T2 $output_directory/multiatlas $output_directory/bootstrap
 
 
 # Options:

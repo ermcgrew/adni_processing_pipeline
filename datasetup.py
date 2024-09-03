@@ -596,6 +596,67 @@ def identify_new_scans(new_uids_csv,old_filelocs_csv,scantype):
     # new_uids_df.to_csv(os.path.join(datasetup_directories_path["processing_status"], filenames['processing_status'][scantype]), index=False, header=True)
 
 
+def modified_create_tau_anchored_uid_list():
+    ### modified for LEADS data
+    logging.info(f"Creating tau-anchored uid list")
+
+    #need tau, amy, mri uid csvs
+    mris = pd.read_csv("/project/wolk/Prisma3T/relong/LEADS/LEADS_MRI_sessions_20240814.csv")
+    amys = pd.read_csv("/project/wolk/Prisma3T/relong/LEADS/LEADS_AmyloidPET_sessions_20240814.csv")
+    taus = pd.read_csv("/project/wolk/Prisma3T/relong/LEADS/LEADS_TauPET_sessions_20240814.csv")
+   
+    tau_subjects=taus['ID'].unique()
+
+    outputdf=pd.DataFrame()
+    index = 0
+
+    for subject in tau_subjects:
+        ##find subject rows in tau, use to create a date list
+        taumatch=taus.loc[taus['ID'] == subject] 
+        taudates = taumatch['SMARTDATE.tau'].unique()
+
+        ## match to subject rows in mriuidslist
+        mrimatch=mris.loc[mris['ID']==subject]   
+        mridates=mrimatch['SMARTDATE.mri'].values.tolist()
+        mridates_formatted=[datetime.strptime(x,"%Y-%m-%d") for x in mridates]
+        
+        ## match to subject rows in amy uids list
+        amymatch = amys.loc[amys['ID'] == subject]
+        amydates = amymatch['SMARTDATE.amy'].values.tolist()
+        amydates_formatted = [datetime.strptime(x,"%Y-%m-%d") for x in amydates]
+
+        ## if subject not found in either sheet
+        if len(mrimatch) == 0 and len(amymatch) == 0:  
+            continue
+        else:
+            for taudate in taudates:
+                ##add ID to new outputdf
+                outputdf.loc[index,['ID','SMARTDATE.tau']] = [subject,taudate]
+                taudate_dt=datetime.strptime(taudate,"%Y-%m-%d")
+                
+                if len(mrimatch) != 0:
+                    ##Find closest MRI date; add that row's data to outputdf
+                    mri_diffs=[abs(x-taudate_dt).total_seconds() for x in mridates_formatted]
+                    mri_datetouse=mridates[mri_diffs.index(min(mri_diffs))]
+
+                    outputdf.at[index,'SMARTDATE.mri'] = mri_datetouse
+                    outputdf.at[index,'tau_datediff_seconds.mri'] = min(mri_diffs)
+                    outputdf.at[index,'tau_datediff_days.mri'] = ((min(mri_diffs) / 60 ) / 60 ) / 24
+
+                if len(amymatch) != 0:
+                    ##Find closest amyloid date; add that data to outputdf
+                    amy_diffs=[abs(x-taudate_dt).total_seconds() for x in amydates_formatted]
+                    amy_datetouse=amydates[amy_diffs.index(min(amy_diffs))]
+
+                    outputdf.at[index,'SMARTDATE.amy'] = amy_datetouse
+                    outputdf.at[index,'tau_datediff_seconds.amy'] = min(amy_diffs)
+                    outputdf.at[index,'tau_datediff_days.amy'] = ((min(amy_diffs) / 60 ) / 60 ) / 24
+                
+                index +=1  
+    
+    outputdf.to_csv("/project/wolk/Prisma3T/relong/LEADS/LEADS_tau_anchored_20240814.csv",index=False,header=True)
+
+
 def main():
     registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
 
@@ -614,11 +675,12 @@ def main():
 
 if __name__ == "__main__":
     print("running datasetup.py directly.")
-    registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
+    modified_create_tau_anchored_uid_list()
+    # registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
     # preprocess_new("PET_META_LIST_30Jun2023.csv",registry=registry_df)   
     # preprocess_new("MRILIST_12Jun2023.csv",registry=registry_df)   
 
-    create_mri_uid_list()
+    # create_mri_uid_list()
     # create_pet_uid_list() 
     # create_tau_anchored_uid_list()
 

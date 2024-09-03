@@ -66,11 +66,11 @@ class MRI:
         self.id = subject
         self.mridate = mridate
         self.scandate = mridate
-        self.filepath=f"{adni_data_dir}/{self.id}/{self.mridate}"
-        self.date_id_prefix = f"{self.mridate}_{self.id}"
+        self.filepath=f"{adni_data_dir}/{self.id}/MRI3T/{self.mridate}/processed"
+        self.date_id_prefix = f"{self.id}_{self.mridate}"
         
-        self.t1nifti = f"{self.filepath}/{self.date_id_prefix}_T1w.nii.gz"
-        self.t1trim = f"{self.filepath}/{self.date_id_prefix}_T1w_trim.nii.gz"
+        self.t1nifti = f"{self.filepath}/{self.date_id_prefix}_mprage.nii.gz"
+        self.t1trim = f"{self.filepath}/{self.date_id_prefix}_mprage_trim.nii.gz"
 
         self.thick_dir = f"{self.filepath}/thickness"
         self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
@@ -86,7 +86,7 @@ class MRI:
         self.wbseg_propagated = f"{self.filepath}/{self.wbseg_dir}/{self.date_id_prefix}_T1w_trim_brainx_ExtractedBrain_wholebrainseg_cortical_propagate.nii.gz"
         self.inferior_cereb_mask = f"{self.filepath}/{self.wbseg_dir}/inferior_cerebellum.nii.gz"
         
-        self.superres_nifti = f"{self.filepath}/{self.date_id_prefix}_T1w_trim_denoised_SR.nii.gz"
+        self.superres_nifti = f"{self.filepath}/{self.date_id_prefix}_mprage_trim_denoised_SR.nii.gz"
         
         self.t1ashs_seg_left = f"{self.filepath}/ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
         self.t1ashs_seg_right = f"{self.filepath}/ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
@@ -105,7 +105,7 @@ class MRI:
             ##ICV volume txt file name from newer ASHS versions:
             self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_multiatlas_corr_nogray_volumes.txt"
 
-        self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_T2w.nii.gz"
+        self.t2nifti = f"{self.filepath}/{self.date_id_prefix}_tse.nii.gz"
         self.t2ashs_seg_left = f"{self.filepath}/sfsegnibtend/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
         self.t2ashs_seg_right = f"{self.filepath}/sfsegnibtend/final/{self.id}_right_lfseg_corr_nogray.nii.gz"
         self.t2ashs_tse = f"{self.filepath}/sfsegnibtend/tse.nii.gz"
@@ -159,7 +159,7 @@ class MRI:
             if dry_run:
                 print(f'run crossthick.sh')
             else:
-                os.system(f"bsub {submit_options} -M 8G {thickness_script} {self.id} {self.t1trim} {self.thick_dir}")
+                os.system(f"bsub {submit_options} -q bsc_long -M 8G {thickness_script} {self.id} {self.t1trim} {self.thick_dir}")
             return this_job_name          
         else:
             return ""
@@ -345,9 +345,6 @@ class MRI:
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run: 
                 print("T1 ashs running")
-                # print(f"bsub {submit_options} \
-                #         ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti} \
-                #         {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
             else:
                 os.system(f"bsub {submit_options} \
                         ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti}\
@@ -592,9 +589,9 @@ class AmyloidPET:
     def __init__(self, subject, amydate):
         self.id = subject
         self.scandate = amydate
-        self.filepath=f"{adni_data_dir}/{self.id}/{self.scandate}"
-        self.date_id_prefix = f"{self.scandate}_{self.id}"
-        self.eightmm_amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet.nii.gz"        
+        self.filepath=f"{adni_data_dir}/{self.id}/AmyloidPET/{self.scandate}/processed"
+        self.date_id_prefix = f"{self.id}_{self.scandate}"
+        # self.eightmm_amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet.nii.gz"        
         self.amy_nifti = f"{self.filepath}/{self.date_id_prefix}_amypet6mm.nii.gz"        
 
         self.log_output_dir = f"{self.filepath}/logs"
@@ -606,9 +603,9 @@ class TauPET:
     def __init__(self, subject, taudate):
         self.id = subject
         self.scandate = taudate
-        self.filepath = f"{adni_data_dir}/{self.id}/{self.scandate}"
-        self.date_id_prefix = f"{self.scandate}_{self.id}"
-        self.eightmm_tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet.nii.gz"
+        self.filepath = f"{adni_data_dir}/{self.id}/TauPET/{self.scandate}/processed"
+        self.date_id_prefix = f"{self.id}_{self.scandate}"
+        # self.eightmm_tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet.nii.gz"
         self.tau_nifti = f"{self.filepath}/{self.date_id_prefix}_taupet6mm.nii.gz"
 
         self.log_output_dir = f"{self.filepath}/logs"
@@ -639,8 +636,8 @@ class MRIPetReg:
             self.eightmm_pettype_filename = "taupet"            
             self.pettype_filename = "taupet6mm"
 
-        self.filepath = f"{adni_data_dir}/{self.id}/{self.petdate}"
-        self.reg_prefix = f"{self.petdate}_{self.id}_{self.pettype_filename}_to_{self.mridate}"
+        self.filepath = f"{adni_data_dir}/{self.id}/{self.pet_type}/{self.petdate}/processed"
+        self.reg_prefix = f"{self.id}_{self.petdate}_{self.pettype_filename}_to_{self.mridate}"
 
         self.t1_reg_RAS = f"{self.filepath}/{self.reg_prefix}_T10GenericAffine_RAS.mat"
         self.t1_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T1.nii.gz"
@@ -728,14 +725,15 @@ if __name__ == "__main__":
     # mri_to_process = MRI('007_S_2394','2023-10-26')
     # mri_to_process = MRI("022_S_6796","2020-09-09")
     # mri_to_process = MRI("024_S_6846",'2021-05-20')
-    mri_to_process = MRI("135_S_6703",'2021-04-20')
+    # mri_to_process = MRI("135_S_6703",'2021-04-20')
+    mri_to_process = MRI("LDS1770072","2019-09-20")
 
     # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
     # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
     # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
     # amy_to_process = AmyloidPET("135_S_4722","2017-06-20")
     # amy_to_process = AmyloidPET("022_S_6796","2021-08-24")
-    amy_to_process = AmyloidPET("135_S_6703","2021-04-20")
+    # amy_to_process = AmyloidPET("135_S_6703","2021-04-20")
 
     # tau_to_process = TauPET("099_S_6175", "2020-07-09")
     # tau_to_process = TauPET("114_S_6917", "2021-08-11")
@@ -743,7 +741,7 @@ if __name__ == "__main__":
     # tau_to_process = TauPET("022_S_6796","2020-09-23")
 
 
-    mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
+    # mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
     # mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
 
 
@@ -755,11 +753,12 @@ if __name__ == "__main__":
     # mri_to_process.superres() 
     # mri_to_process.t1ashs(dry_run=True)
 
-    # mri_to_process.brain_ex(dry_run=True)
+    mri_to_process.brain_ex()
     # mri_to_process.wbsegqc()
     # mri_to_process.wbseg_to_ants()
 
-    # mri_to_process.t1icv()
+    ### mri_to_process.t1icv()
+    # mri_to_process.t2ashs()
 
     # mri_to_process.prc_cleanup(dry_run=True)
 
@@ -789,6 +788,6 @@ if __name__ == "__main__":
     # mri_tau_reg_to_process.do_t2_pet_reg([f"{mri_to_process.mridate}_{mri_to_process.id}_t1taupetreg",f"{mri_to_process.mridate}_{mri_to_process.id}_t2ashs"])
 
 
-    mri_amy_reg_to_process.t1_pet_reg(dry_run=True)
+    # mri_amy_reg_to_process.t1_pet_reg(dry_run=True)
     # mri_amy_reg_to_process.t2_pet_reg()
     # mri_amy_reg_to_process.pet_reg_qc()
