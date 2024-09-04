@@ -345,9 +345,6 @@ class MRI:
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run: 
                 print("T1 ashs running")
-                # print(f"bsub {submit_options} \
-                #         ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti} \
-                #         {self.filepath}/ASHST1 {self.id} {ashs_mopt_mat_file}")
             else:
                 os.system(f"bsub {submit_options} \
                         ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1_atlas} {self.t1trim} {self.superres_nifti}\
@@ -663,7 +660,7 @@ if __name__ == "__main__":
     ### Define class instance
     # mri_to_process = MRI("018_S_2155", "2022-11-21")    
     # mri_to_process = MRI("033_S_0734", "2018-10-10")
-    mri_to_process = MRI("114_S_6917","2021-04-16") 
+    # mri_to_process = MRI("114_S_6917","2021-04-16") 
     # mri_to_process = MRI("135_S_4722","2017-06-22") 
     # mri_to_process = MRI("033_S_7088", "2022-06-27")
     # mri_to_process = MRI("099_S_6175", "2020-06-03")
@@ -699,7 +696,6 @@ if __name__ == "__main__":
     # mri_to_process.superres() 
     # mri_to_process.superres_test()
     # mri_to_process.t1ashs()
-    mri_to_process.testmultitemp()
 
     # mri_to_process.brain_ex(dry_run=True)
     # mri_to_process.whole_brain_seg
