@@ -43,6 +43,7 @@ Existing collections:
 From Data Collections tab: 
     for each collection, 
         select "not downloaded" part (from left menu bar)
+        download a csv of the "not downloaded" files
         select all scans
         get advanced download link (right click, "copy link address")
         paste into proper part of download_adni_dicoms.py

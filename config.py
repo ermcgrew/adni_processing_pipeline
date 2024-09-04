@@ -76,7 +76,7 @@ ashs_mopt_mat_file = f"{utilities_dir}/identity.mat"
 # replace "cortical_thick" with "antsct_aging" when new ants code is ready
 processing_steps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
             "wbsegqc", "inf_cereb_mask", "pmtau", 
-            "t1icv", "superres", "t1ashs", "t1mtthk", "t2ashs","prc_cleanup", "testmultitemp",
+            "t1icv", "superres", "t1ashs", "t1mtthk", "t2ashs","prc_cleanup",
             "flair_skull_strip", "wmh_seg",
             "t1_pet_reg", "t1_pet_suvr", "pet_reg_qc",
             "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
@@ -93,7 +93,7 @@ def determine_parent_step(step_to_do):
         return ["whole_brain_seg"]
     elif step_to_do == "t1ashs":
         return ["superres"]
-    elif step_to_do == "t1mtthk" or "testmultitemp":
+    elif step_to_do == "t1mtthk":
         return ["t1ashs"]
     elif step_to_do == "prc_cleanup":
         return ["t2ashs"]

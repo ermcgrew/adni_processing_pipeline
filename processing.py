@@ -359,29 +359,6 @@ class MRI:
 
     def t1mtthk(self, parent_job_name = [], dry_run = False):
         this_function = MRI.t1mtthk.__name__
-        for side in sides:
-            if side == "left":
-                ashs_thick = self.t1mtthk_left
-                ashs_seg = self.t1ashs_seg_left
-                this_job_name=f"{self.date_id_prefix}_{this_function}_left"
-            elif side == "right":
-                ashs_thick = self.t1mtthk_right
-                ashs_seg = self.t1ashs_seg_right
-                this_job_name=f"{self.date_id_prefix}_{this_function}_right"
-            if ready_to_process(f"{this_function}_{side}", self.id, self.mridate, input_files=[ashs_seg], output_files=[ashs_thick], 
-                                parent_job = parent_job_name):
-                submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-                if dry_run: 
-                    print(f"do MTTHK for side {side}")
-                else:
-                    os.system(f"bsub {submit_options} -M 12G -n 1 \
-                                ./wrapper_scripts/multitemplate_thickness.sh {self.id} {self.mridate}\
-                                {side} {ashs_seg} {self.filepath}/ASHST1_MTLCORTEX_MSTTHK")  
-        return "t1mtthk"
-              
-
-    def testmultitemp(self, parent_job_name = [], dry_run = False):
-        this_function = MRI.t1mtthk.__name__
         this_job_name = f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(f"{this_function}", self.id, self.mridate, input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right], output_files=[self.t1mtthk_left,self.t1mtthk_right], 
                                 parent_job = parent_job_name):

@@ -8,9 +8,10 @@
 ## Instructions for use
 ### Get dicoms
 1. Follow instructions in `/download_dicoms/download_dicoms_procedure.txt` to gather new scans from ida.loni.usc.edu database and get download links.
-2. Add download https strings to a copy of `/download_dicoms/download_adni_dicoms.py` on your personal computer (cannot download directly to the bscsub cluster) to download dicoms from ida.loni.usc.edu. 
-3. Use scp or rsync to move files from personal computer to cluster.
-4. Run command `python app.py unpack_dicoms <options>` to unzip dicoms and rsync between cluster locations.
+2. Download a csv of the "not downloaded" files in each collection.
+3. Add download https strings to a copy of `/download_dicoms/download_adni_dicoms.py` on your personal computer (cannot download directly to the bscsub cluster) to download dicoms from ida.loni.usc.edu. 
+4. Use scp or rsync to move files from personal computer to cluster.
+5. Run command `python app.py unpack_dicoms <options>` to unzip dicoms and rsync between cluster locations.
 
 ### Get data sheets
 1. Manually download these csvs from ida.loni.usc.edu:
