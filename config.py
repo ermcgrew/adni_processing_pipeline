@@ -15,7 +15,7 @@ def reformat_date_slash_to_dash(df):
     # M/D/YY to YYYY-MM-DD
     for index, row in df.iterrows():
         if "/" in row['SMARTDATE']:
-            MDYlist=row['SMARTDATE'].split('/')
+            MDYlist = row['SMARTDATE'].split('/')
             
             if len(MDYlist[0]) == 1:
                 month = "0" + MDYlist[0]
@@ -25,12 +25,12 @@ def reformat_date_slash_to_dash(df):
             if  len(MDYlist[1]) == 1:
                 day = "0" + MDYlist[1]
             else:
-                day=MDYlist[1]
+                day = MDYlist[1]
 
-            year="20" + MDYlist[2]
+            year = MDYlist[2]
 
-            newdate=year + "-" + month + "-" + day
-            df.at[index,'SMARTDATE']=newdate
+            newdate = year + "-" + month + "-" + day
+            df.at[index,'SMARTDATE'] = newdate
     return df
 
 ### File/directory locations on the cluster
@@ -79,7 +79,8 @@ processing_steps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", 
             "t1icv", "superres", "t1ashs", "t1mtthk", "t2ashs","prc_cleanup",
             "flair_skull_strip", "wmh_seg",
             "t1_pet_reg", "t1_pet_suvr", "pet_reg_qc",
-            "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats"]
+            "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats",
+            "adhoc_run_pet"]
 
 def determine_parent_step(step_to_do):
     if step_to_do == "cortical_thick" or step_to_do == "brain_ex" or step_to_do == "t1icv" \

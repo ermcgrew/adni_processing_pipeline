@@ -247,7 +247,7 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                         else:
                             ## wait code needs to match pet_reg_class as well as pstep in jobs running
                             pet_wait_code = [code for code in wait_code if pet_reg_class.pet_type in code]
-                        
+
                         job_name = getattr(pet_reg_class,step)(parent_job_name = pet_wait_code, dry_run = dry_run)
                         if job_name:
                             jobs_running.append(job_name)

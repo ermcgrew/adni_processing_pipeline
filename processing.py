@@ -589,11 +589,17 @@ class MRIPetReg:
 
         self.filepath = f"{adni_data_dir}/{self.id}/{self.petdate}"
         self.reg_prefix = f"{self.petdate}_{self.id}_{self.pettype_filename}_to_{self.mridate}"
+        self.reg_8mm_prefix = f"{self.petdate}_{self.id}_{self.eightmm_pettype_filename}_to_{self.mridate}"
 
         self.t1_reg_RAS = f"{self.filepath}/{self.reg_prefix}_T10GenericAffine_RAS.mat"
         self.t1_reg_nifti = f"{self.filepath}/{self.reg_prefix}_T1.nii.gz"
         self.t1_SUVR = f"{self.filepath}/{self.reg_prefix}_T1_SUVR.nii.gz"
+        self.t1_pvc = f"{self.filepath}/{self.reg_prefix}_T1_pvc.nii.gz"
         self.t1_reg_qc = f"{self.filepath}/{self.reg_prefix}_T1_qa.png"
+
+        self.t1_8mm_reg_nifti = f"{self.filepath}/{self.reg_8mm_prefix}_T1.nii.gz"
+        self.t1_8mm_SUVR = f"{self.filepath}/{self.reg_8mm_prefix}_T1_SUVR.nii.gz"
+        self.t1_8mm_pvc = f"{self.filepath}/{self.reg_8mm_prefix}_T1_pvc.nii.gz"
 
         self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
@@ -653,7 +659,22 @@ class MRIPetReg:
             return 
 
  
-
+    def adhoc_run_pet(self, parent_job_name = [], dry_run = False):
+        this_function = MRIPetReg.adhoc_run_pet.__name__
+        this_job_name=f"{self.mridate}_{self.id}_{this_function}" 
+        if self.pet_type == "AmyloidPET": 
+            if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", input_files = [self.t1_8mm_reg_nifti], \
+                                output_files = [self.t1_8mm_pvc], parent_job = parent_job_name):
+                submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+                if dry_run:
+                    print(f"running adhoc: xueying amy t1 pvc images:{self.t1_8mm_SUVR}")
+                else:
+                    os.system(f"bsub {submit_options} ./wrapper_scripts/adhoc_amy_pvc_keep_images.sh {self.t1_8mm_SUVR} ")
+                return this_job_name          
+            else:
+                return
+                
+                
 if __name__ == "__main__":
     print("Running processing.py directly.")
 
