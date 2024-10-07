@@ -42,4 +42,4 @@ for key, value in downloads.items():
 
 print()
 print("Command to copy all files & containing folder to cluster:")
-print(f"scp -r {targetdir} {bsc_username}@bscsub.pmacs.upenn.edu:/project/wolk/all_adni")
+print(f"rsync -avh --progress --ignore-existing {targetdir} {bsc_username}@bscsub.pmacs.upenn.edu:/project/wolk/all_adni")

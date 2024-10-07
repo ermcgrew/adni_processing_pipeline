@@ -49,5 +49,5 @@ From Data Collections tab:
         paste into proper part of download_adni_dicoms.py
         update date in download_adni_dicoms.py
         run script download_adni_dicoms.py 
-        run scp command to copy zip files to cluster
+        run rsync command to copy zip files to cluster
 
