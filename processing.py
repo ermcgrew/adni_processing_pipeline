@@ -537,6 +537,22 @@ class MRI:
             return
 
 
+    def adhoc_mri(self, parent_job_name = [], dry_run = False):
+        this_function = MRI.adhoc_mri.__name__
+        this_job_name=f"{this_function}_{self.date_id_prefix}"
+        if ready_to_process(this_function, self.id, self.mridate, \
+                            input_files=[], \
+                            output_files=[], parent_job=parent_job_name):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+            if dry_run:
+                print("Running adhoc mri function")
+            else:
+                os.system(f"bsub {submit_options} ")
+            return this_job_name          
+        else:
+            return 
+
+
 class AmyloidPET:
     # strings for Amyloid PET filepaths
     def __init__(self, subject, amydate):

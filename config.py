@@ -80,7 +80,7 @@ processing_steps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", 
             "flair_skull_strip", "wmh_seg",
             "t1_pet_reg", "t1_pet_suvr", "pet_reg_qc",
             "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats",
-            "adhoc_run_pet"]
+            "adhoc_run_pet", "adhoc_mri"]
 
 def determine_parent_step(step_to_do):
     if step_to_do == "cortical_thick" or step_to_do == "brain_ex" or step_to_do == "t1icv" \
@@ -110,8 +110,10 @@ def determine_parent_step(step_to_do):
 
 ## all mri except flair steps:
 ## app.py image_processing -s neck_trim cortical_thick brain_ex whole_brain_seg wbseg_to_ants wbsegqc inf_cereb_mask pmtau t1icv superres t1ashs t1mtthk t2ashs prc_cleanup 
-
-
+## all ASHS
+# app.py image_processing -s neck_trim t1icv superres t1ashs t1mtthk t2ashs prc_cleanup 
+## all whole-brain related
+# app.py image_processing -s neck_trim cortical_thick brain_ex whole_brain_seg wbseg_to_ants wbsegqc inf_cereb_mask pmtau 
 
 ###Data sheets & derived csvs names and locations
 #list all directories with data sheets, then select those for newest date
