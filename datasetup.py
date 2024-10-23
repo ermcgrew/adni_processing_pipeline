@@ -619,11 +619,15 @@ def main():
 if __name__ == "__main__":
     print("running datasetup.py directly.")
     registry_df = pd.read_csv(os.path.join(datasetup_directories_path["ida_study_datasheets"],registry_csv))
+   
+    # for csvfile in original_ida_datasheets:
+    #     print(csvfile)
+    #     preprocess_new(csvfile, registry=registry_df)
     # preprocess_new("PET_META_LIST_30Jun2023.csv",registry=registry_df)   
     # preprocess_new("MRILIST_12Jun2023.csv",registry=registry_df)   
 
-    create_mri_uid_list()
-    # create_pet_uid_list() 
+    # create_mri_uid_list()
+    create_pet_uid_list() 
     # create_tau_anchored_uid_list()
 
     # identify_new_scans("/project/wolk/ADNI2018/analysis_input/adni_data_setup_csvs/20230731_uids/mri_uids.csv",\

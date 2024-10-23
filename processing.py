@@ -437,15 +437,15 @@ class MRI:
             return
 
 
-    def ashst1_stats(self, wait_code = "", dry_run = False):
+    def ashst1_stats(self, parent_job_name = [], dry_run = False):
         this_function = MRI.ashst1_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"             
         if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
                                          self.t1mtthk_left,self.t1mtthk_right,self.icv_volumes_file], \
                             output_files=[self.t1ashs_stats_txt],\
-                            parent_job=wait_code):
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
+                            parent_job=parent_job_name):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print("ASHS T1 stats running")
             else:
@@ -458,14 +458,14 @@ class MRI:
             return
 
 
-    def ashst2_stats(self, wait_code = "", dry_run = False):
+    def ashst2_stats(self, parent_job_name = [], dry_run = False):
         this_function = MRI.ashst2_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"  
         if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.t2nifti,self.t2ashs_cleanup_left,self.t2ashs_cleanup_right], \
                             output_files=[self.t2ashs_stats_txt],\
-                            parent_job=wait_code):
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
+                            parent_job=parent_job_name):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print("ASHS T2 stats running")
             else:
@@ -477,13 +477,13 @@ class MRI:
             return
 
    
-    def structure_stats(self, wait_code = "", dry_run = False):
+    def structure_stats(self, parent_job_name = [], dry_run = False):
         this_function = MRI.structure_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
         if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.wbseg_propagated, self.thickness], \
-                            output_files=[self.structure_stats_txt], parent_job=wait_code):
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
+                            output_files=[self.structure_stats_txt], parent_job=parent_job_name):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print("Running structure stats")
             else:
@@ -495,13 +495,13 @@ class MRI:
             return
 
 
-    def wmh_stats(self, wait_code = "", dry_run = False):
+    def wmh_stats(self, parent_job_name = [], dry_run = False):
         this_function = MRI.wmh_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
         if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.flair, self.wmh], \
-                            output_files=[self.wmh_stats_txt], parent_job=wait_code):
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
+                            output_files=[self.wmh_stats_txt], parent_job=parent_job_name):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print("Running wmh stats")
             else:
@@ -512,15 +512,15 @@ class MRI:
             return 
 
     ## function pet_stats has to be in mri class, since it takes two instances of class MRIPETReg
-    def pet_stats(self, wait_code = "", t1tausuvr="null", t1amysuvr="null",\
+    def pet_stats(self, wparent_job_name = [], t1tausuvr="null", t1amysuvr="null",\
                         taudate="null", amydate="null", dry_run = False):
         this_function = MRI.pet_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"
         pet_stats_txt = f"{stats_output_dir}/stats_tau_{taudate}_amy_{amydate}_mri_{self.mridate}_{self.id}_pet.txt"
         ## too many input files, so pass blank list to get stats related to any existing images & prevent overwriting stats output
         if ready_to_process(this_function, self.id, self.mridate, input_files = [], \
-                            output_files = [pet_stats_txt], parent_job = wait_code):
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, wait_code)
+                            output_files = [pet_stats_txt], parent_job = parent_job_name):
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print(f"running pet stats")
             else:

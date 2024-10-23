@@ -43,9 +43,9 @@ def convert_symlink(single_type="", all_types=False, inputcsv="", outputcsv=""):
             df=pd.read_csv(csv_to_read,index_col=False)
 
             if scantype == 'mri':
-                df_newscans = df.loc[(df['NEW_T1'] == 1) | (df['NEW_T2'] == 1) | (df['NEW_FLAIR'] == 1 )]
+                df_newscans = df.loc[(df['NEW_T1'] == 1) | (df['NEW_T2'] == 1) | (df['NEW_FLAIR'] == 1 )].reset_index(drop = True)
             else:
-                df_newscans = df.loc[(df['NEW_PET'] == 1)]
+                df_newscans = df.loc[(df['NEW_PET'] == 1)].reset_index(drop = True)
 
             ##Start converting dicom to nifti, line by line    
             for index,row in df_newscans.iterrows():
@@ -218,14 +218,14 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                     stats_wait_code = [f"{mri_to_process.mridate}_{mri_to_process.id}*"]
 
                 if step == "pet_stats":
-                    mri_to_process.pet_stats(wait_code = stats_wait_code,
+                    mri_to_process.pet_stats(parent_job_name = stats_wait_code,
                                             t1tausuvr = mri_tau_reg_to_process.t1_SUVR,
                                             t1amysuvr = mri_amy_reg_to_process.t1_SUVR,
                                             taudate = mri_tau_reg_to_process.petdate,
                                             amydate = mri_amy_reg_to_process.petdate,
                                             dry_run = dry_run) 
                 else:
-                    getattr(mri_to_process,step)(wait_code = stats_wait_code, dry_run = dry_run)
+                    getattr(mri_to_process,step)(parent_job_name = stats_wait_code, dry_run = dry_run)
             else:
                 parent_step = determine_parent_step(step)
                 wait_code = [job for job in jobs_running for pstep in parent_step if pstep in job]
@@ -303,17 +303,24 @@ def longitudinal_processing(csv = "" ,dry_run = False):
         for i in range(0,len(alldates)):
             mri_list.append(MRI(subject,alldates[i]))
         t1images=" ".join([x.t1trim for x in mri_list])
+
+        ## only checks if long_ants has been run, not if it's been run on the same subset of dates for the subject
+        # existing_output = f"{output_dir}/antsLongitudinalCorticalThicknessOutput.txt"
+        # if os.path.exists(existing_output):
+        #     logging.info(f"{subject}:long ants already run.")
+        #     continue
+        # el
         if len(mri_list) == 1:
             logging.info(f"{subject}:skipping, only one timepoint available.")
             continue
         elif len(mri_list) >= 4: 
-            # logging.info(f"{subject}: skipping for now, 4 or more timepoints.")
-            logging.info(f"{subject}:passing {len(mri_list)} images to wrapper script.")
-            # continue
-        else:
-            # logging.info(f"{subject}: passing {len(mri_list)} images to wrapper script.")
-            logging.info(f"{subject}:skipping, already did 2 and 3 timepoint subs.")
+            logging.info(f"{subject}: skipping for now, 4 or more timepoints.")
+            # logging.info(f"{subject}:passing {len(mri_list)} images to wrapper script.")
             continue
+        else:
+            logging.info(f"{subject}: passing {len(mri_list)} images to wrapper script.")
+            # logging.info(f"{subject}:skipping, already did 2 and 3 timepoint subs.")
+            # continue
 
         if dry_run == True: 
             print(f"{output_dir} {t1images}")
