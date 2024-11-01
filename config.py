@@ -119,6 +119,16 @@ def determine_parent_step(step_to_do):
 
 
 ###Data sheets & derived csvs names and locations
+
+## Static lists of scans from ADNI phases 1,2,GO,3
+adni12go3_mri_csv = f"{analysis_input_dir}/adni12go3_definitive_lists/ADNI1GO23_MRI_withfillins_DEFINITIVE_20241017.csv"
+
+adni12go3_amy_csv = f"{analysis_input_dir}/adni12go3_definitive_lists/ADNI12GO3_amy_uid_definitive_list_20241101.csv"
+adni12go3_tau_csv = f"{analysis_input_dir}/adni12go3_definitive_lists/ADNI12GO3_tau_uid_definitive_list_20241101.csv"
+
+
+
+
 #list all directories with data sheets, then select those for newest date
 # adni_data_csvs_directories_allruns = os.listdir(adni_data_setup_directory)
 # adni_data_csvs_directories_allruns.sort(reverse = True)
