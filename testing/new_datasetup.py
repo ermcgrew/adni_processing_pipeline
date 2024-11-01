@@ -65,17 +65,17 @@ def main():
             flair_df_formatted.rename(columns={'IMAGEUID':"IMAGEUID_FLAIR",'NEW_':"NEW_FLAIR"},inplace=True)
             logging.info(f"New FLAIR images {len(flair_df_formatted.loc[flair_df_formatted['NEW_FLAIR'] == 1])}")
 
-        # elif "Amy" in file:
-        #     amy_df = pd.read_csv(os.path.join(download_csvs_dir,file))
-        #     amy_df_formatted = reformat_dfs(amy_df)
-        #     amy_df_formatted.rename(columns={'IMAGEUID':"IMAGEID",'NEW_':"NEW_PET"},inplace=True)
-        #     logging.info(f"New Amyloid images {len(amy_df_formatted.loc[amy_df_formatted['NEW_PET'] == 1])}")
+        elif "Amy" in file:
+            amy_df = pd.read_csv(os.path.join(download_csvs_dir,file))
+            amy_df_formatted = reformat_dfs(amy_df)
+            amy_df_formatted.rename(columns={'IMAGEUID':"IMAGEID",'NEW_':"NEW_PET"},inplace=True)
+            logging.info(f"New Amyloid images {len(amy_df_formatted.loc[amy_df_formatted['NEW_PET'] == 1])}")
 
-        # elif "Tau" in file:
-        #     tau_df = pd.read_csv(os.path.join(download_csvs_dir,file))
-        #     tau_df_formatted = reformat_dfs(tau_df)
-        #     tau_df_formatted.rename(columns={'IMAGEUID':"IMAGEID",'NEW_':"NEW_PET"},inplace=True)
-        #     logging.info(f"New Tau images {len(tau_df_formatted.loc[tau_df_formatted['NEW_PET'] == 1])}")
+        elif "Tau" in file:
+            tau_df = pd.read_csv(os.path.join(download_csvs_dir,file))
+            tau_df_formatted = reformat_dfs(tau_df)
+            tau_df_formatted.rename(columns={'IMAGEUID':"IMAGEID",'NEW_':"NEW_PET"},inplace=True)
+            logging.info(f"New Tau images {len(tau_df_formatted.loc[tau_df_formatted['NEW_PET'] == 1])}")
 
 
     ## Merge all three MRI scans into one dataframe
@@ -97,37 +97,50 @@ def main():
 
 
     ### combine ADNI4 with previous phase processing
-    mri_done = pd.read_csv("/project/wolk/ADNI2018/analysis_input/Jul2024_all_uids_lists/ADNI_mri_uids_20240807.csv")
+    mri_12go3 = pd.read_csv("/project/wolk/ADNI2018/analysis_input/adni12go3_definitive_lists/ADNI1GO23_MRI_withfillins_DEFINITIVE_20241017.csv")
+    allmri = pd.concat([mri_12go3,mri_withvis])
+    ## check for duplicates?
+    ## do column names match?
+    allmri.to_csv(os.path.join(uids_dir,f"allADNI_mri_uids_{current_date}.csv"),index=False,header=True)
 
 
 
 
-    ### Add VISCODE2 to amyloid
-    # amymeta = pd.read_csv("/project/wolk/ADNI2018/analysis_input/Oct2024_adni_data_sheets/All_Subjects_AMYMETA_07Oct2024.csv")
-    # amymetasm = amymeta[['PHASE','PTID','RID','VISCODE','VISCODE2','SCANDATE']]
-    # for col in 'VISCODE', 'VISCODE2':
-    #     amymetasm[col] = amymetasm[col].str.replace('scmri', 'bl').replace('blmri', 'bl').replace('sc', 'bl')
-    # amymetasm = amymetasm.rename(columns={"PTID":"ID","SCANDATE":"SMARTDATE"}).drop_duplicates(subset=['ID','RID','SMARTDATE','VISCODE'],keep='first')
-    # amy_withvis = amy_df_formatted.merge(amymetasm,on=['ID','RID','VISCODE'],how='left')
-    # amy_withvis = amy_withvis.drop(columns=['SMARTDATE_y']).rename(columns={"SMARTDATE_x":"SMARTDATE"})
-    # # amy_withvis.info()
-    # amy_withvis.to_csv(os.path.join(uids_dir,f"ADNI4_AMY_UIDS_{current_date}.csv"),index=False,header=True)
+    ## Add VISCODE2 to amyloid
+    amymeta = pd.read_csv("/project/wolk/ADNI2018/analysis_input/Oct2024_adni_data_sheets/All_Subjects_AMYMETA_07Oct2024.csv")
+    amymetasm = amymeta[['PHASE','PTID','RID','VISCODE','VISCODE2','SCANDATE']]
+    for col in 'VISCODE', 'VISCODE2':
+        amymetasm[col] = amymetasm[col].str.replace('scmri', 'bl').replace('blmri', 'bl').replace('sc', 'bl')
+    amymetasm = amymetasm.rename(columns={"PTID":"ID","SCANDATE":"SMARTDATE"}).drop_duplicates(subset=['ID','RID','SMARTDATE','VISCODE'],keep='first')
+    amy_withvis = amy_df_formatted.merge(amymetasm,on=['ID','RID','VISCODE'],how='left')
+    amy_withvis = amy_withvis.drop(columns=['SMARTDATE_y']).rename(columns={"SMARTDATE_x":"SMARTDATE"})
+    # amy_withvis.info()
+    amy_withvis.to_csv(os.path.join(uids_dir,f"ADNI4_AMY_UIDS_{current_date}.csv"),index=False,header=True)
+    
     ### combine ADNI4 versions with existing data
-
+    amy_12go3 = pd.read_csv("/project/wolk/ADNI2018/analysis_input/adni12go3_definitive_lists/ADNI12GO3_amy_uid_definitive_list_20241101.csv")
+    allamy = pd.concat([amy_12go3,amy_withvis])
+    allamy.to_csv(os.path.join(uids_dir,f"allADNI_amy_uids_{current_date}.csv"),index=False,header=True)
 
 
 
     ### Add VISCODE2 to tau
     ## no current ADNI4 tau VISCODE2 sources
-    # tau_df_formatted.to_csv(os.path.join(uids_dir,f"ADNI4_TAU_UIDS_{current_date}.csv"),index=False,header=True)
+
+    tau_df_formatted.to_csv(os.path.join(uids_dir,f"ADNI4_TAU_UIDS_{current_date}.csv"),index=False,header=True)
+   
     ### combine ADNI4 versions with existing data
+    tau_12go3 = pd.read_csv("/project/wolk/ADNI2018/analysis_input/adni12go3_definitive_lists/ADNI12GO3_tau_uid_definitive_list_20241101.csv")
+    alltau = pd.concat([tau_12go3,tau_df_formatted])
+    alltau.to_csv(os.path.join(uids_dir,f"allADNI_tau_uids_{current_date}.csv"),index=False,header=True)
 
 
    
 
     ## make tau-anchored csv 
 
-
+    ## use function from datasetup.py 
+    ## pass allmri, allamy, alltau dfs
 
 
 
