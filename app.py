@@ -23,10 +23,10 @@ def unpack_dicoms(date):
 
 
 ## get UID & processing status lists for new batches of scans to process
-def data_setup():
+def data_setup(date):
     #### adni spreadsheets must already be added to cluster
     os.system(f"bsub -J '{current_date}_datasteup' -o {log_output_dir}/{current_date_time}_datasetup.txt \
-        python datasetup.py") 
+        python ./testing/new_datasetup.py -d {date}") 
 
 
 ## Convert dicom to nifti and symlink nifti to /dataset
@@ -139,14 +139,14 @@ def convert_symlink(single_type="", all_types=False, inputcsv="", outputcsv=""):
                 new_fileloc_path = os.path.join(datasetup_directories_path["filelocations"],filenames['filelocations'][scantype])
                 logging.info(f"Saving conversion status dataframe to csv: {new_fileloc_path}")
                 
-                old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in \
-                                    os.listdir(fileloc_directory_previousrun) if scantype in x][0]
-                old_filelocs_df = pd.read_csv(old_fileloc_path)
-                all_filelocs = pd.concat([df_newscans, old_filelocs_df], ignore_index=True)
-                #keep most recent (e.g. updated) if any duplicates
-                all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last', inplace=True) 
-                all_filelocs.sort_values(by=["RID","SMARTDATE"], ignore_index=True, inplace=True)
-                all_filelocs.to_csv(new_fileloc_path,index=False,header=True)
+                # old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in \
+                #                     os.listdir(fileloc_directory_previousrun) if scantype in x][0]
+                # old_filelocs_df = pd.read_csv(old_fileloc_path)
+                # all_filelocs = pd.concat([df_newscans, old_filelocs_df], ignore_index=True)
+                # #keep most recent (e.g. updated) if any duplicates
+                # all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last', inplace=True) 
+                # all_filelocs.sort_values(by=["RID","SMARTDATE"], ignore_index=True, inplace=True)
+                # all_filelocs.to_csv(new_fileloc_path,index=False,header=True)
  
 
 def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
@@ -350,6 +350,7 @@ unpack_dicoms_parser.set_defaults(func=unpack_dicoms)
 
 ###data_setup
 datasetup_parser = subparsers.add_parser("data_setup", help="Run datasetup.py.")
+datasetup_parser.add_argument("-d", "--date",help="")
 datasetup_parser.set_defaults(func=data_setup)
 
 

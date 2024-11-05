@@ -1,79 +1,41 @@
 # !/usr/bin/env python
 
+import argparse
 import logging
 import pandas as pd
 import os
 from config import *
 
 
-download_csvs_dir="/project/wolk/ADNI2018/analysis_input/Oct2024_download_csv_lists"
-adni_datasheets_dir = "/project/wolk/ADNI2018/analysis_input/Oct2024_adni_data_sheets"
-# uids_dir="/project/wolk/ADNI2018/analysis_input/Oct2024_all_uids_lists"
-uids_dir="/project/wolk/ADNI2018/scripts/pipeline_test_data"
-
-
-# def reformat_dfs(df):
-#     df_names = df.rename(columns={'Subject':'ID','Visit':"VISCODE",'Acq Date':'SMARTDATE',
-#     'Image Data ID':'IMAGEUID'})
-
-#     df_dates = reformat_date_slash_to_dash(df_names)
-
-#     df_dates['RID'] = df_dates['ID'].str.rsplit('_',n=1).str[-1].astype(int)
-#     df_dates['IMAGEUID'] = df_dates['IMAGEUID'].str[1:].astype(float)
-
-#     ## use null Downloaded for NEW_ column
-#     for index,row in df_dates.iterrows():
-#         if pd.isnull(row["Downloaded"]):
-#             df_dates.at[index,'NEW_'] = 1
-#         else:
-#             df_dates.at[index,'NEW_'] = 0
-
-#     df_dates=df_dates.loc[(df_dates['Description'] != "CS Sagittal MPRAGE (MSV22)") & (df_dates['Description'] != "HS Sagittal MPRAGE (MSV22)") ]
-    
-#     ### parse description column to get tracer for amyloid (drop this col for other sequence types)
-#     df_dates['TRACER'] = df_dates['Description'].str.split(" ").str[0]
-
-#     df_sm = df_dates[['RID','ID','SMARTDATE','VISCODE','IMAGEUID','NEW_','TRACER']]
-
-#     ## handle duplicates: keep latest UID 
-#     dupes = df_sm[df_sm.duplicated(subset=['RID','ID'],keep=False)]
-#     if len(dupes) > 0:
-#         idx_to_drop = []
-#         subjects = dupes['RID'].unique()
-#         for subject in subjects:     
-#             this_sub_only = dupes.loc[dupes['RID'] == subject]
-#             this_sub_only.sort_values(by = ['IMAGEUID'],inplace=True)
-#             idx_to_drop.append(this_sub_only.index[0])       
-#         df_nodupes = df_sm.drop(idx_to_drop).reset_index(drop=True)
-#         return df_nodupes
-#     else:
-#         return df_sm 
-
-
 def cleanup_collection_csvs(collection_file,sequence_type):
+    logging.info(f"Cleaning up collection csv {collection_file} for sequence type {sequence_type}:")
     df = pd.read_csv(os.path.join(download_csvs_dir,collection_file))
-    # df_formatted = reformat_dfs(df)
-################
+
+    #### df cleanup actions for all sequence types ###
+    ## rename some columns
     df_names = df.rename(columns={'Subject':'ID','Visit':"VISCODE",'Acq Date':'SMARTDATE',
     'Image Data ID':'IMAGEUID'})
 
+    ## fix date format
     df_dates = reformat_date_slash_to_dash(df_names)
 
+    ## get RID and IMAGEUID 
     df_dates['RID'] = df_dates['ID'].str.rsplit('_',n=1).str[-1].astype(int)
     df_dates['IMAGEUID'] = df_dates['IMAGEUID'].str[1:].astype(float)
+    ### parse description column to get tracer for amyloid (drop this col for other sequence types later)
+    df_dates['TRACER'] = df_dates['Description'].str.split(" ").str[0]
 
-    ## use null Downloaded for NEW_ column
+    ## Create "NEW_" column; if 'Downloaded' is null, it's in the new batch
     for index,row in df_dates.iterrows():
         if pd.isnull(row["Downloaded"]):
             df_dates.at[index,'NEW_'] = 1
         else:
             df_dates.at[index,'NEW_'] = 0
 
+    ## Exclude these two descriptions
     df_dates=df_dates.loc[(df_dates['Description'] != "CS Sagittal MPRAGE (MSV22)") & (df_dates['Description'] != "HS Sagittal MPRAGE (MSV22)") ]
-    
-    ### parse description column to get tracer for amyloid (drop this col for other sequence types)
-    df_dates['TRACER'] = df_dates['Description'].str.split(" ").str[0]
 
+    ## select only the columns needed
     df_sm = df_dates[['RID','ID','SMARTDATE','VISCODE','IMAGEUID','NEW_','TRACER']]
 
     ## handle duplicates: keep latest UID 
@@ -90,44 +52,24 @@ def cleanup_collection_csvs(collection_file,sequence_type):
     else:
         df_formatted = df_sm 
 
-############
+    ### df cleanup actions specific to sequence_type ###
+    ## Drop the "TRACER" column for all non-Amy dfs
     if sequence_type != 'AMY':
         df_formatted = df_formatted.drop(columns=['TRACER'])
 
+    ## Add sequence_type to relevant columns
     df_formatted.rename(columns={'IMAGEUID':f"IMAGEUID_{sequence_type}",'NEW_':f"NEW_{sequence_type}"},inplace=True)
     
+    ## record number of new sequences in log
     new_images = len(df_formatted.loc[df_formatted[f'NEW_{sequence_type}'] == 1])
     logging.info(f"{new_images} new {sequence_type} images")
+   
     return df_formatted
 
 
-# def viscode2_from_meta_csv(csv_filepath):
-#     metadf=pd.read_csv(csv_filepath)
-    
-    # if 'MRI' in csv_filepath:
-    #     datecol='EXAMDATE'
-    # else:
-    #     datecol='SCANDATE'
-
-    # ## only ADNI4 rows, only some columns
-    # metadf_sm = metadf.loc[metadf['PHASE'] == 'ADNI4',['PHASE','PTID','RID','VISCODE','VISCODE2',datecol]]
-    
-    # # Replace screening viscodes with BL -- only occur in MRI list, must change to match viscodes with pet sessions
-    # for col in 'VISCODE', 'VISCODE2':
-    #     metadf_sm[col] = metadf_sm[col].str.replace('scmri', 'bl').replace('blmri', 'bl').replace('sc', 'bl')
-
-    # metadf_sm = metadf_sm.rename(columns={"PTID":"ID",datecol:"SMARTDATE"})\
-    #                     .drop_duplicates(subset=['ID','RID','VISCODE'],keep='first')\
-    #                     .reset_index(drop=True)
-  
-    # return metadf_sm
-
-
-def combine_dfs_tempname(collection_df,scan_type,adni12go3_csv):
-    ## get VISCODE2 from "META" csv 
+def viscode2_from_meta_csv(collection_df,scan_type):
     meta_csv_name = [file for file in os.listdir(adni_datasheets_dir) if scan_type in file][0]
-    # meta_sm = viscode2_from_meta_csv(os.path.join(adni_datasheets_dir,meta_csv_name))
-#########
+    logging.info(f"Adding VISCODE2 from {meta_csv_name} for {scan_type}.")
     metadf=pd.read_csv(os.path.join(adni_datasheets_dir,meta_csv_name))
 
     if scan_type == 'MRI':
@@ -138,34 +80,51 @@ def combine_dfs_tempname(collection_df,scan_type,adni12go3_csv):
     ## only ADNI4 rows, only some columns
     metadf_sm = metadf.loc[metadf['PHASE'] == 'ADNI4',['PHASE','PTID','RID','VISCODE','VISCODE2',datecol]]
     
-    # Replace screening viscodes with BL -- only occur in MRI list, must change to match viscodes with pet sessions
+    ## Replace screening viscodes with 'bl' to match between MRI and PET sessions
     for col in 'VISCODE', 'VISCODE2':
         metadf_sm[col] = metadf_sm[col].str.replace('scmri', 'bl').replace('blmri', 'bl').replace('sc', 'bl')
 
+    ## Rename columns, drop any duplicates, reset index for merge
     metadf_sm = metadf_sm.rename(columns={"PTID":"ID",datecol:"SMARTDATE"})\
                         .drop_duplicates(subset=['ID','RID','VISCODE'],keep='first')\
                         .reset_index(drop=True)
-  ########
-    ## Add VISCODE2 df to downloads list
-    ## don't use SCANDATE to merge on--sometime are a day off, Keep left (_x) SCANDATE column, which is the date from the dicom
+    
+    ## Add VISCODE2 df to collection list
+    ## don't use DATE to merge on--some dates are a day off. Keep left (_x) DATE column, which is the date from the dicom
     fours_withvis = collection_df.merge(metadf_sm,on=['ID','RID','VISCODE'],how='left')\
                                 .drop(columns=['SMARTDATE_y'])\
                                 .rename(columns={"SMARTDATE_x":"SMARTDATE"})\
                                 .sort_values(by=['RID','SMARTDATE'])
+    ## Save df of all ADNI4 scans
     fours_withvis.to_csv(os.path.join(uids_dir,f"ADNI4_{scan_type}_UIDS_{current_date_time}.csv"),index=False,header=True)
 
+    ## log number of ADNI4 scans
+    logging.info(f"{len(fours_withvis)} ADNI4 {scan_type} images.")
+
+    return fours_withvis
+
+
+def combine_all_adni_phases(adni12go3_csv,fours_withvis_df,scan_type):
+    logging.info(f"Combining earlier ADNI phase scans from csv {adni12go3_csv}")
     ### combine ADNI4 versions with existing data
-    adni_12go3 = pd.read_csv(adni12go3_csv)
-    allscans = pd.concat([adni_12go3,fours_withvis]).\
+    adni_12go3_df = pd.read_csv(adni12go3_csv)
+    allscans = pd.concat([adni_12go3_df,fours_withvis_df]).\
                 sort_values(by=['RID','SMARTDATE']).reset_index(drop=True)
+
+    ## Save df of all ADNI scans 
     allscans.to_csv(os.path.join(uids_dir,f"allADNI_{scan_type}_uids_{current_date_time}.csv"),index=False,header=True)
+    
+    ## log new total number of ADNI scans
+    logging.info(f"{len(allscans)} total ADNI {scan_type} images.")
+
     return allscans
 
 
-
 def create_tau_anchored_uid_list(mris,taus,amys):
-    logging.info(f"Creating tau-anchored uid list")
+    logging.info(f"Now creating tau-anchored uid list")
 
+    ### IMAGEUID and NEW_ already have scantype listed after
+    ## SMARTDATE is SMARTDATE
     taucolstoadd = [col + ".tau" for col in taus.columns if col != "ID" and col != "RID"]
     amycolstoadd = [col + ".amy" for col in amys.columns if col != "ID" and col != "RID"]
     mricolstoadd = [col + ".mri" for col in mris.columns if col != "ID" and col != "RID"]
@@ -236,30 +195,45 @@ def create_tau_anchored_uid_list(mris,taus,amys):
 
 
 def main():
+    ## for each sequence type, reformat collection list csv
+    ## for PET sequences, also add VISCODE2 from meta csv and combine reformatted collection list with scans from other phases for complete list
     for file in os.listdir(download_csvs_dir):
         if "T1" in file:
-            t1_formatted = cleanup_collection_csvs(file,"T1")
+            t1_formatted = cleanup_collection_csvs(file, "T1")
         elif "T2" in file:
-            t2_formatted = cleanup_collection_csvs(file,"T2")
+            t2_formatted = cleanup_collection_csvs(file, "T2")
         elif "FLAIR" in file:
-            flair_formatted = cleanup_collection_csvs(file,"FLAIR")
+            flair_formatted = cleanup_collection_csvs(file, "FLAIR")
         elif "Amy" in file:
-            amy_formatted = cleanup_collection_csvs(file,"AMY")
-            all_amys = combine_dfs_tempname(amy_formatted,'AMY',adni12go3_amy_csv)
+            amy_formatted = cleanup_collection_csvs(file, "AMY")
+            amys_fours = viscode2_from_meta_csv(amy_formatted,'AMY')
+            all_amys = combine_all_adni_phases(adni12go3_amy_csv, amys_fours, 'AMY')
         elif "Tau" in file:
-            tau_formatted = cleanup_collection_csvs(file,"TAU")
-            all_taus = combine_dfs_tempname(tau_formatted,'TAU',adni12go3_tau_csv)
+            tau_formatted = cleanup_collection_csvs(file, "TAU")
+            taus_fours = viscode2_from_meta_csv(tau_formatted, 'TAU')
+            all_taus = combine_all_adni_phases(adni12go3_tau_csv, taus_fours, 'TAU')
 
-    ## Merge all three MRI scans into one dataframe
+    ## Merge all three MRI sequences into one dataframe
     tees_mri = t1_formatted.merge(t2_formatted,how='outer',on=['RID','ID','SMARTDATE','VISCODE'])
-    allmri = tees_mri.merge(flair_formatted,how='outer',on=['RID','ID','SMARTDATE','VISCODE'])
+    allmriseq = tees_mri.merge(flair_formatted,how='outer',on=['RID','ID','SMARTDATE','VISCODE'])
+    ## add VISCODE2 from meta csv
+    mris_fours = viscode2_from_meta_csv(allmriseq, 'MRI')
     ## get full list of MRIs from all ADNI phases
-    all_mris = combine_dfs_tempname(allmri,'MRI',adni12go3_mri_csv)
+    all_mris = combine_all_adni_phases(adni12go3_mri_csv, mris_fours, 'MRI')
 
     ## make tau-anchored csv 
-    create_tau_anchored_uid_list(all_mris,all_taus,all_amys)
+    create_tau_anchored_uid_list(all_mris, all_taus, all_amys)
 
 
-if __name__ == "__main__":
-    # print("running new_datasetup.py directly.")
-    main()
+parser=argparse.ArgumentParser(description="")
+parser.add_argument("-d","--date", required=True, help="date on file")
+args = parser.parse_args()
+file_date = args.date
+
+this_date_processing_dir = f"{analysis_input_dir}/{file_date}_processing"
+download_csvs_dir = f"{this_date_processing_dir}/{file_date}_collections_csvs"
+adni_datasheets_dir = f"{this_date_processing_dir}/{file_date}_adni_datasheets_csvs"
+uids_dir = f"{this_date_processing_dir}/{file_date}_uids"
+# uids_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"
+
+main()
