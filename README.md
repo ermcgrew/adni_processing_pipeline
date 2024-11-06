@@ -24,14 +24,16 @@
 
 ### Processing
 1. Convert all new images to nifti using command: `python app.py convert_symlink <options>`
+- Can use either 'ADNI4' or 'allADNI' csv outputs from data_setup as input to convert_symlink, both have new sessions marked.
 2. Run image processing and statistics steps using command: `python app.py image_processing <options>`
+- Recommend using the csv output of convert_symlink as input to image_processing, it will contain all new sessions that need to be processed.
 3. Compile all statistics using command `python app.py final_data_sheets <options>`
 
 ## Arguments/Parameters for app.py functions
 - `unpack_dicoms`: 
   - d, --date, required, Date in format three-letter abbreviationYYYY, matching the zip file name.
 - `data_setup`:
-  - d, --date, required, Date in format YYYYMMDD that matches processing folders in `/project/wolk/ADNI2018/analysis_input/`.
+  - d, --date, required, Date in format YYYYMMDD that matches date on processing folders in `/project/wolk/ADNI2018/analysis_input/`.
 - `convert_symlink`
   - t, --scantype, choices=["amy","tau","mri"], run conversion to nifti for tau, amy, or mri dicoms.
   - i, --inputcsv, required csv with format: column 'ID' in format 999_S_9999, column 'SMARTDATE.(mri|amy|tau)' in format YYYY-MM-DD, column 'NEW.T1|T2|FLAIR|amy|tau' in format 1 if true, 0 if false, and column 'IMAGEUID.T1|T2|FLAIR|amy|tau' in format '999999'

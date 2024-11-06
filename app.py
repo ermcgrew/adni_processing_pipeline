@@ -318,7 +318,7 @@ unpack_dicoms_parser.set_defaults(func=unpack_dicoms)
 
 ###data_setup
 datasetup_parser = subparsers.add_parser("data_setup", help="Run datasetup.py.")
-datasetup_parser.add_argument("-d", "--date",help="")
+datasetup_parser.add_argument("-d", "--date",help="Date in format YYYYMMDD that matches date on processing folders in /project/wolk/ADNI2018/analysis_input/.")
 datasetup_parser.set_defaults(func=data_setup)
 
 

@@ -97,11 +97,8 @@ def determine_parent_step(step_to_do):
 ## all whole-brain related
 # app.py image_processing -s neck_trim cortical_thick brain_ex whole_brain_seg wbseg_to_ants wbsegqc inf_cereb_mask pmtau 
 
-
 ### other variables
 sides = ["left", "right"]
-scantypes = ["amy","tau","mri","anchored"]
-
 
 ### Log file
 logging.basicConfig(filename=f"{log_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.DEBUG)
