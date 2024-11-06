@@ -7,13 +7,38 @@ import os
 from config import *
 
 
+def reformat_date_slash_to_dash(df):
+    # M/D/YY to YYYY-MM-DD
+    datecolumn = [col for col in df.columns if "SCANDATE" in col][0]
+    for index, row in df.iterrows():
+        if "/" in row[datecolumn]:
+            MDYlist = row[datecolumn].split('/')
+            
+            if len(MDYlist[0]) == 1:
+                month = "0" + MDYlist[0]
+            else:
+                month = MDYlist[0]
+
+            if  len(MDYlist[1]) == 1:
+                day = "0" + MDYlist[1]
+            else:
+                day = MDYlist[1]
+
+            year = MDYlist[2]
+
+            newdate = year + "-" + month + "-" + day
+            df.at[index,datecolumn] = newdate
+            
+    return df
+
+
 def cleanup_collection_csvs(collection_file,sequence_type):
     logging.info(f"Cleaning up collection csv {collection_file} for sequence type {sequence_type}:")
     df = pd.read_csv(os.path.join(download_csvs_dir,collection_file))
 
     #### df cleanup actions for all sequence types ###
     ## rename some columns
-    df_names = df.rename(columns={'Subject':'ID','Visit':"VISCODE",'Acq Date':'SMARTDATE',
+    df_names = df.rename(columns={'Subject':'ID','Visit':"VISCODE",'Acq Date':'SCANDATE',
     'Image Data ID':'IMAGEUID'})
 
     ## fix date format
@@ -25,18 +50,18 @@ def cleanup_collection_csvs(collection_file,sequence_type):
     ### parse description column to get tracer for amyloid (drop this col for other sequence types later)
     df_dates['TRACER'] = df_dates['Description'].str.split(" ").str[0]
 
-    ## Create "NEW_" column; if 'Downloaded' is null, it's in the new batch
+    ## Create "NEW" column; if 'Downloaded' is null, it's in the new batch
     for index,row in df_dates.iterrows():
         if pd.isnull(row["Downloaded"]):
-            df_dates.at[index,'NEW_'] = 1
+            df_dates.at[index,'NEW'] = 1
         else:
-            df_dates.at[index,'NEW_'] = 0
+            df_dates.at[index,'NEW'] = 0
 
     ## Exclude these two descriptions
     df_dates=df_dates.loc[(df_dates['Description'] != "CS Sagittal MPRAGE (MSV22)") & (df_dates['Description'] != "HS Sagittal MPRAGE (MSV22)") ]
 
     ## select only the columns needed
-    df_sm = df_dates[['RID','ID','SMARTDATE','VISCODE','IMAGEUID','NEW_','TRACER']]
+    df_sm = df_dates[['RID','ID','SCANDATE','VISCODE','IMAGEUID','NEW','TRACER']]
 
     ## handle duplicates: keep latest UID 
     dupes = df_sm[df_sm.duplicated(subset=['RID','ID'],keep=False)]
@@ -54,25 +79,26 @@ def cleanup_collection_csvs(collection_file,sequence_type):
 
     ### df cleanup actions specific to sequence_type ###
     ## Drop the "TRACER" column for all non-Amy dfs
-    if sequence_type != 'AMY':
+    if sequence_type != 'amy':
         df_formatted = df_formatted.drop(columns=['TRACER'])
 
     ## Add sequence_type to relevant columns
-    df_formatted.rename(columns={'IMAGEUID':f"IMAGEUID_{sequence_type}",'NEW_':f"NEW_{sequence_type}"},inplace=True)
+    df_formatted.rename(columns={'IMAGEUID':f"IMAGEUID.{sequence_type}",\
+                                'NEW':f"NEW.{sequence_type}" },inplace=True)
     
     ## record number of new sequences in log
-    new_images = len(df_formatted.loc[df_formatted[f'NEW_{sequence_type}'] == 1])
+    new_images = len(df_formatted.loc[df_formatted[f'NEW.{sequence_type}'] == 1])
     logging.info(f"{new_images} new {sequence_type} images")
    
     return df_formatted
 
 
 def viscode2_from_meta_csv(collection_df,scan_type):
-    meta_csv_name = [file for file in os.listdir(adni_datasheets_dir) if scan_type in file][0]
+    meta_csv_name = [file for file in os.listdir(adni_datasheets_dir) if scan_type.upper() in file][0]
     logging.info(f"Adding VISCODE2 from {meta_csv_name} for {scan_type}.")
     metadf=pd.read_csv(os.path.join(adni_datasheets_dir,meta_csv_name))
 
-    if scan_type == 'MRI':
+    if scan_type == 'mri':
         datecol='EXAMDATE'
     else:
         datecol='SCANDATE'
@@ -85,18 +111,21 @@ def viscode2_from_meta_csv(collection_df,scan_type):
         metadf_sm[col] = metadf_sm[col].str.replace('scmri', 'bl').replace('blmri', 'bl').replace('sc', 'bl')
 
     ## Rename columns, drop any duplicates, reset index for merge
-    metadf_sm = metadf_sm.rename(columns={"PTID":"ID",datecol:"SMARTDATE"})\
+    metadf_sm = metadf_sm.rename(columns={"PTID":"ID",datecol:f"SCANDATE"})\
                         .drop_duplicates(subset=['ID','RID','VISCODE'],keep='first')\
                         .reset_index(drop=True)
     
+
     ## Add VISCODE2 df to collection list
     ## don't use DATE to merge on--some dates are a day off. Keep left (_x) DATE column, which is the date from the dicom
+    ## This rename is where ".mri" etc. is added to SCANDATE
     fours_withvis = collection_df.merge(metadf_sm,on=['ID','RID','VISCODE'],how='left')\
-                                .drop(columns=['SMARTDATE_y'])\
-                                .rename(columns={"SMARTDATE_x":"SMARTDATE"})\
-                                .sort_values(by=['RID','SMARTDATE'])
+                                .drop(columns=[f'SCANDATE_y'])\
+                                .rename(columns={f"SCANDATE_x":f"SCANDATE.{scan_type}"})\
+                                .sort_values(by=['RID',f'SCANDATE.{scan_type}'])
+    # fours_withvis.info()
     ## Save df of all ADNI4 scans
-    fours_withvis.to_csv(os.path.join(uids_dir,f"ADNI4_{scan_type}_UIDS_{current_date_time}.csv"),index=False,header=True)
+    fours_withvis.to_csv(os.path.join(uids_dir,f"ADNI4_{scan_type.upper()}_UIDS_{current_date_time}.csv"),index=False,header=True)
 
     ## log number of ADNI4 scans
     logging.info(f"{len(fours_withvis)} ADNI4 {scan_type} images.")
@@ -109,7 +138,7 @@ def combine_all_adni_phases(adni12go3_csv,fours_withvis_df,scan_type):
     ### combine ADNI4 versions with existing data
     adni_12go3_df = pd.read_csv(adni12go3_csv)
     allscans = pd.concat([adni_12go3_df,fours_withvis_df]).\
-                sort_values(by=['RID','SMARTDATE']).reset_index(drop=True)
+                sort_values(by=['RID',f'SCANDATE.{scan_type}']).reset_index(drop=True)
 
     ## Save df of all ADNI scans 
     allscans.to_csv(os.path.join(uids_dir,f"allADNI_{scan_type}_uids_{current_date_time}.csv"),index=False,header=True)
@@ -123,11 +152,9 @@ def combine_all_adni_phases(adni12go3_csv,fours_withvis_df,scan_type):
 def create_tau_anchored_uid_list(mris,taus,amys):
     logging.info(f"Now creating tau-anchored uid list")
 
-    ### IMAGEUID and NEW_ already have scantype listed after
-    ## SMARTDATE is SMARTDATE
-    taucolstoadd = [col + ".tau" for col in taus.columns if col != "ID" and col != "RID"]
-    amycolstoadd = [col + ".amy" for col in amys.columns if col != "ID" and col != "RID"]
-    mricolstoadd = [col + ".mri" for col in mris.columns if col != "ID" and col != "RID"]
+    taucolstoadd = [col + ".tau" if col in ['PHASE','VISCODE','VISCODE2'] else col for col in taus.columns if col != "ID" and col != "RID"]
+    amycolstoadd = [col + ".amy" if col in ['PHASE','VISCODE','VISCODE2','TRACER'] else col for col in amys.columns if col != "ID" and col != "RID"]
+    mricolstoadd = [col + ".mri" if col != 'SCANDATE.mri' else col for col in mris.columns if col != "ID" and col != "RID"]
 
     tau_subjects=taus['ID'].unique()
 
@@ -137,16 +164,16 @@ def create_tau_anchored_uid_list(mris,taus,amys):
     for subject in tau_subjects:
         ##find subject rows in tau, use to create a date list
         taumatch=taus.loc[taus['ID'] == subject] 
-        taudates = taumatch['SMARTDATE'].unique()
+        taudates = taumatch['SCANDATE.tau'].unique()
 
         ## match to subject rows in mriuidslist
         mrimatch=mris.loc[mris['ID']==subject]   
-        mridates=mrimatch['SMARTDATE'].values.tolist()
+        mridates=mrimatch['SCANDATE.mri'].values.tolist()
         mridates_formatted=[datetime.strptime(x,"%Y-%m-%d") for x in mridates]
         
         ## match to subject rows in amy uids list
         amymatch = amys.loc[amys['ID'] == subject]
-        amydates = amymatch['SMARTDATE'].values.tolist()
+        amydates = amymatch['SCANDATE.amy'].values.tolist()
         amydates_formatted = [datetime.strptime(x,"%Y-%m-%d") for x in amydates]
 
         ## if subject not found in either sheet
@@ -159,7 +186,7 @@ def create_tau_anchored_uid_list(mris,taus,amys):
                 taudate_dt=datetime.strptime(taudate,"%Y-%m-%d")
                 
                 ##Add rest of the tau data to new outputdf as colname.tau
-                tau_rowtouse=taumatch.loc[taumatch['SMARTDATE'] == taudate]
+                tau_rowtouse=taumatch.loc[taumatch['SCANDATE.tau'] == taudate]
                 tau_rowtouse_small=tau_rowtouse.drop(columns=['ID','RID'])
                 tau_rowtouse_values = tau_rowtouse_small.values.tolist()[0]
                 for i in range(0,len(taucolstoadd)):
@@ -169,7 +196,7 @@ def create_tau_anchored_uid_list(mris,taus,amys):
                     ##Find closest MRI date; add that row's data to outputdf
                     mri_diffs=[abs(x-taudate_dt).total_seconds() for x in mridates_formatted]
                     mri_datetouse=mridates[mri_diffs.index(min(mri_diffs))]
-                    mri_rowtouse = mrimatch.loc[mrimatch['SMARTDATE'] == mri_datetouse]
+                    mri_rowtouse = mrimatch.loc[mrimatch['SCANDATE.mri'] == mri_datetouse]
                     mri_rowtouse_small=mri_rowtouse.drop(columns=['ID','RID'])
                     mri_rowtouse_values = mri_rowtouse_small.values.tolist()[0]
                     for i in range(0,len(mricolstoadd)):
@@ -181,7 +208,7 @@ def create_tau_anchored_uid_list(mris,taus,amys):
                     ##Find closest amyloid date; add that data to outputdf
                     amy_diffs=[abs(x-taudate_dt).total_seconds() for x in amydates_formatted]
                     amy_datetouse=amydates[amy_diffs.index(min(amy_diffs))]
-                    amy_rowtouse = amymatch.loc[amymatch['SMARTDATE'] == amy_datetouse]
+                    amy_rowtouse = amymatch.loc[amymatch['SCANDATE.amy'] == amy_datetouse]
                     amy_rowtouse_small=amy_rowtouse.drop(columns=['ID','RID'])
                     amy_rowtouse_values = amy_rowtouse_small.values.tolist()[0]
                     for i in range(0,len(amycolstoadd)):
@@ -191,7 +218,7 @@ def create_tau_anchored_uid_list(mris,taus,amys):
                 
                 index +=1  
     
-    outputdf.to_csv(os.path.join(uids_dir,f"allADNI_tau_anchored_{current_date}.csv"),index=False,header=True)
+    outputdf.to_csv(os.path.join(uids_dir,f"allADNI_tauanchored_{current_date_time}.csv"),index=False,header=True)
 
 
 def main():
@@ -205,21 +232,21 @@ def main():
         elif "FLAIR" in file:
             flair_formatted = cleanup_collection_csvs(file, "FLAIR")
         elif "Amy" in file:
-            amy_formatted = cleanup_collection_csvs(file, "AMY")
-            amys_fours = viscode2_from_meta_csv(amy_formatted,'AMY')
-            all_amys = combine_all_adni_phases(adni12go3_amy_csv, amys_fours, 'AMY')
+            amy_formatted = cleanup_collection_csvs(file, "amy")
+            amys_fours = viscode2_from_meta_csv(amy_formatted,'amy')
+            all_amys = combine_all_adni_phases(adni12go3_amy_csv, amys_fours, 'amy')
         elif "Tau" in file:
-            tau_formatted = cleanup_collection_csvs(file, "TAU")
-            taus_fours = viscode2_from_meta_csv(tau_formatted, 'TAU')
-            all_taus = combine_all_adni_phases(adni12go3_tau_csv, taus_fours, 'TAU')
+            tau_formatted = cleanup_collection_csvs(file, "tau")
+            taus_fours = viscode2_from_meta_csv(tau_formatted, 'tau')
+            all_taus = combine_all_adni_phases(adni12go3_tau_csv, taus_fours, 'tau')
 
     ## Merge all three MRI sequences into one dataframe
-    tees_mri = t1_formatted.merge(t2_formatted,how='outer',on=['RID','ID','SMARTDATE','VISCODE'])
-    allmriseq = tees_mri.merge(flair_formatted,how='outer',on=['RID','ID','SMARTDATE','VISCODE'])
+    tees_mri = t1_formatted.merge(t2_formatted,how='outer',on=['RID','ID','SCANDATE','VISCODE'])
+    allmriseq = tees_mri.merge(flair_formatted,how='outer',on=['RID','ID','SCANDATE','VISCODE'])
     ## add VISCODE2 from meta csv
-    mris_fours = viscode2_from_meta_csv(allmriseq, 'MRI')
+    mris_fours = viscode2_from_meta_csv(allmriseq, 'mri')
     ## get full list of MRIs from all ADNI phases
-    all_mris = combine_all_adni_phases(adni12go3_mri_csv, mris_fours, 'MRI')
+    all_mris = combine_all_adni_phases(adni12go3_mri_csv, mris_fours, 'mri')
 
     ## make tau-anchored csv 
     create_tau_anchored_uid_list(all_mris, all_taus, all_amys)
@@ -234,6 +261,5 @@ this_date_processing_dir = f"{analysis_input_dir}/{file_date}_processing"
 download_csvs_dir = f"{this_date_processing_dir}/{file_date}_collections_csvs"
 adni_datasheets_dir = f"{this_date_processing_dir}/{file_date}_adni_datasheets_csvs"
 uids_dir = f"{this_date_processing_dir}/{file_date}_uids"
-# uids_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"
 
 main()

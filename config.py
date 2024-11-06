@@ -11,28 +11,6 @@ pd.options.mode.chained_assignment = None
 current_date = datetime.now().strftime("%Y_%m_%d")
 current_date_time = datetime.now().strftime("%Y_%m_%dT%H_%M_%S")
 
-def reformat_date_slash_to_dash(df):
-    # M/D/YY to YYYY-MM-DD
-    for index, row in df.iterrows():
-        if "/" in row['SMARTDATE']:
-            MDYlist = row['SMARTDATE'].split('/')
-            
-            if len(MDYlist[0]) == 1:
-                month = "0" + MDYlist[0]
-            else:
-                month = MDYlist[0]
-
-            if  len(MDYlist[1]) == 1:
-                day = "0" + MDYlist[1]
-            else:
-                day = MDYlist[1]
-
-            year = MDYlist[2]
-
-            newdate = year + "-" + month + "-" + day
-            df.at[index,'SMARTDATE'] = newdate
-    return df
-
 ### File/directory locations on the cluster
 adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
@@ -122,7 +100,6 @@ def determine_parent_step(step_to_do):
 
 ## Static lists of scans from ADNI phases 1,2,GO,3
 adni12go3_mri_csv = f"{analysis_input_dir}/adni12go3_definitive_lists/ADNI1GO23_MRI_withfillins_DEFINITIVE_20241017.csv"
-
 adni12go3_amy_csv = f"{analysis_input_dir}/adni12go3_definitive_lists/ADNI12GO3_amy_uid_definitive_list_20241101.csv"
 adni12go3_tau_csv = f"{analysis_input_dir}/adni12go3_definitive_lists/ADNI12GO3_tau_uid_definitive_list_20241101.csv"
 

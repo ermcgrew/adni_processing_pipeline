@@ -25,6 +25,7 @@ def unpack_dicoms(date):
 ## get UID & processing status lists for new batches of scans to process
 def data_setup(date):
     #### adni spreadsheets must already be added to cluster
+    logging.info(f"Running datasetup.py for files in {analysis_input_dir}/{date}_processing.")
     os.system(f"bsub -J '{current_date}_datasteup' -o {log_output_dir}/{current_date_time}_datasetup.txt \
         python ./testing/new_datasetup.py -d {date}") 
 
@@ -35,8 +36,8 @@ def convert_symlink(single_type="", all_types=False, inputcsv="", outputcsv=""):
         if single_type == scantype or all_types == True and scantype != "anchored":
             if inputcsv:
                 csv_to_read = inputcsv
-            else:
-                csv_to_read = os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status'][scantype])
+            # else:
+            #     csv_to_read = os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status'][scantype])
         
             logging.info(f"Running dicom to nifti conversion and nifti symlink for scantype {scantype} sessions in csv {csv_to_read}")
 
