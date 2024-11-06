@@ -10,9 +10,6 @@ from processing import MRI, AmyloidPET, TauPET, MRIPetReg
 ## variables
 from config import *
 
-## for raising argument errors
-class ArgumentError(Exception):
-    pass
 
 ## Symlinks zip files to /PUBLIC, unpack dicoms to /PUBLIC/ADNI, rsync /PUBLIC/ADNI with /PUBLIC/dicoms
 def unpack_dicoms(date):
@@ -23,131 +20,109 @@ def unpack_dicoms(date):
 
 
 ## get UID & processing status lists for new batches of scans to process
-def data_setup():
+def data_setup(date):
     #### adni spreadsheets must already be added to cluster
-    os.system(f"bsub -J '{current_date}_datasteup' -o {log_output_dir}/{current_date_time}_datasetup.txt \
-        python datasetup.py") 
+    logging.info(f"Running data_setup.py for files in {analysis_input_dir}/{date}_processing.")
+    os.system(f"bsub -J '{current_date}_data_setup' -o {log_output_dir}/{current_date_time}_data_setup.txt \
+        python data_setup.py -d {date}") 
 
 
 ## Convert dicom to nifti and symlink nifti to /dataset
-def convert_symlink(single_type="", all_types=False, inputcsv="", outputcsv=""):
-    for scantype in scantypes:
-        if single_type == scantype or all_types == True and scantype != "anchored":
-            if inputcsv:
-                csv_to_read = inputcsv
+def convert_symlink(scantype="", inputcsv="", outputcsv=""):      
+    logging.info(f"Running dicom to nifti conversion and nifti symlink for scantype {scantype} sessions in csv {inputcsv}")
+
+    df=pd.read_csv(inputcsv,index_col=False)
+
+    if scantype == 'mri':
+        df_newscans = df.loc[(df['NEW.T1'] == 1) | (df['NEW.T2'] == 1) | (df['NEW.FLAIR'] == 1 )].reset_index(drop = True)
+        datecol = "SCANDATE.mri"
+    elif scantype == "amy":
+        df_newscans = df.loc[(df['NEW.amy'] == 1)].reset_index(drop = True)
+        datecol = "SCANDATE.amy"
+    elif scantype == "tau":
+        df_newscans = df.loc[(df['NEW.tau'] == 1)].reset_index(drop = True)
+        datecol = "SCANDATE.tau"
+    
+    ##Start converting dicom to nifti, line by line    
+    for index,row in df_newscans.iterrows():
+        print(f"Processing line {index + 1} of {len(df_newscans)}")
+        subject = str(row['ID'])
+        scandate = str(row[datecol])
+        if scantype == 'mri':
+            scan_to_process = MRI(subject,scandate)
+            uids={"T1": [str(row['IMAGEUID.T1']).split(".")[0], scan_to_process.t1nifti],
+                    "T2": [str(row['IMAGEUID.T2']).split('.')[0], scan_to_process.t2nifti], 
+                    "FLAIR": [str(row['IMAGEUID.FLAIR']).split('.')[0], scan_to_process.flair]}
+        elif scantype == "amy":
+            scan_to_process = AmyloidPET(subject,scandate)
+            uids = {'AMY':[str(row["IMAGEUID.amy"]).split(".")[0], scan_to_process.amy_nifti]}
+        elif scantype == 'tau':
+            scan_to_process = TauPET(subject,scandate)
+            uids = {'TAU':[str(row["IMAGEUID.tau"]).split(".")[0], scan_to_process.tau_nifti]}
+
+        logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Checking convert to nifti status.")
+
+        for key in uids:
+            if uids[key][0] == "nan":
+                status="No dicom UID"
+                df_newscans.at[index,f'{key}_CONVERT_STATUS'] = -1 
+                df_newscans.at[index,f"{key}_DATASET_NIFTI"] = "dicom does not exist"
+            elif os.path.exists(uids[key][1]):
+                status="nifti file already exists in ADNI2018/dataset"
+                df_newscans.at[index,f'{key}_CONVERT_STATUS'] = 1 
+                df_newscans.at[index,f"{key}_DATASET_NIFTI"] = uids[key][1]
             else:
-                csv_to_read = os.path.join(datasetup_directories_path["processing_status"],filenames['processing_status'][scantype])
-        
-            logging.info(f"Running dicom to nifti conversion and nifti symlink for scantype {scantype} sessions in csv {csv_to_read}")
-
-            df=pd.read_csv(csv_to_read,index_col=False)
-
-            if scantype == 'mri':
-                df_newscans = df.loc[(df['NEW_T1'] == 1) | (df['NEW_T2'] == 1) | (df['NEW_FLAIR'] == 1 )].reset_index(drop = True)
-            else:
-                df_newscans = df.loc[(df['NEW_PET'] == 1)].reset_index(drop = True)
-
-            ##Start converting dicom to nifti, line by line    
-            for index,row in df_newscans.iterrows():
-                print(f"Processing line {index + 1} of {len(df_newscans)}")
-                subject = str(row['ID'])
-                scandate = str(row['SMARTDATE'])
-                if scantype == 'mri':
-                    scan_to_process = MRI(subject,scandate)
-                    uids={"T1": [str(row['IMAGEUID_T1']).split(".")[0], scan_to_process.t1nifti],
-                          "T2": [str(row['IMAGEUID_T2']).split('.')[0], scan_to_process.t2nifti], 
-                          "FLAIR": [str(row['IMAGEUID_FLAIR']).split('.')[0], scan_to_process.flair]}
-                elif scantype == "amy":
-                    scan_to_process = AmyloidPET(subject,scandate)
-                    uids = {'AMY':[str(row["IMAGEID"]).split(".")[0], scan_to_process.amy_nifti]}
-                elif scantype == 'tau':
-                    scan_to_process = TauPET(subject,scandate)
-                    uids = {'TAU':[str(row["IMAGEID"]).split(".")[0], scan_to_process.tau_nifti]}
-
-                logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:{scantype}: Checking convert to nifti status.")
-
-                for key in uids:
-                    if uids[key][0] == "nan":
-                        status="No dicom UID"
-                        df_newscans.at[index,f'{key}_CONVERT_STATUS'] = -1 
-                        df_newscans.at[index,f"{key}_DATASET_NIFTI"] = "dicom does not exist"
-                    elif os.path.exists(uids[key][1]):
-                        status="nifti file already exists in ADNI2018/dataset"
-                        df_newscans.at[index,f'{key}_CONVERT_STATUS'] = 1 
-                        df_newscans.at[index,f"{key}_DATASET_NIFTI"] = uids[key][1]
-                    else:
-                        ### DO CONVERSION
-                        result = subprocess.run(
-                                ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
-                                scan_to_process.id,scan_to_process.scandate,uids[key][0],\
-                                    scan_to_process.__class__.__name__,scan_to_process.log_output_dir], 
-                                capture_output=True, text=True)
-                        if result.returncode != 0:
-                            logging.warning(f"{scan_to_process.id}:{scan_to_process.scandate}:\
-                                            dicom_to_nifti.sh error {result.returncode}:{result.stderr}")
-                            continue
-
-                        result_list = result.stdout.split("\n")
-                        if len(result_list) > 3:
-                            #first item is "Job <###> submitted to queue..."
-                            status = result_list[1]
-                            nifti_file_loc_public = result_list[2]
-                        else:
-                            status = result_list[0]
-                            nifti_file_loc_public = result_list[1]
-
-                        ## Record conversion status to dataframe
-                        if status == "conversion to nifti sucessful" or status == "nifti file already exists in PUBLIC/nifti":
-                            df_newscans.at[index,f"{key}_CONVERT_STATUS"] = 1
-                            df_newscans.at[index,f"{key}_DATASET_NIFTI"] = uids[key][1]
-                        elif status == "conversion to nifti failed":
-                            df_newscans.at[index,f"{key}_CONVERT_STATUS"] = 0
-                        else:
-                            df_newscans.at[index,f"{key}_CONVERT_STATUS"] = -1
-                            df_newscans.at[index,f"{key}_DATASET_NIFTI"] = "dicom does not exist"
-
-                        #Symlink PUBLIC/nifti file to ADNI2018/dataset version:
-                        if not os.path.exists(uids[key][1]) and nifti_file_loc_public:
-                            os.system(f"ln -sf {nifti_file_loc_public} {uids[key][1]}")
-
-                    ##Report status of each key (t1, t2, flair, amy, tau)
-                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
-
-                ##MRI only step:
-                if scantype == "mri":
-                    logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Finding additional information for mri filelocation csv.")
-                    #site's vendor & model info
-                    site = scan_to_process.id.split("_")[0]
-                    siteinfo_result = subprocess.run(
-                        ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/get_site_scanner_info.sh",site],
+                ### DO CONVERSION
+                result = subprocess.run(
+                        ["/project/wolk/ADNI2018/scripts/adni_processing_pipeline/dicom_to_nifti.sh",\
+                        scan_to_process.id,scan_to_process.scandate,uids[key][0],\
+                            scan_to_process.__class__.__name__,scan_to_process.log_output_dir], 
                         capture_output=True, text=True)
-                    siteinfo_result_list = siteinfo_result.stdout.split("\n")[:-1] # remove extra newline at end
-                    siteinfo_headers = ["Model2","Model3","Vendor2","Vendor3"]
-                    for i in range(0,len(siteinfo_result_list)):
-                        df_newscans.at[index,siteinfo_headers[i]] = siteinfo_result_list[i]
+                if result.returncode != 0:
+                    logging.warning(f"{scan_to_process.id}:{scan_to_process.scandate}:\
+                                    dicom_to_nifti.sh error {result.returncode}:{result.stderr}")
+                    continue
 
-            ### after all rows in iterrows, log conversion stats
-            logging.info(f"{scantype}:Conversion status records (1=successful conversion, 0=failed conversion, -1=no dicom UID/dicom not found in cluster):")
-            for column in [col for col in df_newscans.columns if "CONVERT_STATUS" in col]:
-                logging.info(f"{df_newscans[column].value_counts()}")
+                result_list = result.stdout.split("\n")
+                if len(result_list) > 3:
+                    #first item is "Job <###> submitted to queue..."
+                    status = result_list[1]
+                    nifti_file_loc_public = result_list[2]
+                else:
+                    status = result_list[0]
+                    nifti_file_loc_public = result_list[1]
 
-            ### Save conversion status dataframe to csv
-            if outputcsv:
-                logging.info(f"Saving conversion status dataframe to csv: {outputcsv}")
-                df_newscans.to_csv(outputcsv,index=False,header=True)
-            else:
-                new_fileloc_path = os.path.join(datasetup_directories_path["filelocations"],filenames['filelocations'][scantype])
-                logging.info(f"Saving conversion status dataframe to csv: {new_fileloc_path}")
-                
-                old_fileloc_path = [os.path.join(fileloc_directory_previousrun,x) for x in \
-                                    os.listdir(fileloc_directory_previousrun) if scantype in x][0]
-                old_filelocs_df = pd.read_csv(old_fileloc_path)
-                all_filelocs = pd.concat([df_newscans, old_filelocs_df], ignore_index=True)
-                #keep most recent (e.g. updated) if any duplicates
-                all_filelocs.drop_duplicates(subset=['RID','SMARTDATE'],keep='last', inplace=True) 
-                all_filelocs.sort_values(by=["RID","SMARTDATE"], ignore_index=True, inplace=True)
-                all_filelocs.to_csv(new_fileloc_path,index=False,header=True)
- 
+                ## Record conversion status to dataframe
+                if status == "conversion to nifti sucessful" or status == "nifti file already exists in PUBLIC/nifti":
+                    df_newscans.at[index,f"{key}_CONVERT_STATUS"] = 1
+                    df_newscans.at[index,f"{key}_DATASET_NIFTI"] = uids[key][1]
+                elif status == "conversion to nifti failed":
+                    df_newscans.at[index,f"{key}_CONVERT_STATUS"] = 0
+                else:
+                    df_newscans.at[index,f"{key}_CONVERT_STATUS"] = -1
+                    df_newscans.at[index,f"{key}_DATASET_NIFTI"] = "dicom does not exist"
+
+                #Symlink PUBLIC/nifti file to ADNI2018/dataset version:
+                if not os.path.exists(uids[key][1]) and nifti_file_loc_public:
+                    os.system(f"ln -sf {nifti_file_loc_public} {uids[key][1]}")
+
+            ##Report status of each key (t1, t2, flair, amy, tau)
+            logging.info(f"{scan_to_process.id}:{scan_to_process.scandate}:Nifti conversion status for {key} is:{status}")
+
+    ### after all rows in iterrows, log conversion stats
+    logging.info(f"{scantype}:Conversion status records (1=successful conversion, 0=failed conversion, -1=no dicom UID/dicom not found in cluster):")
+    for column in [col for col in df_newscans.columns if "CONVERT_STATUS" in col]:
+        logging.info(f"{df_newscans[column].value_counts()}")
+
+    ### Save conversion status dataframe to csv
+    if outputcsv:
+        logging.info(f"Saving conversion status dataframe to csv: {outputcsv}")
+        df_newscans.to_csv(outputcsv,index=False,header=True)
+    else:
+        new_fileloc_path = inputcsv.split(".")[0] + "_converted.csv"
+        logging.info(f"Saving conversion status dataframe to csv: {new_fileloc_path}")
+        df_newscans.to_csv(new_fileloc_path,index=False,header=True)
+
 
 def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
     if all_steps:
@@ -165,15 +140,8 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
     else:
         pet_steps=False
 
-    if csv:
-        csv_to_read = csv
-        df = pd.read_csv(csv_to_read)
-    else:
-        csv_to_read = os.path.join(datasetup_directories_path["processing_status"],"mri_processing_status.csv")
-        df_full = pd.read_csv(csv_to_read)
-        df = df_full.loc[(df_full['NEW_T1'] == 1) | (df_full['NEW_T2'] == 1) | (df_full['NEW_FLAIR'] == 1)]
-    
-    logging.info(f"DRY_RUN={dry_run}: Doing image processing steps {steps_ordered} for sessions in csv {csv_to_read}")
+    df = pd.read_csv(csv)
+    logging.info(f"DRY_RUN={dry_run}: Doing image processing steps {steps_ordered} for sessions in csv {csv}")
 
     #### For each session
     for index,row in df.iterrows():
@@ -181,17 +149,17 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
 
         jobs_running = []
         subject = str(row['ID'])
-        scandate = str(row['SMARTDATE.mri'])
+        scandate = str(row['SCANDATE.mri'])
         mri_to_process = MRI(subject,scandate)
 
         if pet_steps == True: 
-            if 'SMARTDATE.tau' in df.columns:
-                taudate = str(row['SMARTDATE.tau'])
+            if 'SCANDATE.tau' in df.columns:
+                taudate = str(row['SCANDATE.tau'])
                 tau_to_process = TauPET(subject, taudate)
                 mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process) 
 
-            if "SMARTDATE.amy" in df.columns:
-                amydate = str(row['SMARTDATE.amy'])
+            if "SCANDATE.amy" in df.columns:
+                amydate = str(row['SCANDATE.amy'])
                 amy_to_process = AmyloidPET(subject, amydate)
                 mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
 
@@ -298,7 +266,7 @@ def longitudinal_processing(csv = "" ,dry_run = False):
             os.makedirs(output_dir)
 
         id_allrows=df.loc[df['ID'] == subject]
-        alldates=id_allrows['SMARTDATE.mri'].values.tolist()
+        alldates=id_allrows['SCANDATE.mri'].values.tolist()
         mri_list=[]
         for i in range(0,len(alldates)):
             mri_list.append(MRI(subject,alldates[i]))
@@ -350,22 +318,22 @@ unpack_dicoms_parser.set_defaults(func=unpack_dicoms)
 
 ###data_setup
 datasetup_parser = subparsers.add_parser("data_setup", help="Run datasetup.py.")
+datasetup_parser.add_argument("-d", "--date",help="Date in format YYYYMMDD that matches date on processing folders in /project/wolk/ADNI2018/analysis_input/.")
 datasetup_parser.set_defaults(func=data_setup)
 
 
 ###convert_symlink
 convert_parser = subparsers.add_parser("convert_symlink", help="Convert dicoms to nifti, symlink, create csv with filelocations.")
-convert_type_group = convert_parser.add_mutually_exclusive_group(required=True)
-convert_type_group.add_argument("-t","--single_type", choices=["amy","tau","mri"], help="Run conversion to nifti for tau, amy, OR mri dicoms.")
-convert_type_group.add_argument("-a", "--all_types", action = "store_true", help="Run conversion to nifti for tau, amy, AND mri dicoms.")
-convert_parser.add_argument("-i", "--inputcsv", required=False, help="If not using default csv for single type conversion, \
+convert_parser.add_argument("-t","--scantype", choices=["amy","tau","mri"], help="Run conversion to nifti for tau, amy, or mri dicoms.")
+convert_parser.add_argument("-i", "--inputcsv", help="Required csv for single type conversion, \
     filepath of a csv with format:\
     column 'ID' in format 999_S_9999, \
-    column 'SMARTDATE' in format YYYY-MM-DD, \
-    column 'NEW_T1|T2|FLAIR|PET' in format 1 if true, 0 if false, and \
-    column 'IMAGEUID_T1|T2|FLAIR' (mri) or 'IMAGEID' (pet) in format '999999'")
-convert_parser.add_argument("-o","--outputcsv", required=False, help="If not using default csv for single type conversion,\
-     filepath for output csv with conversion status.")
+    column 'SCANDATE.(mri|tau|amy)' in format YYYY-MM-DD, \
+    column 'NEW.T1|T2|FLAIR|tau|amy' in format 1 if true, 0 if false, and \
+    column 'IMAGEUID.T1|T2|FLAIR|amy|tau' in format '999999'")
+convert_parser.add_argument("-o","--outputcsv", required=False, help="If not saving to default location of \
+    inputcsv_filname + 'converted' for single type conversion,\
+    filepath for output csv with conversion status.")
 convert_parser.set_defaults(func=convert_symlink)
 
 
@@ -374,9 +342,9 @@ image_proc_parser = subparsers.add_parser("image_processing", help="process mri 
 which_steps = image_proc_parser.add_mutually_exclusive_group(required=True)
 which_steps.add_argument("-s", '--steps', nargs="+", choices=processing_steps, help="Processing step(s) to run.")
 which_steps.add_argument("-a", "--all_steps", action="store_true", help=f"Run all processing steps: {processing_steps}")
-image_proc_parser.add_argument("-c", "--csv", required=False, help="Optional csv of sessions to run if not using default csv produced by datasetup.py. \
-    Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD. \
-    If processing pet scans, include columns 'SMARTDATE.tau' and 'SMARTDATE.amy', both as YYYY-MM-DD")
+image_proc_parser.add_argument("-c", "--csv", help="Required csv of sessions to run. \
+    Format must be column 'ID' as 999_S_9999 and column 'SCANDATE.mri' as YYYY-MM-DD. \
+    If processing pet scans, include columns 'SCANDATE.tau' and 'SCANDATE.amy', both as YYYY-MM-DD")
 image_proc_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, help = "Run program but don't submit any jobs.")
 image_proc_parser.set_defaults(func=image_processing)
 
@@ -391,21 +359,13 @@ final_data_sheet_parser.set_defaults(func=final_data_sheets)
 ###longitudinal processing
 long_process_parser = subparsers.add_parser("longitudinal_processing", help = "Longitudinal processing")
 long_process_parser.add_argument("-c", "--csv", help="Required csv of sessions to run. \
-    Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD.")
+    Format must be column 'ID' as 999_S_9999 and column 'SCANDATE.mri' as YYYY-MM-DD.")
 long_process_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, help = "Run program but don't submit any jobs.")
 long_process_parser.set_defaults(func=longitudinal_processing)
 
 
 ### Parse args
 args = global_parser.parse_args()
-
-## Raise exceptions for convert_symlink arguments that don't go together
-if args.subparser_name == "convert_symlink":
-    if args.all_types and args.inputcsv:
-        raise ArgumentError("Cannot pass -i or -o for option --all_types, must use default csvs.")
-
-    if args.inputcsv and not args.outputcsv:
-        raise ArgumentError("--outputcsv option must be used with the --inputcsv option.")
 
 ## remove any non-kwargs values to pass to args.func()
 args_ = vars(args).copy()

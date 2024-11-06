@@ -11,28 +11,6 @@ pd.options.mode.chained_assignment = None
 current_date = datetime.now().strftime("%Y_%m_%d")
 current_date_time = datetime.now().strftime("%Y_%m_%dT%H_%M_%S")
 
-def reformat_date_slash_to_dash(df):
-    # M/D/YY to YYYY-MM-DD
-    for index, row in df.iterrows():
-        if "/" in row['SMARTDATE']:
-            MDYlist = row['SMARTDATE'].split('/')
-            
-            if len(MDYlist[0]) == 1:
-                month = "0" + MDYlist[0]
-            else:
-                month = MDYlist[0]
-
-            if  len(MDYlist[1]) == 1:
-                day = "0" + MDYlist[1]
-            else:
-                day = MDYlist[1]
-
-            year = MDYlist[2]
-
-            newdate = year + "-" + month + "-" + day
-            df.at[index,'SMARTDATE'] = newdate
-    return df
-
 ### File/directory locations on the cluster
 adni_data_dir = "/project/wolk/ADNI2018/dataset" #real location
 # adni_data_dir = "/project/wolk/ADNI2018/scripts/pipeline_test_data"  # for testing
@@ -67,6 +45,10 @@ ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
 ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
 ashs_mopt_mat_file = f"{utilities_dir}/identity.mat"
 
+## Static lists of scans from ADNI phases 1,2,GO,3
+adni12go3_mri_csv = f"{analysis_input_dir}/adni12go3_definitive_lists/ADNI1GO23_MRI_withfillins_DEFINITIVE_20241017.csv"
+adni12go3_amy_csv = f"{analysis_input_dir}/adni12go3_definitive_lists/ADNI12GO3_amy_uid_definitive_list_20241101.csv"
+adni12go3_tau_csv = f"{analysis_input_dir}/adni12go3_definitive_lists/ADNI12GO3_tau_uid_definitive_list_20241101.csv"
 
 
 #####  Processing steps for class methods and argparse  #####
@@ -115,42 +97,8 @@ def determine_parent_step(step_to_do):
 ## all whole-brain related
 # app.py image_processing -s neck_trim cortical_thick brain_ex whole_brain_seg wbseg_to_ants wbsegqc inf_cereb_mask pmtau 
 
-###Data sheets & derived csvs names and locations
-#list all directories with data sheets, then select those for newest date
-adni_data_csvs_directories_allruns = os.listdir(adni_data_setup_directory)
-adni_data_csvs_directories_allruns.sort(reverse = True)
-adni_data_csvs_directories_thisrun = adni_data_csvs_directories_allruns[0:4]
-
-#Create dictionary structures to hold datasetup directory full file paths and file names
-keys = ["ida_study_datasheets", "uids", "processing_status", "filelocations"]
-scantypes = ["amy","tau","mri","anchored"]
-datasetup_directories_path = {}
-filenames = {}
-for key in keys:
-    basename = [x for x in adni_data_csvs_directories_thisrun if key in x][0]
-    datasetup_directories_path[key] = os.path.join(adni_data_setup_directory, basename)
-    filenames[key] = {name:name+"_"+key+".csv" for name in scantypes}
-
-#All csv's downloaded from ida.loni.usc.edu
-original_ida_datasheets = os.listdir(datasetup_directories_path["ida_study_datasheets"])
-cleaned_ida_datasheets = [csvfile.replace('.csv', '_clean.csv') for csvfile in original_ida_datasheets]
-registry_csv = [file for file in original_ida_datasheets if "REGISTRY" in file][0]
-
-#Files to merge/filter for UIDs
-csvs_mri_merge = [file for file in cleaned_ida_datasheets if "MRI3META" in file or "MRILIST" in file]
-pet_meta_list = [file for file in cleaned_ida_datasheets if 'PET_META_LIST' in file][0]
-
-##previous run's file location csvs for comparison to new uids & creating new filelocation csvs
-fileloc_directory_previousrun_basename = [x for x in adni_data_csvs_directories_allruns[4:8] if "fileloc" in x][0]
-fileloc_directory_previousrun = os.path.join(adni_data_setup_directory,fileloc_directory_previousrun_basename)
-previous_filelocs_csvs = os.listdir(fileloc_directory_previousrun)
-
-
-
 ### other variables
 sides = ["left", "right"]
-
-
 
 ### Log file
 logging.basicConfig(filename=f"{log_output_dir}/{current_date_time}.log", filemode='w', format="%(levelname)s:%(message)s", level=logging.DEBUG)
