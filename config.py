@@ -100,10 +100,8 @@ def determine_parent_step(step_to_do):
 
 ### other variables
 sides = ["left", "right"]
-qc_types = ["T1_MRI", "ASHST1", "T2_MRI", "ASHST2", "Amy_MRI_reg", "Tau_MRI_reg", "wbseg", "thickness"]
-qc_headers = {"T1_MRI":"ID,SCANDATE.mri,QC_MRI", 
-                "ASHST1":"ID,SCANDATE.mri,QC_MRI,QC_ICV,QC_LMTL_ASHST1_3T,QC_RMTL_ASHST1_3T,QC_COMMENTS", 
-                "T2_MRI":"ID,SCANDATE.mri,T2_QC_L,T2_QC_R,T2_QC_COMMENT", 
+qc_types = ["ASHST1", "ASHST2", "Amy_MRI_reg", "Tau_MRI_reg", "wbseg", "thickness"]
+qc_headers = {"ASHST1":"ID,SCANDATE.mri,QC_MRI,QC_ICV,QC_LMTL_ASHST1_3T,QC_RMTL_ASHST1_3T,QC_COMMENTS", 
                 "ASHST2":"ID,SCANDATE.mri,T2_QC_L,T2_QC_R,T2_QC_COMMENT,L_Seg_ASHST2_3T,L_QC_COMMENT_ASHST2_3T,R_Seg_ASHST2_3T,R_QC_COMMENT_ASHST2_3T", 
                 "wbseg":"ID,SCANDATE.mri,QUALITY,COMMENTS", 
                 "thickness":"ID,SCANDATE.mri,QUALITY,COMMENTS",

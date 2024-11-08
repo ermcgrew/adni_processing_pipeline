@@ -28,6 +28,7 @@
 2. Run image processing and statistics steps using command: `python app.py image_processing <options>`
 - Recommend using the csv output of convert_symlink as input to image_processing, it will contain all new sessions that need to be processed.
 3. Compile all statistics using command `python app.py final_data_sheets <options>`
+4. Collect QC files for reviewers using command `python app.py collect_qc <options>`
 
 ## Arguments/Parameters for app.py functions
 - `unpack_dicoms`: 
@@ -50,3 +51,7 @@
 - `longitudinal_processing`
   - c, --csv, Required csv of sessions to run. Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD.
   - d, --dry_run, Run program but don't submit any jobs.
+- `collect_qc`
+  - c, --csv, Requried csv of sessions to gather files from. Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD. If qc_type is Amy_MRI_reg or Tau_MRI_reg, include column 'SCANDATE.tau|amy' as YYYY-MM-DD.
+  - d, --dry_run, Run program to get log file with expected files to be copied but does not create any QC folders or files or copy any files.
+  - t, --qc_type, required, choices = ["ASHST1", "ASHST2", "Amy_MRI_reg", "Tau_MRI_reg", "wbseg", "thickness"], select which type of QC to collect files for.

@@ -304,9 +304,9 @@ def longitudinal_processing(csv = "" ,dry_run = False):
             logging.info(result_list[0]) 
 
 
-def collect_qc(inputcsv = "", dry_run = False, qc_type = ""):
-    df = pd.read_csv(inputcsv)
-    logging.info(f"DRY_RUN={dry_run}: collect {qc_type} QC for sessions in csv {inputcsv}")
+def collect_qc(csv = "", dry_run = False, qc_type = ""):
+    df = pd.read_csv(csv)
+    logging.info(f"DRY_RUN={dry_run}: collect {qc_type} QC for sessions in csv {csv}")
 
     ## make dir for this batch of QC files
     this_batch_qc_name = f"{qc_type}_{current_date}_QCToDo"
@@ -357,7 +357,6 @@ def collect_qc(inputcsv = "", dry_run = False, qc_type = ""):
             ## Directory to copy QC files to
             if "ASHS" in qc_type:
                 dir_to_copy_to = f"{this_batch_qc_dir}/{subject}_{mridate}"  
-                ## add id,date to filenames here?
             else:
                 dir_to_copy_to = this_batch_qc_dir
             
@@ -367,9 +366,14 @@ def collect_qc(inputcsv = "", dry_run = False, qc_type = ""):
 
             ## log and do copy and write to ratings file
             logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:copying QC files to {dir_to_copy_to}.")
+
             if not dry_run:
-                [os.system(f"cp {file} {dir_to_copy_to}") for file in qc_files]
                 f.write(line_to_write)
+                if "ASHS" in qc_type:
+                    ## ASHS qc files don't have subject or date in file name, and T1 ASHS needs to be distinguished from ICV ASHS in same dir
+                    [os.system(f"cp {file} {dir_to_copy_to}/{subject}_{mridate}_{os.path.dirname(file).split('/')[-2]}_{os.path.basename(file)}") for file in qc_files]
+                else:
+                    [os.system(f"cp {file} {dir_to_copy_to}") for file in qc_files]
 
         ## if qc file not found
         else:
@@ -449,12 +453,12 @@ long_process_parser.set_defaults(func=longitudinal_processing)
 ## Collect qc files 
 collectqc_parser = subparsers.add_parser("collect_qc", help = "collect qc files")
 collectqc_parser.add_argument("-t", "--qc_type", choices = qc_types, help="Which kind of qc to do")
-collectqc_parser.add_argument("-c", "--inputcsv", help="Required csv of sessions to run. \
+collectqc_parser.add_argument("-c", "--csv", help="Required csv of sessions to run. \
     Format must be column 'ID' as 999_S_9999 and column 'SCANDATE.mri' as YYYY-MM-DD.\
     If qc_type is Amy_MRI_reg or Tau_MRI_reg, include column 'SCANDATE.tau|amy' as YYYY-MM-DD")
 collectqc_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, 
     help = "Run program to get log file with expected files to be copied but does not create \
-    any QC folders or files or copy any files")
+    any QC folders or files or copy any files.")
 collectqc_parser.set_defaults(func=collect_qc)
 
 
