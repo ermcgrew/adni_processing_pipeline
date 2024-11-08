@@ -92,6 +92,8 @@ class MRI:
         self.t1ashs_seg_right = f"{self.filepath}/ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
         self.t1ashs_seg_prefix = f"{self.filepath}/ASHST1/final/{self.id}"
         self.t1ashs_seg_suffix = "lfseg_heur.nii.gz"
+        self.t1ashs_qc_left = f"{self.filepath}/ASHST1/qa/qa_seg_bootstrap_corr_nogray_left_qa.png"
+        self.t1ashs_qc_right = f"{self.filepath}/ASHST1/qa/qa_seg_bootstrap_corr_nogray_right_qa.png"
         
         self.t1mtthk_left = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_left_thickness.csv"
         self.t1mtthk_right = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_right_thickness.csv"   
@@ -99,6 +101,7 @@ class MRI:
         self.t1mtthk_suffix = "thickness.csv"   
         
         self.t1icv_seg = f"{self.filepath}/ASHSICV/final/{self.id}_left_lfseg_corr_nogray.nii.gz"
+        self.t1icv_qc = f"{self.filepath}/ASHSICV/qa/qa_seg_multiatlas_corr_nogray_left_qa.png"
         ##ICV volume txt file name from older ASHS version
         self.icv_volumes_file = f"{self.filepath}/ASHSICV/final/{self.id}_left_corr_nogray_volumes.txt" 
         if not os.path.exists(self.icv_volumes_file):

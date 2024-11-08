@@ -304,6 +304,88 @@ def longitudinal_processing(csv = "" ,dry_run = False):
             logging.info(result_list[0]) 
 
 
+def collect_qc(inputcsv = "", dry_run = False, qc_type = ""):
+    df = pd.read_csv(inputcsv)
+    logging.info(f"DRY_RUN={dry_run}: collect {qc_type} QC for sessions in csv {inputcsv}")
+
+    ## make dir for this batch of QC files
+    this_batch_qc_name = f"{qc_type}_{current_date}_QCToDo"
+    this_batch_qc_dir = f"{qc_base_dir}/{this_batch_qc_name}"
+    if not os.path.exists(this_batch_qc_dir) and not dry_run:
+        os.system(f"mkdir {this_batch_qc_dir}")
+
+    ## Create ratings files and add appropriate header from config.py
+    ratings_file=f"{this_batch_qc_dir}/{this_batch_qc_name}_ratings.csv"
+    if not dry_run:
+        f = open(ratings_file, "a")
+        f.write(qc_headers[qc_type])
+
+    #### For each session, check for files 
+    for index,row in df.iterrows():
+        print(f"Processing line {index + 1} of {len(df)}")
+        subject = str(row['ID'])
+
+        if 'SCANDATE.mri' in df.columns:
+            mridate = str(row['SCANDATE.mri'])
+            mri_to_process = MRI(subject,mridate)
+            line_to_write = f"\n{subject},{mridate}"
+
+            if qc_type == "ASHST1":
+                qc_files = [mri_to_process.t1icv_qc, mri_to_process.t1ashs_qc_left, mri_to_process.t1ashs_qc_right]
+            elif qc_type == "ASHST2":
+                qc_files = [mri_to_process.t2ashs_qc_left, mri_to_process.t2ashs_qc_right]
+            elif qc_type == "wbseg":
+                qc_files = [mri_to_process.wbsegqc_image]
+            elif qc_type == "thickness":
+                qc_files = [mri_to_process.thickness] 
+
+        if qc_type == "Amy_MRI_reg": 
+            amydate = str(row['SCANDATE.amy'])
+            amy_to_process = AmyloidPET(subject, amydate)
+            mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
+            qc_files = [mri_amy_reg_to_process.t1_reg_qc]
+            line_to_write = f"\n{subject},{amydate},{mridate}"
+        elif qc_type == "Tau_MRI_reg":
+            taudate = str(row['SCANDATE.tau'])
+            tau_to_process = TauPET(subject, taudate)
+            mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process) 
+            qc_files = [mri_tau_reg_to_process.t1_reg_qc]
+            line_to_write = f"\n{subject},{taudate},{mridate}"
+
+        ## Check if QC files exist:
+        if len([file for file in qc_files if os.path.isfile(file)]) == len(qc_files):
+            ## Directory to copy QC files to
+            if "ASHS" in qc_type:
+                dir_to_copy_to = f"{this_batch_qc_dir}/{subject}_{mridate}"  
+                ## add id,date to filenames here?
+            else:
+                dir_to_copy_to = this_batch_qc_dir
+            
+            ## Make directory to copy to 
+            if not os.path.exists(dir_to_copy_to) and not dry_run:
+                os.mkdir(dir_to_copy_to)
+
+            ## log and do copy and write to ratings file
+            logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:copying QC files to {dir_to_copy_to}.")
+            if not dry_run:
+                [os.system(f"cp {file} {dir_to_copy_to}") for file in qc_files]
+                f.write(line_to_write)
+
+        ## if qc file not found
+        else:
+            logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:QC files do not exist.")
+            if not dry_run:
+                f.write(f"{line_to_write},-1")
+
+    ## zip directory of all QC files for download to Box
+    if not dry_run:
+        f.close()
+        os.system(f"cd {this_batch_qc_dir}; zip -r {this_batch_qc_name}.zip .")
+        logging.info(f"scp <username>@bscsub.pmacs.upenn.edu:{this_batch_qc_dir}/{this_batch_qc_name}.zip .")
+    
+    return
+
+
 ''' Arguments/Parameters for each function '''
 #Arguments
 global_parser = argparse.ArgumentParser()
@@ -364,9 +446,20 @@ long_process_parser.add_argument("-d", "--dry_run", action = "store_true", requi
 long_process_parser.set_defaults(func=longitudinal_processing)
 
 
+## Collect qc files 
+collectqc_parser = subparsers.add_parser("collect_qc", help = "collect qc files")
+collectqc_parser.add_argument("-t", "--qc_type", choices = qc_types, help="Which kind of qc to do")
+collectqc_parser.add_argument("-c", "--inputcsv", help="Required csv of sessions to run. \
+    Format must be column 'ID' as 999_S_9999 and column 'SCANDATE.mri' as YYYY-MM-DD.\
+    If qc_type is Amy_MRI_reg or Tau_MRI_reg, include column 'SCANDATE.tau|amy' as YYYY-MM-DD")
+collectqc_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, 
+    help = "Run program to get log file with expected files to be copied but does not create \
+    any QC folders or files or copy any files")
+collectqc_parser.set_defaults(func=collect_qc)
+
+
 ### Parse args
 args = global_parser.parse_args()
-
 ## remove any non-kwargs values to pass to args.func()
 args_ = vars(args).copy()
 args_.pop('func', None) 
