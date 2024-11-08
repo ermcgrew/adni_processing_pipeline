@@ -49,9 +49,9 @@
   - m, --mode, required, choices = ["pet", "structure", "ashst1", "ashst2","wmh"], select which type(s) of stats to compile into a final sheet.
   - w, --wait, run with queuewatch to wait for all image processing to complete.
 - `longitudinal_processing`
-  - c, --csv, Required csv of sessions to run. Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD.
+  - c, --csv, required csv of sessions to run. Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD.
   - d, --dry_run, Run program but don't submit any jobs.
 - `collect_qc`
-  - c, --csv, Requried csv of sessions to gather files from. Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD. If qc_type is Amy_MRI_reg or Tau_MRI_reg, include column 'SCANDATE.tau|amy' as YYYY-MM-DD.
-  - d, --dry_run, Run program to get log file with expected files to be copied but does not create any QC folders or files or copy any files.
+  - c, --csv, required csv of sessions to gather files from. Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD. If qc_type is Amy_MRI_reg or Tau_MRI_reg, include column 'SCANDATE.tau|amy' as YYYY-MM-DD.
+  - d, --dry_run, run program to get log file with expected files to be copied but does not create any QC folders or files or copy any files.
   - t, --qc_type, required, choices = ["ASHST1", "ASHST2", "Amy_MRI_reg", "Tau_MRI_reg", "wbseg", "thickness"], select which type of QC to collect files for.
