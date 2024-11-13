@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import csv
 import os
 import pandas as pd
 import subprocess
@@ -390,6 +391,45 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
     return
 
 
+def file_exist(inputcsv = "", dry_run = False, check_type = ""):
+    df = pd.read_csv(inputcsv)
+    logging.info(f"DRY_RUN={dry_run}: check if {check_type} derivative files exist for {inputcsv}")
+
+    record_file = f"{analysis_output_dir}/file_exist_record_{current_date_time}.csv"
+    with open(record_file, 'w', newline='') as csvfile:
+        fieldnames = ['ID', 'MRIDATE', 't1nifti', 't1trim', 'thickness', 'pmtau_output', 'brainx', 'wbseg_nifti', \
+                    'wbsegqc_image', 'wbseg_propagated', 'inferior_cereb_mask', 'superres_nifti', 't1ashs_seg_left', \
+                    't1ashs_seg_right', 't1ashs_qc_left', 't1ashs_qc_right', 't1mtthk_left', 't1mtthk_right', \
+                    't1icv_seg', 't1icv_qc', 'icv_volumes_file', 't2nifti', 't2ashs_seg_left', 't2ashs_seg_right', \
+                    't2ashs_tse', 't2ashs_flirt_reg', 't1_to_t2_transform', 't2ashs_qc_left', 't2ashs_qc_right', \
+                    't2ashs_cleanup_left', 't2ashs_cleanup_right', 't2ashs_cleanup_both', 'flair', \
+                    'flair_noskull', 'wmh', 't1ashs_stats_txt', 't2ashs_stats_txt', 'structure_stats_txt', 'wmh_stats_txt']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+
+        #### For each session, check for files 
+        for index,row in df.iterrows():
+            print(f"Processing line {index + 1} of {len(df)}")
+            subject = str(row['ID'])
+
+            if 'SCANDATE.mri' in df.columns:
+                mridate = str(row['SCANDATE.mri'])
+                mri_to_process = MRI(subject,mridate)
+                dict_to_write = {"ID":subject, "MRIDATE":mridate}
+
+            if check_type == "mri":
+                ones_to_remove = ["id", "mridate", "scandate", "filepath", "date_id_prefix", "thick_dir", "t1trim_thickness_dir", 
+                "ants_brainseg","brainx_thickness_dir","wbseg_dir","t1ashs_seg_prefix","t1ashs_seg_suffix","t1mtthk_prefix",
+                "t1mtthk_suffix","log_output_dir"]
+                ## list of all class attributes, drop the ones that aren't important files, then give dict value of 1 if file exists
+                file_check = {item:1 if os.path.exists(value) else 0 for item,value in vars(mri_to_process).items() if item not in ones_to_remove}
+                dict_to_write.update(file_check)
+                writer.writerow(dict_to_write)
+
+            
+    return
+
+
 ''' Arguments/Parameters for each function '''
 #Arguments
 global_parser = argparse.ArgumentParser()
@@ -460,6 +500,18 @@ collectqc_parser.add_argument("-d", "--dry_run", action = "store_true", required
     help = "Run program to get log file with expected files to be copied but does not create \
     any QC folders or files or copy any files.")
 collectqc_parser.set_defaults(func=collect_qc)
+
+
+## check if all processing files exist
+fileexist_parser = subparsers.add_parser("file_exist", help = "check if processed files exist")
+fileexist_parser.add_argument("-t", "--check_type", choices = ["mri", "pet"], help="check for mri-derived files or mri-pet registration derived files.")
+fileexist_parser.add_argument("-c", "--inputcsv", help="Required csv of sessions to run. \
+    Format must be column 'ID' as 999_S_9999 and column 'SCANDATE.mri' as YYYY-MM-DD.\
+    If qc_type is Amy_MRI_reg or Tau_MRI_reg, include column 'SCANDATE.tau|amy' as YYYY-MM-DD")
+fileexist_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, 
+    help = "Run program to get log file with expected files to be copied but does not create \
+    any QC folders or files or copy any files.")
+fileexist_parser.set_defaults(func=file_exist)
 
 
 ### Parse args
