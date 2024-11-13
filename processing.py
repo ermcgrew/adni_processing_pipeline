@@ -445,9 +445,10 @@ class MRI:
         this_job_name=f"{this_function}_{self.date_id_prefix}"             
         if ready_to_process(this_function, self.id, self.mridate, \
                             input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
-                                         self.t1mtthk_left,self.t1mtthk_right,self.icv_volumes_file], \
+                                         self.icv_volumes_file], \
                             output_files=[self.t1ashs_stats_txt],\
                             parent_job=parent_job_name):
+                            ## removed from input files 20241108: self.t1mtthk_left,self.t1mtthk_right,
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print("ASHS T1 stats running")
@@ -515,7 +516,7 @@ class MRI:
             return 
 
     ## function pet_stats has to be in mri class, since it takes two instances of class MRIPETReg
-    def pet_stats(self, wparent_job_name = [], t1tausuvr="null", t1amysuvr="null",\
+    def pet_stats(self, parent_job_name = [], t1tausuvr="null", t1amysuvr="null",\
                         taudate="null", amydate="null", dry_run = False):
         this_function = MRI.pet_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"

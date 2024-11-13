@@ -105,8 +105,8 @@ qc_headers = {"ASHST1":"ID,SCANDATE.mri,QC_MRI,QC_ICV,QC_LMTL_ASHST1_3T,QC_RMTL_
                 "ASHST2":"ID,SCANDATE.mri,T2_QC_L,T2_QC_R,T2_QC_COMMENT,L_Seg_ASHST2_3T,L_QC_COMMENT_ASHST2_3T,R_Seg_ASHST2_3T,R_QC_COMMENT_ASHST2_3T", 
                 "wbseg":"ID,SCANDATE.mri,QUALITY,COMMENTS", 
                 "thickness":"ID,SCANDATE.mri,QUALITY,COMMENTS",
-                "Amy_MRI_reg":"ID,SCANDATE.amy,SCANDATE.mri,QUALITY,COMMENTS", 
-                "Tau_MRI_reg":"ID,SCANDATE.tau,SCANDATE.mri,QUALITY,COMMENTS"}
+                "Amy_MRI_reg":"ID,SCANDATE.mri,SCANDATE.amy,QUALITY,COMMENTS", 
+                "Tau_MRI_reg":"ID,SCANDATE.mri,SCANDATE.tau,QUALITY,COMMENTS"}
 
 
 ### Log file

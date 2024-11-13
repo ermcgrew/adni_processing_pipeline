@@ -232,9 +232,9 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
             sing_output = f"{log_output_dir}/{current_date_time}_wmh_singularity_%J.txt"
             logging.info(f"Running WMH singularity for all files, check results at {sing_output}.")
             if "flair_skull_strip" in steps_ordered:
-                os.system(f'bsub -o {sing_output} -w "done(*_flair_skull_strip)" bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date}')
+                os.system(f'bsub -q bsc_long -o {sing_output} -w "done(*_flair_skull_strip)" bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date}')
             else: 
-                os.system(f"bsub -o {sing_output} bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date} ")
+                os.system(f"bsub -q bsc_long -o {sing_output} bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date} ")
         
 
 ## Make csvs of stats
@@ -344,13 +344,13 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
             amy_to_process = AmyloidPET(subject, amydate)
             mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
             qc_files = [mri_amy_reg_to_process.t1_reg_qc]
-            line_to_write = f"\n{subject},{amydate},{mridate}"
+            line_to_write = f"{line_to_write},{amydate}"
         elif qc_type == "Tau_MRI_reg":
             taudate = str(row['SCANDATE.tau'])
             tau_to_process = TauPET(subject, taudate)
             mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process) 
             qc_files = [mri_tau_reg_to_process.t1_reg_qc]
-            line_to_write = f"\n{subject},{taudate},{mridate}"
+            line_to_write = f"{line_to_write},{taudate}"
 
         ## Check if QC files exist:
         if len([file for file in qc_files if os.path.isfile(file)]) == len(qc_files):
