@@ -29,6 +29,7 @@
 - Recommend using the csv output of convert_symlink as input to image_processing, it will contain all new sessions that need to be processed.
 3. Compile all statistics using command `python app.py final_data_sheets <options>`
 4. Collect QC files for reviewers using command `python app.py collect_qc <options>`
+5. Create record of which files exist using command `python app.py file_exist <options>`
 
 ## Arguments/Parameters for app.py functions
 - `unpack_dicoms`: 
@@ -55,3 +56,6 @@
   - c, --csv, required csv of sessions to gather files from. Format must be column 'ID' as 999_S_9999 and column 'SMARTDATE.mri' as YYYY-MM-DD. If qc_type is Amy_MRI_reg or Tau_MRI_reg, include column 'SCANDATE.tau|amy' as YYYY-MM-DD.
   - d, --dry_run, run program to get log file with expected files to be copied but does not create any QC folders or files or copy any files.
   - t, --qc_type, required, choices = ["ASHST1", "ASHST2", "Amy_MRI_reg", "Tau_MRI_reg", "wbseg", "thickness"], select which type of QC to collect files for.
+- `file_exist`
+  - c, --inputcsv, required csv of sessions to run. Format must be column 'ID' as 999_S_9999 and column 'SCANDATE.mri' as YYYY-MM-DD. If check_type is pet, include columns 'SCANDATE.tau' and 'SCANDATE.amy' as YYYY-MM-DD. 
+  - t, --check_type, required, choices = ['mri', 'pet'], check for only mri-derived files or mri-derived files and mri-pet registration derived files.
