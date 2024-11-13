@@ -391,11 +391,11 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
     return
 
 
-def file_exist(inputcsv = "", dry_run = False, check_type = ""):
+def file_exist(inputcsv = "", check_type = ""):
     df = pd.read_csv(inputcsv)
-    logging.info(f"DRY_RUN={dry_run}: check if {check_type} derivative files exist for {inputcsv}")
-
+    logging.info(f"Check if {check_type} derived files exist for sessions in csv:{inputcsv}")
     record_file = f"{analysis_output_dir}/file_exist_record_{current_date_time}.csv"
+
     with open(record_file, 'w', newline='') as csvfile:
         fieldnames = ['ID', 'MRIDATE', 't1nifti', 't1trim', 'thickness', 'pmtau_output', 'brainx', 'wbseg_nifti', \
                     'wbsegqc_image', 'wbseg_propagated', 'inferior_cereb_mask', 'superres_nifti', 't1ashs_seg_left', \
@@ -404,6 +404,10 @@ def file_exist(inputcsv = "", dry_run = False, check_type = ""):
                     't2ashs_tse', 't2ashs_flirt_reg', 't1_to_t2_transform', 't2ashs_qc_left', 't2ashs_qc_right', \
                     't2ashs_cleanup_left', 't2ashs_cleanup_right', 't2ashs_cleanup_both', 'flair', \
                     'flair_noskull', 'wmh', 't1ashs_stats_txt', 't2ashs_stats_txt', 'structure_stats_txt', 'wmh_stats_txt']
+        if check_type == "pet":
+            pet_fieldnames = ['TAUDATE', 'AMYDATE', 'TauPET_pet_nifti', 'TauPET_t1_reg_nifti', 'TauPET_t1_SUVR', 'TauPET_t1_reg_qc', \
+                                'AmyloidPET_pet_nifti', 'AmyloidPET_t1_reg_nifti', 'AmyloidPET_t1_SUVR', 'AmyloidPET_t1_reg_qc']
+            fieldnames.extend(pet_fieldnames)
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -415,18 +419,34 @@ def file_exist(inputcsv = "", dry_run = False, check_type = ""):
             if 'SCANDATE.mri' in df.columns:
                 mridate = str(row['SCANDATE.mri'])
                 mri_to_process = MRI(subject,mridate)
-                dict_to_write = {"ID":subject, "MRIDATE":mridate}
+                dict_to_write = {"ID":subject, "MRIDATE":mridate}     
 
-            if check_type == "mri":
                 ones_to_remove = ["id", "mridate", "scandate", "filepath", "date_id_prefix", "thick_dir", "t1trim_thickness_dir", 
                 "ants_brainseg","brainx_thickness_dir","wbseg_dir","t1ashs_seg_prefix","t1ashs_seg_suffix","t1mtthk_prefix",
                 "t1mtthk_suffix","log_output_dir"]
                 ## list of all class attributes, drop the ones that aren't important files, then give dict value of 1 if file exists
                 file_check = {item:1 if os.path.exists(value) else 0 for item,value in vars(mri_to_process).items() if item not in ones_to_remove}
                 dict_to_write.update(file_check)
-                writer.writerow(dict_to_write)
 
+            if check_type == "pet":
+                taudate = str(row['SCANDATE.tau'])
+                tau_to_process = TauPET(subject, taudate)
+                mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process) 
+                amydate = str(row['SCANDATE.amy'])
+                amy_to_process = AmyloidPET(subject, amydate)
+                mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
+                pet_dates = {"TAUDATE":taudate, "AMYDATE":amydate}     
+                dict_to_write.update(pet_dates)
+
+                ## checking for 4 files for amy and tau: pet_nifti, t1_reg_nifti, t1_SUVR, t1_reg_qc
+                ones_to_keep = ["pet_nifti", "t1_reg_nifti", "t1_SUVR", "t1_reg_qc"]
+                for pet_reg in mri_tau_reg_to_process, mri_amy_reg_to_process:
+                    pet_file_check = {f"{pet_reg.pet_type}_{item}":1 if os.path.exists(value) else 0 for item,value in vars(pet_reg).items() if item in ones_to_keep}
+                    dict_to_write.update(pet_file_check)
             
+            ## write all file exist values for this row to file
+            writer.writerow(dict_to_write)
+
     return
 
 
@@ -504,13 +524,11 @@ collectqc_parser.set_defaults(func=collect_qc)
 
 ## check if all processing files exist
 fileexist_parser = subparsers.add_parser("file_exist", help = "check if processed files exist")
-fileexist_parser.add_argument("-t", "--check_type", choices = ["mri", "pet"], help="check for mri-derived files or mri-pet registration derived files.")
+fileexist_parser.add_argument("-t", "--check_type", choices = ["mri", "pet"], help="check for only mri-derived files \
+    or mri-derived files and mri-pet registration derived files.")
 fileexist_parser.add_argument("-c", "--inputcsv", help="Required csv of sessions to run. \
     Format must be column 'ID' as 999_S_9999 and column 'SCANDATE.mri' as YYYY-MM-DD.\
-    If qc_type is Amy_MRI_reg or Tau_MRI_reg, include column 'SCANDATE.tau|amy' as YYYY-MM-DD")
-fileexist_parser.add_argument("-d", "--dry_run", action = "store_true", required=False, 
-    help = "Run program to get log file with expected files to be copied but does not create \
-    any QC folders or files or copy any files.")
+    If check_type is pet, include columns 'SCANDATE.tau' and 'SCANDATE.amy' as YYYY-MM-DD")
 fileexist_parser.set_defaults(func=file_exist)
 
 
