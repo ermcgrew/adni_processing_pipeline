@@ -113,7 +113,8 @@ def convert_symlink(scantype="", inputcsv="", outputcsv=""):
     ### after all rows in iterrows, log conversion stats
     logging.info(f"{scantype}:Conversion status records (1=successful conversion, 0=failed conversion, -1=no dicom UID/dicom not found in cluster):")
     for column in [col for col in df_newscans.columns if "CONVERT_STATUS" in col]:
-        logging.info(f"{df_newscans[column].value_counts()}")
+        print(df_newscans[column].value_counts())
+        logging.info(df_newscans[column].value_counts())
 
     ### Save conversion status dataframe to csv
     if outputcsv:
@@ -236,7 +237,21 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                 os.system(f'bsub -q bsc_long -o {sing_output} -w "done(*_flair_skull_strip)" bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date}')
             else: 
                 os.system(f"bsub -q bsc_long -o {sing_output} bash ./wrapper_scripts/run_wmh_singularity.sh {wmh_prep_dir}/{current_date} ")
-        
+
+    ## Print some stats to the console
+    print()
+    logfile=logging.getLoggerClass().root.handlers[0].baseFilename 
+    result = subprocess.run(["cat", logfile], capture_output=True, text=True)
+    result_list = result.stdout.split("\n")
+    for step in steps:
+        print(f"{step} session counts")
+        print(f"{len([i for i in result_list if 'already' in i and step in i])} already done")
+        print(f"{len([i for i in result_list if 'Cannot' in i and step in i])} missing input file(s)")
+        print(f"{len([i for i in result_list if 'Running' in i and step in i])} ready to submit job to run")
+        print()
+
+    print(f"{len([i for i in result_list if 'Running' in i or 'Submitting' in i])} total jobs submitted")
+
 
 ## Make csvs of stats
 def final_data_sheets(mode,wait):
@@ -321,6 +336,7 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
         f = open(ratings_file, "a")
         f.write(qc_headers[qc_type])
 
+    filecount = 0
     #### For each session, check for files 
     for index,row in df.iterrows():
         print(f"Processing line {index + 1} of {len(df)}")
@@ -367,7 +383,7 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
 
             ## log and do copy and write to ratings file
             logging.info(f"{mri_to_process.id}:{mri_to_process.scandate}:copying QC files to {dir_to_copy_to}.")
-
+            filecount += 1
             if not dry_run:
                 f.write(line_to_write)
                 if "ASHS" in qc_type:
@@ -388,6 +404,7 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
         os.system(f"cd {this_batch_qc_dir}; zip -r {this_batch_qc_name}.zip .")
         logging.info(f"scp <username>@bscsub.pmacs.upenn.edu:{this_batch_qc_dir}/{this_batch_qc_name}.zip .")
     
+    print(f"{filecount} {qc_type} files added to be QC'ed.")
     return
 
 
