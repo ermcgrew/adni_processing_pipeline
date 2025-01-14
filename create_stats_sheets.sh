@@ -205,6 +205,28 @@ function collate_new_data ()
 
 date=$( date '+%Y%m%d')
 
+## Get csv's with VISCODE2 to merge with
+inputdir=$( echo $output_dir | sed 's/output/input/' )
+
+all_processing_dirs=($( find $inputdir/20*_processing -maxdepth 0 ))
+this_processing_dir=${all_processing_dirs[-1]}
+# echo $this_processing_dir
+
+mri_uid=$( find $this_processing_dir/20*_uids/allADNI_mri* )
+tau_uid=$( find $this_processing_dir/20*_uids/allADNI_tau_* )
+amy_uid=$( find $this_processing_dir/20*_uids/allADNI_amy* )
+
+# mri_uid=$( find $inputdir/20*_processing/20*_uids/allADNI_mri* )
+# tau_uid=$( find $inputdir/20*_processing/20*_uids/allADNI_tau_* )
+# amy_uid=$( find $inputdir/20*_processing/20*_uids/allADNI_amy* )
+
+# echo
+# echo
+# echo $mri_uid
+# echo $tau_uid
+# echo $amy_uid
+
+
 if [[ $mode == "pet" ]] ; then 
   statfile="${output_dir}/data/tau_amy_ROIvols_compSUVR_${date}.csv"
 elif [[ $mode == "petold" ]] ; then 
@@ -219,5 +241,15 @@ elif [[ $mode == "wmh" ]] ; then
   statfile="${output_dir}/data/WMH_${date}.csv"
 fi
 
-write_header $mode $statfile
-collate_new_data $mode $statfile
+# write_header $mode $statfile
+# collate_new_data $mode $statfile
+
+
+module load python
+if [[ $mode == "pet" || $mode == "petold" ]]  ; then 
+  python /project/wolk/ADNI2018/scripts/adni_processing_pipeline/merge_viscode2_to_final_stats.py \
+  -m $mri_uid -s $statfile -t $tau_uid -a $amy_uid
+else
+  python /project/wolk/ADNI2018/scripts/adni_processing_pipeline/merge_viscode2_to_final_stats.py \
+  -m $mri_uid -s $statfile 
+fi

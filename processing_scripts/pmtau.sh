@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 # adapted from /project/hippogang_1/srdas/wd/TAUPET/longnew/pmtau_to_invivot1.sh
+set -x
 
 utilities=/project/wolk/ADNI2018/scripts/adni_processing_pipeline/utilities
 SANDYROOT="/project/hippogang_1/srdas/wd/TAUPET/longnew"
@@ -34,6 +35,10 @@ OUTDIR=$THICKDIR
 MYSEG=$OUTDIR/ashsseg.nii.gz
 c3d $THICKDIR/${sub}CorticalThickness.nii.gz \
     $t1ashsseg -interp NN -reslice-identity -o $MYSEG
+
+echo ADDING THIS FOR DEBUGGING
+echo myseg c3d info after first c3d command:
+c3d $MYSEG  -info
 
 #to determine -thresh values
 voxels=($( c3d $MYSEG  -info | cut -f 3 -d ";" | sed -e "s/[a-zA-Z:,]//g" -e "s/\]//" -e "s/\[//" -e "s/=//" ))

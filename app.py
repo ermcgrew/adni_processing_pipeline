@@ -247,7 +247,7 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
         print(f"{step} session counts")
         print(f"{len([i for i in result_list if 'already' in i and step in i])} already done")
         print(f"{len([i for i in result_list if 'Cannot' in i and step in i])} missing input file(s)")
-        print(f"{len([i for i in result_list if 'Running' in i and step in i])} ready to submit job to run")
+        print(f"{len([i for i in result_list if f'Running {step}' in i or f'Submitting {step}' in i])} ready to submit job to run")
         print()
 
     print(f"{len([i for i in result_list if 'Running' in i or 'Submitting' in i])} total jobs submitted")
@@ -411,7 +411,7 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
 def file_exist(inputcsv = "", check_type = ""):
     df = pd.read_csv(inputcsv)
     logging.info(f"Check if {check_type} derived files exist for sessions in csv:{inputcsv}")
-    record_file = f"{analysis_output_dir}/file_exist_record_{current_date_time}.csv"
+    record_file = f"{analysis_output_dir}/file_exist_record_{check_type}_{current_date_time}.csv"
 
     with open(record_file, 'w', newline='') as csvfile:
         fieldnames = ['ID', 'MRIDATE', 't1nifti', 't1trim', 'thickness', 'pmtau_output', 'brainx', 'wbseg_nifti', \
