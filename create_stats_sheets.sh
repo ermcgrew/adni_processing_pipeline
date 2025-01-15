@@ -207,42 +207,28 @@ date=$( date '+%Y%m%d')
 
 ## Get csv's with VISCODE2 to merge with
 inputdir=$( echo $output_dir | sed 's/output/input/' )
-
 all_processing_dirs=($( find $inputdir/20*_processing -maxdepth 0 ))
 this_processing_dir=${all_processing_dirs[-1]}
-# echo $this_processing_dir
-
 mri_uid=$( find $this_processing_dir/20*_uids/allADNI_mri* )
 tau_uid=$( find $this_processing_dir/20*_uids/allADNI_tau_* )
 amy_uid=$( find $this_processing_dir/20*_uids/allADNI_amy* )
 
-# mri_uid=$( find $inputdir/20*_processing/20*_uids/allADNI_mri* )
-# tau_uid=$( find $inputdir/20*_processing/20*_uids/allADNI_tau_* )
-# amy_uid=$( find $inputdir/20*_processing/20*_uids/allADNI_amy* )
-
-# echo
-# echo
-# echo $mri_uid
-# echo $tau_uid
-# echo $amy_uid
-
-
 if [[ $mode == "pet" ]] ; then 
-  statfile="${output_dir}/data/tau_amy_ROIvols_compSUVR_${date}.csv"
+  statfile="${output_dir}/data/tau_amy_ROIvols_compSUVR_${date}_TEMP.csv"
 elif [[ $mode == "petold" ]] ; then 
-  statfile="${output_dir}/data/8mm_tau_amy_ROIvols_compSUVR_${date}.csv"
+  statfile="${output_dir}/data/8mm_tau_amy_ROIvols_compSUVR_${date}_TEMP.csv"
 elif [[ $mode == "structure" ]] ; then 
-  statfile="${output_dir}/data/thickness_PMTAU_${date}.csv"
+  statfile="${output_dir}/data/thickness_PMTAU_${date}_TEMP.csv"
 elif [[ $mode == "ashst1" ]] ; then 
-  statfile="${output_dir}/data/T1_ASHSvols_MTTHK_${date}.csv"
+  statfile="${output_dir}/data/T1_ASHSvols_MTTHK_${date}_TEMP.csv"
 elif [[ $mode == "ashst2" ]] ; then 
-  statfile="${output_dir}/data/T2_ASHSvols_${date}.csv"
+  statfile="${output_dir}/data/T2_ASHSvols_${date}_TEMP.csv"
 elif [[ $mode == "wmh" ]] ; then 
-  statfile="${output_dir}/data/WMH_${date}.csv"
+  statfile="${output_dir}/data/WMH_${date}_TEMP.csv"
 fi
 
-# write_header $mode $statfile
-# collate_new_data $mode $statfile
+write_header $mode $statfile
+collate_new_data $mode $statfile
 
 
 module load python
