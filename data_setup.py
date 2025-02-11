@@ -57,11 +57,8 @@ def cleanup_collection_csvs(collection_file,sequence_type):
         else:
             df_dates.at[index,'NEW'] = 0
 
-    ## Exclude these two descriptions
-    df_dates=df_dates.loc[(df_dates['Description'] != "CS Sagittal MPRAGE (MSV22)") & (df_dates['Description'] != "HS Sagittal MPRAGE (MSV22)") ]
-
     ## select only the columns needed
-    df_sm = df_dates[['RID','ID','SCANDATE','VISCODE','IMAGEUID','NEW','TRACER']]
+    df_sm = df_dates[['RID','ID','SCANDATE','VISCODE','IMAGEUID','NEW','TRACER','Description']]
 
     ## handle duplicates: keep latest UID 
     dupes = df_sm[df_sm.duplicated(subset=['RID','ID'],keep=False)]
@@ -83,8 +80,9 @@ def cleanup_collection_csvs(collection_file,sequence_type):
         df_formatted = df_formatted.drop(columns=['TRACER'])
 
     ## Add sequence_type to relevant columns
-    df_formatted.rename(columns={'IMAGEUID':f"IMAGEUID.{sequence_type}",\
-                                'NEW':f"NEW.{sequence_type}" },inplace=True)
+    df_formatted = df_formatted.rename(columns={'IMAGEUID':f"IMAGEUID.{sequence_type}",
+                                'NEW':f"NEW.{sequence_type}",
+                                "Description":f"SEQUENCE_NAME.{sequence_type}" })
     
     ## record number of new sequences in log
     new_images = len(df_formatted.loc[df_formatted[f'NEW.{sequence_type}'] == 1])
