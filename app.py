@@ -16,7 +16,7 @@ from config import *
 def unpack_dicoms(date):
     #### zip files of new dicoms must already be added to cluster
     logging.info(f"Running organize_files.sh on zip file adni_dl_{date}")
-    os.system(f"bsub -J '{current_date}_unzip_rsync' -o {log_output_dir}/{current_date_time}_unzip_rsync.txt \
+    os.system(f"bsub -J '{current_date}_unzip_rsync' -q bsc_long -o {log_output_dir}/{current_date_time}_unzip_rsync.txt \
         bash organize_files.sh {date}") 
 
 
