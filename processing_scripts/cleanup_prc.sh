@@ -37,4 +37,10 @@ for side in left right ; do
     rm -rf $TMPDIR
 done
 
-c3d $ashst2_tse -as A ${cleanup_left} -interp NN -reslice-identity -push A ${cleanup_right} -interp NN -reslice-identity -add -o ${cleanup_both}
+if [[ -f $ashst2_tse ]] ; then 
+    c3d $ashst2_tse -as A ${cleanup_left} -interp NN -reslice-identity -push A ${cleanup_right} \
+            -interp NN -reslice-identity -add -o ${cleanup_both}
+else 
+    c3d $ashst2_left -as A ${cleanup_left} -interp NN -reslice-identity -push A ${cleanup_right} \
+            -interp NN -reslice-identity -add -o ${cleanup_both}
+fi

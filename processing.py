@@ -395,8 +395,9 @@ class MRI:
         this_function = MRI.prc_cleanup.__name__
         this_job_name = f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, \
-                            input_files=[self.t2ashs_seg_left, self.t2ashs_seg_right, self.t2ashs_tse], \
-                            output_files=[self.t2ashs_cleanup_both], parent_job = parent_job_name):
+                            input_files=[self.t2ashs_seg_left, self.t2ashs_seg_right], \
+                            output_files=[self.t2ashs_cleanup_right], parent_job = parent_job_name):
+                            # , self.t2ashs_tse, t2ashs_cleanup_both
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print(f"running prc_cleanup")
