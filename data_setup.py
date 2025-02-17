@@ -61,7 +61,7 @@ def cleanup_collection_csvs(collection_file,sequence_type):
     df_sm = df_dates[['RID','ID','SCANDATE','VISCODE','IMAGEUID','NEW','TRACER','Description']]
 
     ## handle duplicates: keep latest UID 
-    dupes = df_sm[df_sm.duplicated(subset=['RID','ID'],keep=False)]
+    dupes = df_sm[df_sm.duplicated(subset=['RID','SCANDATE'],keep=False)]
     if len(dupes) > 0:
         idx_to_drop = []
         subjects = dupes['RID'].unique()
