@@ -90,11 +90,16 @@ class MRI:
         
         self.t1ashs_seg_left = f"{self.filepath}/ASHST1/final/{self.id}_left_lfseg_heur.nii.gz"
         self.t1ashs_seg_right = f"{self.filepath}/ASHST1/final/{self.id}_right_lfseg_heur.nii.gz"
-        self.t1ashs_seg_prefix = f"{self.filepath}/ASHST1/final/{self.id}"
-        self.t1ashs_seg_suffix = "lfseg_heur.nii.gz"
-        self.t1ashs_qc_left = f"{self.filepath}/ASHST1/qa/qa_seg_bootstrap_corr_nogray_left_qa.png"
-        self.t1ashs_qc_right = f"{self.filepath}/ASHST1/qa/qa_seg_bootstrap_corr_nogray_right_qa.png"
-        
+  
+        ### for T1ext ashs atlas ( anterior MTL )
+        self.t1ashsext_dir = f"{self.filepath}/ASHST1_anteriorMTL/ashs"
+        self.t1ashsext_seg_left = f"{self.t1ashsext_dir}/final/{self.id}_left_lfseg_heur.nii.gz"
+        self.t1ashsext_seg_right = f"{self.t1ashsext_dir}/final/{self.id}_right_lfseg_heur.nii.gz"
+        self.t1ashsext_seg_prefix = f"{self.t1ashsext_dir}/final/{self.id}"
+        self.t1ashsext_seg_suffix = "lfseg_heur.nii.gz"
+        self.t1ashsext_qc_left = f"{self.t1ashsext_dir}/qa/qa_seg_bootstrap_corr_nogray_left_qa.png"
+        self.t1ashsext_qc_right = f"{self.t1ashsext_dir}/qa/qa_seg_bootstrap_corr_nogray_right_qa.png"
+     
         self.t1mtthk_left = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_left_thickness.csv"
         self.t1mtthk_right = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_right_thickness.csv"   
         self.t1mtthk_prefix = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}"
@@ -338,7 +343,7 @@ class MRI:
         else:
             return
 
-
+    ## only for use with older ASHS T1 atlas
     def t1ashs(self, parent_job_name = [], dry_run = False):
         this_function = MRI.t1ashs.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
@@ -356,6 +361,24 @@ class MRI:
         else:
             return
     
+
+    def t1ext_ashs(self, parent_job_name = [], dry_run = False):
+        this_function = MRI.t1ext_ashs.__name__
+        this_job_name=f"{self.date_id_prefix}_{this_function}"
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim, self.superres_nifti], 
+                            output_files=[self.t1ashsext_seg_left, self.t1ashsext_seg_right], parent_job = parent_job_name):
+           
+            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+            if dry_run: 
+                print("T1 ashs with ext atlas running")
+            else:
+                os.system(f"bsub {submit_options} \
+                        ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1ext_atlas} {self.t1trim} {self.superres_nifti}\
+                        {self.t1ashsext_dir} {self.id} {ashs_mopt_mat_file}")
+            return this_job_name
+        else:
+            return
+
 
     def t1mtthk(self, parent_job_name = [], dry_run = False):
         this_function = MRI.t1mtthk.__name__
@@ -428,14 +451,14 @@ class MRI:
     def pmtau(self, parent_job_name = [], dry_run = False):
         this_function = MRI.pmtau.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
-        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.thickness, self.t1ashs_seg_left], \
+        if ready_to_process(this_function, self.id, self.mridate, input_files=[self.thickness, self.t1ashsext_seg_left], \
                             output_files=[self.pmtau_output], parent_job=parent_job_name):
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
                 print('run pmtau')
             else:
                 os.system(f"bsub {submit_options} ./processing_scripts/pmtau.sh {self.id} \
-                    {self.filepath}/thickness {self.t1ashs_seg_left}")
+                    {self.filepath}/thickness {self.t1ashsext_seg_left}")
             return this_job_name          
         else:
             return
@@ -445,7 +468,7 @@ class MRI:
         this_function = MRI.ashst1_stats.__name__
         this_job_name=f"{this_function}_{self.date_id_prefix}"             
         if ready_to_process(this_function, self.id, self.mridate, \
-                            input_files=[self.t1ashs_seg_left,self.t1ashs_seg_right,\
+                            input_files=[self.t1ashsext_seg_left,self.t1ashsext_seg_right,\
                                          self.icv_volumes_file], \
                             output_files=[self.t1ashs_stats_txt],\
                             parent_job=parent_job_name):
@@ -455,8 +478,8 @@ class MRI:
                 print("ASHS T1 stats running")
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/ashst1_stats.sh \
-                    {self.id} {self.mridate} {stats_output_dir} {self.t1ashs_seg_prefix} \
-                    {self.t1ashs_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} \
+                    {self.id} {self.mridate} {stats_output_dir} {self.t1ashsext_seg_prefix} \
+                    {self.t1ashsext_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} \
                     {self.icv_volumes_file}") 
             return this_job_name          
         else:
@@ -516,7 +539,8 @@ class MRI:
         else:
             return 
 
-    ## function pet_stats has to be in mri class, since it takes two instances of class MRIPETReg
+
+    # function pet_stats has to be in mri class, since it takes two instances of class MRIPETReg
     def pet_stats(self, parent_job_name = [], t1tausuvr="null", t1amysuvr="null",\
                         taudate="null", amydate="null", dry_run = False):
         this_function = MRI.pet_stats.__name__
@@ -535,27 +559,31 @@ class MRI:
                     {self.icv_volumes_file} {self.t2ashs_cleanup_left} \
                     {self.t2ashs_cleanup_right} {self.t2ashs_cleanup_both}  \
                     {t1tausuvr} {t1amysuvr} \
-                    {pet_stats_txt} {self.t1ashs_seg_prefix} \
+                    {pet_stats_txt} {self.t1ashsext_seg_prefix} \
                     {self.t1_to_t2_transform} {self.t2nifti} {self.t1trim}")
             return this_job_name          
         else:
             return
 
 
-    def adhoc_mri(self, parent_job_name = [], dry_run = False):
-        this_function = MRI.adhoc_mri.__name__
-        this_job_name=f"{this_function}_{self.date_id_prefix}"
-        if ready_to_process(this_function, self.id, self.mridate, \
-                            input_files=[], \
-                            output_files=[], parent_job=parent_job_name):
-            submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
-            if dry_run:
-                print("Running adhoc mri function")
-            else:
-                os.system(f"bsub {submit_options} ")
-            return this_job_name          
-        else:
-            return 
+    ### adhoc function for as-needed processing outside of usual steps
+    # def pet_stats(self, parent_job_name = [], dry_run = False, t1tausuvr="null", taudate="null",t1amysuvr="null",amydate="null"):
+    #     this_function = MRI.pet_stats.__name__
+    #     this_job_name=f"{this_function}_{self.date_id_prefix}"
+    #     tmp_stats_output =f"{stats_output_dir}/8mmtauwb_20250328/stats_tau_{taudate}_mri_{self.mridate}_{self.id}_8mmpet.txt"
+    #     if ready_to_process(this_function, self.id, self.mridate, \
+    #                         input_files=[t1tausuvr], \
+    #                         output_files=[tmp_stats_output], parent_job=parent_job_name):
+    #         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+ 
+    #         if dry_run:
+    #             print("Running adhoc mri function")
+    #         else:
+    #             os.system(f"bsub {submit_options} ./wrapper_scripts/tmp_8mm_tau_wb.sh {self.id} {self.mridate} {taudate} \
+    #                 {self.wbseg_nifti} {self.wbseg_propagated} {wblabel_file} {self.icv_volumes_file} {t1tausuvr} {tmp_stats_output}")
+    #         return this_job_name          
+    #     else:
+    #         return 
 
 
 class AmyloidPET:
@@ -619,8 +647,8 @@ class MRIPetReg:
         self.t1_reg_qc = f"{self.filepath}/{self.reg_prefix}_T1_qa.png"
 
         self.t1_8mm_reg_nifti = f"{self.filepath}/{self.reg_8mm_prefix}_T1.nii.gz"
-        self.t1_8mm_SUVR = f"{self.filepath}/{self.reg_8mm_prefix}_T1_SUVR.nii.gz"
-        self.t1_8mm_pvc = f"{self.filepath}/{self.reg_8mm_prefix}_T1_pvc.nii.gz"
+        self.t1_8mm_SUVR = f"{self.filepath}/{self.reg_8mm_prefix}_T1_SUVR_infcereb.nii.gz"
+        self.t1_8mm_pvc = f"{self.filepath}/{self.reg_8mm_prefix}_T1_SUVR_infcereb_pvc.nii.gz"
 
         self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):

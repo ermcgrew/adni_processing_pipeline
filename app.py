@@ -190,6 +190,7 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
                 if step == "pet_stats":
                     mri_to_process.pet_stats(parent_job_name = stats_wait_code,
                                             t1tausuvr = mri_tau_reg_to_process.t1_SUVR,
+                                            # t1tausuvr = mri_tau_reg_to_process.t1_8mm_SUVR,
                                             t1amysuvr = mri_amy_reg_to_process.t1_SUVR,
                                             taudate = mri_tau_reg_to_process.petdate,
                                             amydate = mri_amy_reg_to_process.petdate,
@@ -248,6 +249,7 @@ def image_processing(steps = [], all_steps = False, csv = "", dry_run = False):
         print(f"{len([i for i in result_list if 'already' in i and step in i])} already done")
         print(f"{len([i for i in result_list if 'Cannot' in i and step in i])} missing input file(s)")
         print(f"{len([i for i in result_list if f'Running {step}' in i or f'Submitting {step}' in i])} ready to submit job to run")
+        # print(f"{len([i for i in result_list if ('Running' in i and f'{step}' in i) or ('Submitting' in i and f'{step}' in i)])} ready to submit job to run")
         print()
 
     print(f"{len([i for i in result_list if 'Running' in i or 'Submitting' in i])} total jobs submitted")
@@ -348,9 +350,10 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
             line_to_write = f"\n{subject},{mridate}"
 
             if qc_type == "ASHST1":
-                qc_files = [mri_to_process.t1icv_qc, mri_to_process.t1ashs_qc_left, mri_to_process.t1ashs_qc_right]
+                # qc_files = [mri_to_process.t1icv_qc, mri_to_process.t1ashs_qc_left, mri_to_process.t1ashs_qc_right]
+                qc_files = [mri_to_process.t1icv_qc, mri_to_process.t1ashsext_qc_left, mri_to_process.t1ashsext_qc_right]
             elif qc_type == "ASHST2":
-                qc_files = [mri_to_process.t2ashs_qc_left, mri_to_process.t2ashs_qc_right]
+                qc_files = [mri_to_process.t2ashs_qc_left, mri_to_process.t2ashs_qc_right, mri_to_process.t2nifti]
             elif qc_type == "wbseg":
                 qc_files = [mri_to_process.wbsegqc_image]
             elif qc_type == "thickness":
@@ -415,8 +418,8 @@ def file_exist(inputcsv = "", check_type = ""):
 
     with open(record_file, 'w', newline='') as csvfile:
         fieldnames = ['ID', 'MRIDATE', 't1nifti', 't1trim', 'thickness', 'pmtau_output', 'brainx', 'wbseg_nifti', \
-                    'wbsegqc_image', 'wbseg_propagated', 'inferior_cereb_mask', 'superres_nifti', 't1ashs_seg_left', \
-                    't1ashs_seg_right', 't1ashs_qc_left', 't1ashs_qc_right', 't1mtthk_left', 't1mtthk_right', \
+                    'wbsegqc_image', 'wbseg_propagated', 'inferior_cereb_mask', 'superres_nifti', 't1ashsext_seg_left', \
+                    't1ashsext_seg_right', 't1ashsext_qc_left', 't1ashsext_qc_right', 't1mtthk_left', 't1mtthk_right', \
                     't1icv_seg', 't1icv_qc', 'icv_volumes_file', 't2nifti', 't2ashs_seg_left', 't2ashs_seg_right', \
                     't2ashs_tse', 't2ashs_flirt_reg', 't1_to_t2_transform', 't2ashs_qc_left', 't2ashs_qc_right', \
                     't2ashs_cleanup_left', 't2ashs_cleanup_right', 't2ashs_cleanup_both', 'flair', \
@@ -439,8 +442,8 @@ def file_exist(inputcsv = "", check_type = ""):
                 dict_to_write = {"ID":subject, "MRIDATE":mridate}     
 
                 ones_to_remove = ["id", "mridate", "scandate", "filepath", "date_id_prefix", "thick_dir", "t1trim_thickness_dir", 
-                "ants_brainseg","brainx_thickness_dir","wbseg_dir","t1ashs_seg_prefix","t1ashs_seg_suffix","t1mtthk_prefix",
-                "t1mtthk_suffix","log_output_dir"]
+                "ants_brainseg","brainx_thickness_dir","wbseg_dir", "t1ashsext_dir", "t1ashsext_seg_prefix","t1ashsext_seg_suffix",
+                "t1ashs_seg_left", "t1ashs_seg_right", "t1mtthk_prefix","t1mtthk_suffix","log_output_dir"]
                 ## list of all class attributes, drop the ones that aren't important files, then give dict value of 1 if file exists
                 file_check = {item:1 if os.path.exists(value) else 0 for item,value in vars(mri_to_process).items() if item not in ones_to_remove}
                 dict_to_write.update(file_check)

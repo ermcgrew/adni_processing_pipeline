@@ -155,8 +155,8 @@ for pettype in tau amy ; do
 
                 ####################### ASHST1-tau measures #######################
                 echo "${pettype}:${suvr_or_pvc}:${side}:do ASHST1 regions with:${t1_pet_touse}"
-                ASHST13TTAULABELIDS=(AHippo PHippo ERC BA35 BA36 PHC ERCBA35 WholeHippo MTLCortex     All)
-                ASHST13TTAULABELNUMS=(1     2      10  11   12   13  "10 11" "1 2"      "10 11 12 13" "1 2 10 11 12 13")
+                ASHST13TTAULABELIDS=(AHippo PHippo ERC BA35 BA36 PHC Amygdala ERCBA35 WholeHippo MTLCortex     All)
+                ASHST13TTAULABELNUMS=(1     2      10  11   12   13  18       "10 11" "1 2"      "10 11 12 13" "1 2 10 11 12 13 18")
                 SEG=${t1_ashs_seg_prefix}_${side}_lfseg_heur_LW.nii.gz
                 if [[ ! -f $SEG ]]; then
                     SEG=${t1_ashs_seg_prefix}_${side}_lfseg_heur.nii.gz

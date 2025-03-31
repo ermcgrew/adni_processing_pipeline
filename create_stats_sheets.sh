@@ -29,7 +29,7 @@ function write_header()
               HEADER="${HEADER},${side}_${region}_tau_${suvr_or_pvc}_wbtoants"
             done
             # ASHST1
-            for sub in AHippo PHippo ERC BA35 BA36 PHC ERCBA35  WholeHippo MTLCortex All; do
+            for sub in AHippo PHippo ERC BA35 BA36 PHC Amygdala ERCBA35 WholeHippo MTLCortex All; do
               HEADER="$HEADER,${side}_${sub}_tau_${suvr_or_pvc}_ASHS3TT1"
             done
           fi
@@ -131,7 +131,7 @@ function write_header()
 
     # ASHS T1 baseline volume and thickness
     for side in L R M; do
-      for sub in AHippo PHippo ERC BA35 BA36 PHC; do
+      for sub in AHippo PHippo ERC BA35 BA36 PHC Amygdala WhiteMatter; do
         HEADER="$HEADER,${side}_${sub}_VOL_ASHST1_3T"
       done
     done

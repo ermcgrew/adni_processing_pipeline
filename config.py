@@ -42,6 +42,7 @@ ashs_root = "/project/hippogang_2/pauly/wolk/ashs-fast"
 icv_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_icv/final"
 ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
 ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
+ashs_t1ext_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_t1ext_20240617/final/" 
 ashs_mopt_mat_file = f"{utilities_dir}/identity.mat"
 
 
@@ -58,7 +59,7 @@ adni12go3_tau_csv = f"{analysis_input_dir}/adni12go3_definitive_lists/ADNI12GO3_
 # replace "cortical_thick" with "antsct_aging" when new ants code is ready
 processing_steps=["neck_trim", "cortical_thick", "brain_ex", "whole_brain_seg", "wbseg_to_ants", 
             "wbsegqc", "inf_cereb_mask", "pmtau", 
-            "t1icv", "superres", "t1ashs", "t1mtthk", "t2ashs","prc_cleanup",
+            "t1icv", "superres", "t1ashs", "t1ext_ashs", "t1mtthk", "t2ashs","prc_cleanup",
             "flair_skull_strip", "wmh_seg",
             "t1_pet_reg", "t1_pet_suvr", "pet_reg_qc",
             "ashst1_stats", "ashst2_stats", "wmh_stats", "structure_stats", "pet_stats",
@@ -74,14 +75,14 @@ def determine_parent_step(step_to_do):
         return ["whole_brain_seg", "cortical_thick"]
     elif step_to_do == "wbsegqc" or step_to_do == "inf_cereb_mask":
         return ["whole_brain_seg"]
-    elif step_to_do == "t1ashs":
+    elif step_to_do == "t1ashs" or step_to_do == "t1ext_ashs":
         return ["superres"]
     elif step_to_do == "t1mtthk":
         return ["t1ashs"]
     elif step_to_do == "prc_cleanup":
         return ["t2ashs"]
     elif step_to_do == "pmtau":
-        return ["cortical_thick", "t1ashs"]
+        return ["cortical_thick", "t1ext_ashs"]
     elif step_to_do == "t1_pet_suvr":
         ## amy doesn't use inf_cereb_mask, this wait code dependency weeded out in app.py code 
         return ["t1_pet_reg", "inf_cereb_mask"]
@@ -91,9 +92,9 @@ def determine_parent_step(step_to_do):
         return []
 
 ## all mri except flair steps:
-## app.py image_processing -s neck_trim cortical_thick brain_ex whole_brain_seg wbseg_to_ants wbsegqc inf_cereb_mask pmtau t1icv superres t1ashs t1mtthk t2ashs prc_cleanup 
+## app.py image_processing -s neck_trim cortical_thick brain_ex whole_brain_seg wbseg_to_ants wbsegqc inf_cereb_mask pmtau t1icv superres t1ext_ashs t1mtthk t2ashs prc_cleanup 
 ## all ASHS
-# app.py image_processing -s neck_trim t1icv superres t1ashs t1mtthk t2ashs prc_cleanup 
+# app.py image_processing -s neck_trim t1icv superres t1ext_ashs t1mtthk t2ashs prc_cleanup 
 ## all whole-brain related
 # app.py image_processing -s neck_trim cortical_thick brain_ex whole_brain_seg wbseg_to_ants wbsegqc inf_cereb_mask pmtau 
 

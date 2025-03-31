@@ -19,7 +19,7 @@ ICV=$(cat $icv_txt | cut -d " " -f 5)
 # echo $ICV
 
 ################T1 ASHS: Volumes#############
-ASHST13TLABELNUMS=(1     2      10  11   12   13) #AHippo PHippo ERC BA35 BA36 PHC
+ASHST13TLABELNUMS=(1 2 10 11 12 13 18 20) #AHippo PHippo ERC BA35 BA36 PHC Amygdala WhiteMatter
 for side in left right; do
     t1_ashs_seg="${t1_ashs_seg_prefix}_${side}_${t1_ashs_seg_suffix}"
     # t1_ashs_seg=/project/wolk/ADNI2018/scripts/pipeline_test_data/114_S_6917/2021-04-16/ASHST1/final/114_S_6917_${side}_lfseg_heur.nii.gz
