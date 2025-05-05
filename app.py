@@ -478,7 +478,8 @@ subparsers = global_parser.add_subparsers(title="Subcommands", help="Sections of
 
 ###unpack_dicoms
 unpack_dicoms_parser = subparsers.add_parser("unpack_dicoms", help="Unzip dicom files and rsync to /dataset.")
-unpack_dicoms_parser.add_argument("-d", "--date", help="Date in format three-letter abbreviationYYYY, matching the zip file name.")
+unpack_dicoms_parser.add_argument("-d", "--date", help="Date in format \{three_letter_abbreviationYYYY\}, \
+    matching the directory containing the zip files, e.g. Jan2025.")
 unpack_dicoms_parser.set_defaults(func=unpack_dicoms)
 
 

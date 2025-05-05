@@ -15,11 +15,11 @@
 
 ### Get data sheets
 1. Manually download these csvs from ida.loni.usc.edu:
-- Search/Image Metadata/MR Image Acquisition/MRI3META (MRI3META.csv)
-- Search/Image Metadata/PET Image Acquisition/AMYMETA (AMYMETA.csv)
-- Downloads/Imaging/PET Image Acquisition/Tau PET Scan Information (TAUMETA.csv)
-2. On cluster, run script `dir_setup.py -d YYYYMMDD` to create folders for all ADNI data sheets and uid lists for this round of processing.  
-3. Copy downloaded data sheet csvs to `/YYYYMMDD_ida_study_datasheets` and downloaded collection csvs to `/YYYYMMDD_collections_csvs`
+- MRI3META.csv: Downloads/Imaging/MR Image Acquisition/3T MRI Scan Information
+- AMYMETA.csv: Downloads/Imaging/PET Image Acquisition/Amyloid PET Scan Information
+- TAUMETA.csv: Downloads/Imaging/PET Image Acquisition/Tau PET Scan Information
+2. On cluster, run script `dir_setup.sh YYYYMMDD` to create folders for all ADNI data sheets and uid lists for this round of processing.  
+3. Copy downloaded data sheet csvs to `/YYYYMMDD_adni_datasheets_csvs` and downloaded collection csvs to `/YYYYMMDD_collections_csvs`
 4. Get csvs of all mri and pet files and a csv of tau-anchored dates using command: `python app.py data_setup -d YYYYMMDD`
 
 ### Processing
@@ -33,7 +33,7 @@
 
 ## Arguments/Parameters for app.py functions
 - `unpack_dicoms`: 
-  - d, --date, required, Date in format three-letter abbreviationYYYY, matching the zip file name.
+  - d, --date, required, Date in format {three_letter_abbreviationYYYY}, matching the directory containing the zip files. E.g. Jan2025.
 - `data_setup`:
   - d, --date, required, Date in format YYYYMMDD that matches date on processing folders in `/project/wolk/ADNI2018/analysis_input/`.
 - `convert_symlink`

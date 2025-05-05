@@ -566,11 +566,11 @@ class MRI:
             return
 
 
-    ### adhoc function for as-needed processing outside of usual steps
+    ### for getting 8mm pvc data for Xueying 2025, also change t1tausuvr variable in app.py
     # def pet_stats(self, parent_job_name = [], dry_run = False, t1tausuvr="null", taudate="null",t1amysuvr="null",amydate="null"):
     #     this_function = MRI.pet_stats.__name__
     #     this_job_name=f"{this_function}_{self.date_id_prefix}"
-    #     tmp_stats_output =f"{stats_output_dir}/8mmtauwb_20250328/stats_tau_{taudate}_mri_{self.mridate}_{self.id}_8mmpet.txt"
+    #     tmp_stats_output =f"{stats_output_dir}/8mmtauwb_20250421/stats_tau_{taudate}_mri_{self.mridate}_{self.id}_8mmpet.txt"
     #     if ready_to_process(this_function, self.id, self.mridate, \
     #                         input_files=[t1tausuvr], \
     #                         output_files=[tmp_stats_output], parent_job=parent_job_name):
