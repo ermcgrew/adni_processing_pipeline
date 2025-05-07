@@ -44,8 +44,10 @@ $ASHS_ROOT/bin/ashs_main.sh $options
           
 #Remove intermediate files
 rm -rf $output_directory/*raw.nii.gz
-##keep bootstrap and multiatlas for ADNI T2$output_directory/multiatlas $output_directory/bootstrap
-
+##keep bootstrap and multiatlas for ADNI T2 $output_directory/multiatlas $output_directory/bootstrap
+if [[ $t2link =~ "T2w" ]] ; then 
+    rm -rf $output_directory/ants_t1_to_temp/reslice_tse_to_template.nii.gz $output_directory/ants_t1_to_temp/reslice_mprage_to_template.nii.gz
+fi
 
 # Options:
 # for T1, T2, and ICV:

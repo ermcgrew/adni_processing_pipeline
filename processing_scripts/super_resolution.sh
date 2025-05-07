@@ -34,3 +34,5 @@ c3d $output_directory/T1w_trim_denoised_SR.nii.gz\
     -o $T1SR
 
 echo "Using SRPATH=${SRPATH} to perform denoising and superresolution." > $output_directory/super_resolution_version.txt
+
+rm $output_directory/*_short.nii.gz 

@@ -167,7 +167,8 @@ class MRI:
             if dry_run:
                 print(f'run crossthick.sh')
             else:
-                os.system(f"bsub {submit_options} -M 8G {thickness_script} {self.id} {self.t1trim} {self.thick_dir}")
+                # os.system(f"bsub {submit_options} -M 8G {thickness_script} {self.id} {self.t1trim} {self.thick_dir}")
+                os.system(f"bsub {submit_options} -M 8G ./wrapper_scripts/crossthickness.sh {self.id} {self.t1trim} {self.thick_dir}")
             return this_job_name          
         else:
             return
