@@ -131,6 +131,24 @@ def viscode2_from_meta_csv(collection_df,scan_type):
     return fours_withvis
 
 
+def scanner_info(mris_fours,scanner_csv):
+    scanner=pd.read_csv(os.path.join(this_date_processing_dir, scanner_csv), low_memory = False)
+        # "/project/wolk_4/ADNI2018/analysis_input/adni12go3_definitive_lists/adding_scanner_info/All_Subjects_MRI_Images_09May2025.csv",low_memory=False)
+    logging.info(f"Adding scanner info from {os.path.join(this_date_processing_dir, scanner_csv)} to mri dataframe.")
+    ## Only 3T strength and original image type, select columns, drop dupes from multiple sequences
+    scanner_sm = scanner.loc[(scanner['mri_field_str'] > 2.5) & (scanner['image_type'] == 'Original'),['subject_id','mri_date','mri_mfr','mri_mfr_model']
+                                                                ].drop_duplicates(subset=['subject_id','mri_date'], keep='first'
+                                                                ).rename(columns={"subject_id":"ID",'mri_date':"SCANDATE.mri",
+                                                                "mri_mfr":"SCANNER_MANUFACTURER","mri_mfr_model":"SCANNER_MODEL"}
+                                                                ).reset_index(drop=True)
+
+    fours_scanners = mris_fours.merge(scanner_sm,how='left',on=['ID','SCANDATE.mri'])
+    manu_missing = fours_scanners.loc[pd.isnull(fours_scanners['SCANNER_MANUFACTURER'])]
+    model_missing = fours_scanners.loc[pd.isnull(fours_scanners['SCANNER_MODEL'])]
+    logging.info(f"{len(manu_missing)} sessions missing manufacturer; {len(model_missing)} sessions missing model.")
+    return fours_scanners
+
+
 def combine_all_adni_phases(adni12go3_csv,fours_withvis_df,scan_type):
     logging.info(f"Combining earlier ADNI phase scans from csv {adni12go3_csv}")
     ### combine ADNI4 versions with existing data
@@ -243,9 +261,10 @@ def main():
     allmriseq = tees_mri.merge(flair_formatted,how='outer',on=['RID','ID','SCANDATE','VISCODE'])
     ## add VISCODE2 from meta csv
     mris_fours = viscode2_from_meta_csv(allmriseq, 'mri')
+    ## add scanner info to MRI df
+    mris_fours_scanner = scanner_info(mris_fours, scanner_info_csv)
     ## get full list of MRIs from all ADNI phases
-    all_mris = combine_all_adni_phases(adni12go3_mri_csv, mris_fours, 'mri')
-
+    all_mris = combine_all_adni_phases(adni12go3_mri_csv, mris_fours_scanner, 'mri')
     ## make tau-anchored csv 
     create_tau_anchored_uid_list(all_mris, all_taus, all_amys)
 
@@ -259,5 +278,7 @@ this_date_processing_dir = f"{analysis_input_dir}/{file_date}_processing"
 download_csvs_dir = f"{this_date_processing_dir}/{file_date}_collections_csvs"
 adni_datasheets_dir = f"{this_date_processing_dir}/{file_date}_adni_datasheets_csvs"
 uids_dir = f"{this_date_processing_dir}/{file_date}_uids"
+
+scanner_info_csv = [file for file in os.listdir(this_date_processing_dir) if "Subjects_MRI_Images" in file][0]
 
 main()
