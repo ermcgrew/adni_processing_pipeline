@@ -357,7 +357,7 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
             elif qc_type == "wbseg":
                 qc_files = [mri_to_process.wbsegqc_image]
             elif qc_type == "thickness":
-                qc_files = [mri_to_process.thickness] 
+                qc_files = [mri_to_process.brainseg_mosaic_qc, mri_to_process.corticalthick_mosaic_qc]
 
         if qc_type == "Amy_MRI_reg": 
             amydate = str(row['SCANDATE.amy'])
@@ -370,6 +370,7 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
             tau_to_process = TauPET(subject, taudate)
             mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process) 
             qc_files = [mri_tau_reg_to_process.t1_reg_qc]
+            # qc_files = [mri_tau_reg_to_process.t1_8mm_reg_qc]
             line_to_write = f"{line_to_write},{taudate}"
 
         ## Check if QC files exist:
@@ -392,6 +393,10 @@ def collect_qc(csv = "", dry_run = False, qc_type = ""):
                 if "ASHS" in qc_type:
                     ## ASHS qc files don't have subject or date in file name, and T1 ASHS needs to be distinguished from ICV ASHS in same dir
                     [os.system(f"cp {file} {dir_to_copy_to}/{subject}_{mridate}_{os.path.dirname(file).split('/')[-2]}_{os.path.basename(file)}") for file in qc_files]
+                elif "thickness" in qc_type:
+                    [os.system(f"cp {file} {dir_to_copy_to}/{mridate}_{os.path.basename(file)}") for file in qc_files]
+                    #### add date to file name
+                    # print("")
                 else:
                     [os.system(f"cp {file} {dir_to_copy_to}") for file in qc_files]
 

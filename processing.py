@@ -76,6 +76,9 @@ class MRI:
         self.t1trim_thickness_dir = f"{self.filepath}/thickness/{self.id}PreprocessedInput.nii.gz"
         self.ants_brainseg = f"{self.filepath}/thickness/{self.id}BrainSegmentation.nii.gz"
         self.thickness = f"{self.filepath}/thickness/{self.id}CorticalThickness.nii.gz"
+        self.brainseg_mosaic_qc = f"{self.filepath}/thickness/{self.id}BrainSegmentationTiledMosaic.png"
+        self.corticalthick_mosaic_qc = f"{self.filepath}/thickness/{self.id}CorticalThicknessTiledMosaic.png"
+
         self.pmtau_output = f"{self.filepath}/thickness/ap.nii.gz"
         self.brainx_thickness_dir = f"{self.filepath}/thickness/{self.id}ExtractedBrain0N4.nii.gz"
         
@@ -650,6 +653,7 @@ class MRIPetReg:
         self.t1_8mm_reg_nifti = f"{self.filepath}/{self.reg_8mm_prefix}_T1.nii.gz"
         self.t1_8mm_SUVR = f"{self.filepath}/{self.reg_8mm_prefix}_T1_SUVR_infcereb.nii.gz"
         self.t1_8mm_pvc = f"{self.filepath}/{self.reg_8mm_prefix}_T1_SUVR_infcereb_pvc.nii.gz"
+        self.t1_8mm_reg_qc = f"{self.filepath}/{self.reg_8mm_prefix}_T1_qa.png"
 
         self.log_output_dir = f"{self.filepath}/logs"
         if not os.path.exists(self.log_output_dir):
@@ -712,17 +716,30 @@ class MRIPetReg:
     def adhoc_run_pet(self, parent_job_name = [], dry_run = False):
         this_function = MRIPetReg.adhoc_run_pet.__name__
         this_job_name=f"{self.mridate}_{self.id}_{this_function}" 
-        if self.pet_type == "AmyloidPET": 
-            if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", input_files = [self.t1_8mm_reg_nifti], \
-                                output_files = [self.t1_8mm_pvc], parent_job = parent_job_name):
+        if self.pet_type == "TauPET":
+            if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", input_files = [self.t1_8mm_reg_nifti, self.t1trim], \
+                                output_files = [self.t1_8mm_reg_qc], parent_job = parent_job_name):
                 submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
                 if dry_run:
-                    print(f"running adhoc: xueying amy t1 pvc images:{self.t1_8mm_SUVR}")
-                else:
-                    os.system(f"bsub {submit_options} ./wrapper_scripts/adhoc_amy_pvc_keep_images.sh {self.t1_8mm_SUVR} ")
+                    print(f"running adhoc: 8mm tau QC for Xueying: ")
+                else:            
+                    os.system(f"bsub {submit_options} ./processing_scripts/registered_image_qc.sh \
+                        {self.t1trim} {self.t1_8mm_reg_nifti} {self.t1_8mm_reg_qc}")
                 return this_job_name          
             else:
                 return
+
+        # if self.pet_type == "AmyloidPET": 
+        #     if ready_to_process(this_function, self.id, f"{self.mridate}:{self.petdate}", input_files = [self.t1_8mm_reg_nifti], \
+        #                         output_files = [self.t1_8mm_pvc], parent_job = parent_job_name):
+        #         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+        #         if dry_run:
+        #             print(f"running adhoc: xueying amy t1 pvc images:{self.t1_8mm_SUVR}")
+        #         else:
+        #             os.system(f"bsub {submit_options} ./wrapper_scripts/adhoc_amy_pvc_keep_images.sh {self.t1_8mm_SUVR} ")
+        #         return this_job_name          
+        #     else:
+        #         return
                 
                 
 if __name__ == "__main__":
