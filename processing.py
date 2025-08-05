@@ -440,7 +440,7 @@ class MRI:
         this_function = MRI.flair_skull_strip.__name__
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.flair], \
-                            output_files=[self.flair_noskull], parent_job = parent_job_name):
+                            output_files=[self.flair_noskull], parent_job = parent_job_name): 
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)        
             if dry_run:
                 print('do skull stripping')
@@ -569,7 +569,8 @@ class MRI:
         else:
             return
 
-
+    def adhoc_mri(self, parent_job_name = [], dry_run = False):
+        return
     ### for getting 8mm pvc data for Xueying 2025, also change t1tausuvr variable in app.py
     # def pet_stats(self, parent_job_name = [], dry_run = False, t1tausuvr="null", taudate="null",t1amysuvr="null",amydate="null"):
     #     this_function = MRI.pet_stats.__name__
@@ -745,72 +746,3 @@ class MRIPetReg:
 if __name__ == "__main__":
     print("Running processing.py directly.")
 
-    ### Define class instance
-    # mri_to_process = MRI("018_S_2155", "2022-11-21")    
-    # mri_to_process = MRI("033_S_0734", "2018-10-10")
-    # mri_to_process = MRI("114_S_6917","2021-04-16") 
-    # mri_to_process = MRI("135_S_4722","2017-06-22") 
-    # mri_to_process = MRI("033_S_7088", "2022-06-27")
-    # mri_to_process = MRI("099_S_6175", "2020-06-03")
-    # mri_to_process = MRI('141_S_6779','2020-10-27')
-    # mri_to_process = MRI('007_S_2394','2023-10-26')
-    # mri_to_process = MRI("022_S_6796","2020-09-09")
-    # mri_to_process = MRI("024_S_6846",'2021-05-20')
-    # mri_to_process = MRI("135_S_6703",'2021-04-20')
-
-    # amy_to_process = AmyloidPET("033_S_7088", "2022-07-27")
-    # amy_to_process = AmyloidPET("114_S_6917","2021-06-02")
-    # amy_to_process = AmyloidPET("141_S_6779", "2021-06-02")
-    # amy_to_process = AmyloidPET("135_S_4722","2017-06-20")
-    # amy_to_process = AmyloidPET("022_S_6796","2021-08-24")
-    # amy_to_process = AmyloidPET("135_S_6703","2021-04-20")
-
-    # tau_to_process = TauPET("099_S_6175", "2020-07-09")
-    # tau_to_process = TauPET("114_S_6917", "2021-08-11")
-    # tau_to_process = TauPET("135_S_4722", "2017-06-22")
-    # tau_to_process = TauPET("022_S_6796","2020-09-23")
-
-
-    # mri_amy_reg_to_process = MRIPetReg(amy_to_process.__class__.__name__, mri_to_process, amy_to_process)
-    # mri_tau_reg_to_process = MRIPetReg(tau_to_process.__class__.__name__, mri_to_process, tau_to_process)
-
-
-    ### MRI processing
-    # mri_to_process.neck_trim()
-    # mri_to_process.cortical_thick()
-
-    # mri_to_process.t1icv()
-
-    # mri_to_process.superres() 
-    # mri_to_process.superres_test()
-    # mri_to_process.t1ashs()
-
-    # mri_to_process.brain_ex(dry_run=True)
-    # mri_to_process.whole_brain_seg
-    # mri_to_process.wbsegqc()
-    # mri_to_process.wbseg_to_ants()
-    # mri_to_process.pmtau()
-
-    # mri_to_process.t2ashs()
-    # mri_to_process.prc_cleanup()
-
-    # mri_to_process.flair_skull_strip()
-
-    # mri_to_process.structure_stats()
-    # mri_to_process.ashst2_stats()
-    # mri_to_process.ashst1_stats()
-    
-    # mri_to_process.pet_stats(t1tausuvr=mri_tau_reg_to_process.t1_SUVR,
-    #                             t1amysuvr=mri_amy_reg_to_process.t1_SUVR,
-    #                             taudate=mri_tau_reg_to_process.petdate,
-    #                             amydate=mri_amy_reg_to_process.petdate)
-
-
-    ### PET processing
-    # mri_tau_reg_to_process.t1_pet_reg()
-    # mri_tau_reg_to_process.pet_reg_qc()
-    # mri_tau_reg_to_process.t1_pet_suvr()
-
-    # mri_amy_reg_to_process.t1_pet_reg()
-    # mri_amy_reg_to_process.pet_reg_qc()
-    # mri_amy_reg_to_process.t1_pet_suvr()

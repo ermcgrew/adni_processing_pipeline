@@ -67,8 +67,34 @@ def cleanup_collection_csvs(collection_file,sequence_type):
         subjects = dupes['RID'].unique()
         for subject in subjects:     
             this_sub_only = dupes.loc[dupes['RID'] == subject]
-            this_sub_only.sort_values(by = ['IMAGEUID'],inplace=True)
-            idx_to_drop.append(this_sub_only.index[0])       
+            alldates = this_sub_only['SCANDATE'].unique()
+            for date in alldates:
+                this_sub_date_only = this_sub_only.loc[this_sub_only['SCANDATE'] == date]
+                ### if HS/CS Sagittal exists, only use if no other sequence available
+                check_hs = this_sub_date_only.loc[(this_sub_date_only['Description'].str.contains("HS")) | (this_sub_date_only['Description'].str.contains("CS"))]
+                if len(check_hs) > 0 & (sequence_type == "T1" or sequence_type == "FLAIR"):
+                    if (len(this_sub_date_only) - len(check_hs) == 1):
+                        # print('drop hs, no sort needed')
+                        for i in range(0,len(check_hs)):
+                            idx_to_drop.append(check_hs.index[i])
+                    else:
+                        if (len(this_sub_date_only) - len(check_hs) > 1):
+                            # print('drop hs, sort other sequences for last UID')
+                            for i in range(0,len(check_hs)):
+                                idx_to_drop.append(check_hs.index[i])
+                            this_sub_date_only = this_sub_date_only.loc[~(this_sub_date_only['Description'].str.contains('HS Sagittal')) & ~(this_sub_date_only['Description'].str.contains('CS Sagittal'))]
+                            this_sub_date_only.sort_values(by = ['IMAGEUID'],inplace=True)
+                            idx_to_drop.append(this_sub_date_only.index[0])
+                        else:
+                            # print('sort HS sequences for last UID since theyre the only ones available')
+                            this_sub_date_only.sort_values(by = ['IMAGEUID'],inplace=True)
+                            idx_to_drop.append(this_sub_date_only.index[0]) 
+                else:
+                    # print('choose between two regular sequences')
+                    logging.info(f"Choosing duplicate for session {subject},{date}: {this_sub_date_only['Description'].values},{this_sub_date_only['IMAGEUID'].values}")
+                    this_sub_date_only.sort_values(by = ['IMAGEUID'],inplace=True)
+                    idx_to_drop.append(this_sub_date_only.index[0])  
+
         df_nodupes = df_sm.drop(idx_to_drop).reset_index(drop=True)
         df_formatted = df_nodupes
     else:
@@ -136,7 +162,8 @@ def scanner_info(mris_fours,scanner_csv):
         # "/project/wolk_4/ADNI2018/analysis_input/adni12go3_definitive_lists/adding_scanner_info/All_Subjects_MRI_Images_09May2025.csv",low_memory=False)
     logging.info(f"Adding scanner info from {os.path.join(this_date_processing_dir, scanner_csv)} to mri dataframe.")
     ## Only 3T strength and original image type, select columns, drop dupes from multiple sequences
-    scanner_sm = scanner.loc[(scanner['mri_field_str'] > 2.5) & (scanner['image_type'] == 'Original'),['subject_id','mri_date','mri_mfr','mri_mfr_model']
+    #  & (scanner['image_type'] == 'Original')
+    scanner_sm = scanner.loc[(scanner['mri_field_str'] > 2.5),['subject_id','mri_date','mri_mfr','mri_mfr_model']
                                                                 ].drop_duplicates(subset=['subject_id','mri_date'], keep='first'
                                                                 ).rename(columns={"subject_id":"ID",'mri_date':"SCANDATE.mri",
                                                                 "mri_mfr":"SCANNER_MANUFACTURER","mri_mfr_model":"SCANNER_MODEL"}

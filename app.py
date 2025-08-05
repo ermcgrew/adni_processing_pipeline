@@ -324,6 +324,12 @@ def longitudinal_processing(csv = "" ,dry_run = False):
 
 def collect_qc(csv = "", dry_run = False, qc_type = ""):
     df = pd.read_csv(csv)
+
+    ### Add filter for only new scans if using ADNI4_MRI_UIDS..._converted.csv??
+    ## if a session had just one sequence type added later, will be adding existing files to qc, would have to break it down by seq type
+    # if (qc_type == "ASHST1" or qc_type == "ASHST2" or qc_type == "wbseg" or qc_type == "thickness" ) and ("NEW"* in df.columns) :
+        # df_newscans = df.loc[(df['NEW.T1'] == 1) | (df['NEW.T2'] == 1) | (df['NEW.FLAIR'] == 1 )].reset_index(drop = True)
+  
     logging.info(f"DRY_RUN={dry_run}: collect {qc_type} QC for sessions in csv {csv}")
 
     ## make dir for this batch of QC files
@@ -428,7 +434,7 @@ def file_exist(inputcsv = "", check_type = ""):
                     't1icv_seg', 't1icv_qc', 'icv_volumes_file', 't2nifti', 't2ashs_seg_left', 't2ashs_seg_right', \
                     't2ashs_tse', 't2ashs_flirt_reg', 't1_to_t2_transform', 't2ashs_qc_left', 't2ashs_qc_right', \
                     't2ashs_cleanup_left', 't2ashs_cleanup_right', 't2ashs_cleanup_both', 'flair', \
-                    'flair_noskull', 'wmh', 't1ashs_stats_txt', 't2ashs_stats_txt', 'structure_stats_txt', 'wmh_stats_txt']
+                    'flair_noskull', 'wmh', 't1ashs_stats_txt', 't2ashs_stats_txt', 'structure_stats_txt', 'wmh_stats_txt', 'brainseg_mosaic_qc','corticalthick_mosaic_qc']
         if check_type == "pet":
             pet_fieldnames = ['TAUDATE', 'AMYDATE', 'TauPET_pet_nifti', 'TauPET_t1_reg_nifti', 'TauPET_t1_SUVR', 'TauPET_t1_reg_qc', \
                                 'AmyloidPET_pet_nifti', 'AmyloidPET_t1_reg_nifti', 'AmyloidPET_t1_SUVR', 'AmyloidPET_t1_reg_qc']
