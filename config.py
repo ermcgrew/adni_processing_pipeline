@@ -12,13 +12,13 @@ current_date = datetime.now().strftime("%Y_%m_%d")
 current_date_time = datetime.now().strftime("%Y_%m_%dT%H_%M_%S")
 
 ### File/directory locations on the cluster
-adni_data_dir = "/project/wolk_4/ADNI2018/dataset"
+adni_data_dir = "/project/wolk/ADNI2018/dataset"
 
-analysis_input_dir = "/project/wolk_4/ADNI2018/analysis_input"
+analysis_input_dir = "/project/wolk/ADNI2018/analysis_input"
 cleanup_dir = f"{analysis_input_dir}/cleanup"
 wmh_prep_dir = f"{analysis_input_dir}/wmh"
 
-analysis_output_dir = "/project/wolk_4/ADNI2018/analysis_output"
+analysis_output_dir = "/project/wolk/ADNI2018/analysis_output"
 log_output_dir = f"{analysis_output_dir}/logs"
 stats_output_dir = f"{analysis_output_dir}/stats"
 

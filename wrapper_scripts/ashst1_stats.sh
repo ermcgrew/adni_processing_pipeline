@@ -99,5 +99,5 @@ THKFITQUALITY="${THKFITQUALITY:1}"
 # echo "Thick fit qual: $THKFITQUALITY"
 
 
-# output all values
+### output all values
 echo "$RID,$id,$mridate,$ICV,$VOL,$THK,$THKFITQUALITY" | tee ${stats_output_dir}/stats_mri_${mridate}_${id}_ashst1.txt
