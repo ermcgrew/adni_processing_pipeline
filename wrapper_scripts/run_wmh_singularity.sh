@@ -2,8 +2,9 @@
 
 data_input_folder=$1
 
-module load singularity
-SINGULARITYENV_TMPDIR=/tmp
+# module load singularity
+module load apptainer
+APPTAINERENV_TMPDIR=/tmp
 singularity run --writable -B ${data_input_folder}/:/data/exvivo/ /project/wolk/ADNI2018/scripts/wmh_seg/ bash /src/commands_nnunet_inference_WMH_invivo.sh
 
 echo

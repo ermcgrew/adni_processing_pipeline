@@ -10,7 +10,8 @@ if [[ $# -eq 0 ]]; then
   exit 1
 fi
 
-module load singularity/3.8.3
+# module load singularity/3.8.3
+module load apptainer
 
 outputDir=$(readlink -f $1)
 shift
@@ -33,7 +34,8 @@ t1w_csv=$(IFS=,; echo "${t1w_images[*]}")
 
 tmpDir=$(mktemp -d -p /scratch antsct-aging-long.${LSB_JOBID}.XXXXXX.tmpdir)
 
-export SINGULARITYENV_TMPDIR=/tmp
+# export SINGULARITYENV_TMPDIR=/tmp
+export APPTAINERENV_TMPDIR=/tmp
 
 singularity run --cleanenv -B ${tmpDir}:/tmp \
     -B $t1w_csv -B ${outputDir}:/data/output \

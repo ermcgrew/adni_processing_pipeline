@@ -4,8 +4,9 @@ session_filepath=$1
 date_id_prefix=$2
 current_wmh_prep_dir=$3
 
-module load singularity
-SINGULARITYENV_TMPDIR=/tmp
+# module load singularity
+module load apptainer
+APPTAINERENV_TMPDIR=/tmp
 
 dataset_flair="${session_filepath}/${date_id_prefix}_flair.nii.gz"
 
