@@ -10,20 +10,21 @@ thickness_csv_prefix=$6
 thickness_csv_suffix=$7
 icv_txt=$8
 
+TMPDIR=$(mktemp -d)
 
 RID=$(echo $id | cut -f 3 -d "_")
 
 ################ICV VOL#############
 # icv_txt=/ASHSICV/final/${id}_left_corr_nogray_volumes.txt
 ICV=$(cat $icv_txt | cut -d " " -f 5)
-# echo $ICV
+echo $ICV
 
 ################T1 ASHS: Volumes#############
 ASHST13TLABELNUMS=(1 2 10 11 12 13 18 20) #AHippo PHippo ERC BA35 BA36 PHC Amygdala WhiteMatter
 for side in left right; do
     t1_ashs_seg="${t1_ashs_seg_prefix}_${side}_${t1_ashs_seg_suffix}"
     # t1_ashs_seg=/project/wolk/ADNI2018/scripts/pipeline_test_data/114_S_6917/2021-04-16/ASHST1/final/114_S_6917_${side}_lfseg_heur.nii.gz
-    STATS=${stats_output_dir}/rawvols_ASHST1_3T.txt
+    STATS=$TMPDIR/rawvols_ASHST1_3T.txt
     c3d $t1_ashs_seg -dup -lstat > $STATS
     for i in "${ASHST13TLABELNUMS[@]}" ; do
         VOL="$VOL,$(cat $STATS | awk -v id=$i '$1 == id {print $7}')" #get values for labels we use 
@@ -34,8 +35,6 @@ number_of_labels=${#ASHST13TLABELNUMS[*]} #length of array// number of labels
 for ((i=1;i<=$number_of_labels;i++)); do
     LMEAN=$(echo $VOL | cut -d, -f $i)  #grab left volume
     RMEAN=$(echo $VOL | cut -d, -f $((i+number_of_labels))) # grab right volume
-    # echo "in for loop this is lmea: $LMEAN" 
-    # echo "this is rmea: $RMEAN"
     if [[ $LMEAN != "" && $RMEAN != "" ]]; then    #if both values
         MMEAN=$(echo "scale=10;($LMEAN+$RMEAN)/2" | bc -l)  #get mean value
     else
@@ -43,7 +42,6 @@ for ((i=1;i<=$number_of_labels;i++)); do
     fi
     VOL="$VOL,$MMEAN"
 done
-# echo "volumes: $VOL"
 
 
 ################T1 ASHS: Thickness#############
@@ -64,6 +62,7 @@ for side in left right; do
     fi
 done
 THK="${THK:1}"
+
 # compute mean
 number_of_labels=10
 for ((i=1;i<=$number_of_labels;i++)); do
@@ -76,7 +75,6 @@ for ((i=1;i<=$number_of_labels;i++)); do
     fi
     THK="$THK,$MMEAN"
 done
-# echo "thickness: $THK"
 
 ################T1 ASHS: Fit Quality of Thickness#############
 THKFITQUALITY=""
@@ -96,8 +94,8 @@ for side in left right; do
     fi
 done
 THKFITQUALITY="${THKFITQUALITY:1}"
-# echo "Thick fit qual: $THKFITQUALITY"
-
 
 ### output all values
 echo "$RID,$id,$mridate,$ICV,$VOL,$THK,$THKFITQUALITY" | tee ${stats_output_dir}/stats_mri_${mridate}_${id}_ashst1.txt
+
+rm -rf $TMPDIR

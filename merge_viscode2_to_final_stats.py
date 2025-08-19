@@ -25,7 +25,7 @@ statdf = pd.read_csv(stats_csv)
 mrisdf = pd.read_csv(mri_csv)
 
 mrisdf = mrisdf.rename(columns={"SCANDATE.mri":"MRIDATE","PHASE":"PHASE_mri","VISCODE":"VISCODE_mri","VISCODE2":"VISCODE2_mri"}).drop(columns=['NEW.T1','NEW.T2','NEW.FLAIR'])
-mrisdf['RID'] = mrisdf['RID'].astype(int)
+mrisdf['RID'] = mrisdf['RID'].astype(float)
 
 statsmridf=statdf.merge(mrisdf,how='left',on=['RID','ID','MRIDATE'])
 

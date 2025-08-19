@@ -479,7 +479,7 @@ class MRI:
                             ## removed from input files 20241108: self.t1mtthk_left,self.t1mtthk_right,
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run:
-                print("ASHS T1 stats running")
+                print(f"ASHS T1 stats running {self.t1ashsext_seg_right}")
             else:
                 os.system(f"bsub {submit_options} ./wrapper_scripts/ashst1_stats.sh \
                     {self.id} {self.mridate} {stats_output_dir} {self.t1ashsext_seg_prefix} \
