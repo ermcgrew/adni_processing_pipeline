@@ -159,10 +159,8 @@ def viscode2_from_meta_csv(collection_df,scan_type):
 
 def scanner_info(mris_fours,scanner_csv):
     scanner=pd.read_csv(os.path.join(this_date_processing_dir, scanner_csv), low_memory = False)
-        # "/project/wolk_4/ADNI2018/analysis_input/adni12go3_definitive_lists/adding_scanner_info/All_Subjects_MRI_Images_09May2025.csv",low_memory=False)
     logging.info(f"Adding scanner info from {os.path.join(this_date_processing_dir, scanner_csv)} to mri dataframe.")
-    ## Only 3T strength and original image type, select columns, drop dupes from multiple sequences
-    #  & (scanner['image_type'] == 'Original')
+    ## Only 3T strength, select columns, drop dupes from multiple sequences
     scanner_sm = scanner.loc[(scanner['mri_field_str'] > 2.5),['subject_id','mri_date','mri_mfr','mri_mfr_model']
                                                                 ].drop_duplicates(subset=['subject_id','mri_date'], keep='first'
                                                                 ).rename(columns={"subject_id":"ID",'mri_date':"SCANDATE.mri",
@@ -306,6 +304,6 @@ download_csvs_dir = f"{this_date_processing_dir}/{file_date}_collections_csvs"
 adni_datasheets_dir = f"{this_date_processing_dir}/{file_date}_adni_datasheets_csvs"
 uids_dir = f"{this_date_processing_dir}/{file_date}_uids"
 
-scanner_info_csv = [file for file in os.listdir(this_date_processing_dir) if "Subjects_MRI_Images" in file][0]
+scanner_info_csv = [file for file in os.listdir(this_date_processing_dir) if "Subjects_Structural_MRI_Images" in file][0]
 
 main()

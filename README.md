@@ -7,19 +7,17 @@
 
 ## Instructions for use
 ### Get dicoms
-1. Follow instructions in `/download_dicoms/download_dicoms_procedure.txt` to gather new scans from ida.loni.usc.edu database and get download links.
-2. Download a csv of in each collection BEFORE running any dicom downloads. The 'null' value in the 'Downloaded' column is used to identify new scans in `data_setup.py`. 
-3. Add download https strings to a copy of `/download_dicoms/download_adni_dicoms.py` on your personal computer (cannot download directly to the bscsub cluster) to download dicoms from ida.loni.usc.edu. 
-4. Use scp or rsync to move files from personal computer to cluster.
-5. Run command `python app.py unpack_dicoms <options>` to unzip dicoms and rsync between cluster locations.
+1. Follow instructions in `/download_dicoms/download_dicoms_procedure.txt` to gather new scans from ida.loni.usc.edu database.
+2. When files are added to cluster, run command `python app.py unpack_dicoms <options>` to unzip dicoms and rsync between cluster locations.
 
 ### Get data sheets
 1. Manually download these csvs from ida.loni.usc.edu:
 - MRI3META.csv: Downloads/Imaging/MR Image Acquisition/3T MRI Scan Information
 - AMYMETA.csv: Downloads/Imaging/PET Image Acquisition/Amyloid PET Scan Information
 - TAUMETA.csv: Downloads/Imaging/PET Image Acquisition/Tau PET Scan Information
+- All_Subjects_Structural_MRI_Images.csv: Downloads/Tables/Structural MRI Images (availabe there after saving from Search/Images/Image Views/Structural MRI Images)
 2. On cluster, run script `dir_setup.sh YYYYMMDD` to create folders for all ADNI data sheets and uid lists for this round of processing.  
-3. Copy downloaded data sheet csvs to `/YYYYMMDD_adni_datasheets_csvs` and downloaded collection csvs to `/YYYYMMDD_collections_csvs`
+3. Copy downloaded data sheet csvs to `YYYMMDD_processing/YYYYMMDD_adni_datasheets_csvs` and downloaded image collection csvs to `YYYMMDD_processing/YYYYMMDD_collections_csvs`. Copy All_Subjects_Structural_MRI_Images to `YYYMMDD_processing`.
 4. Get csvs of all mri and pet files and a csv of tau-anchored dates using command: `python app.py data_setup -d YYYYMMDD`
 
 ### Processing

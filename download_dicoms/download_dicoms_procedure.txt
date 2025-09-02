@@ -25,9 +25,6 @@ Search Parameters
                  (**Note: the " C%" in the search filters out scans with "Early" in the sequence name, because those are not the correct sequence.)
             for Tau PET:
                 Image: Image Description field: %AV1451 C%Uniform%
-            for FDG PET:
-                Image: Image Description field: %Uniform%
-                Imaging Protocol: Radiopharmaceutical: F18-FDG and FDG
         
         *** 6/2023: PET sequence naming convention changed from "...Uniform Resolution" to "...Uniform 6mm Res"
 
@@ -38,16 +35,22 @@ Existing collections:
     ADNI4_FLAIR_todownload
     ADNI4_Amy_todownload
     ADNI4_Tau_todownload
-    ADNI4_FDG_todownload
 
 From Data Collections tab: 
     for each collection, 
-        select "not downloaded" part (from left menu bar)
-        download a csv of the "not downloaded" files
-        select all scans
-        get advanced download link (right click, "copy link address")
-        paste into proper part of download_adni_dicoms.py
-        update date in download_adni_dicoms.py
-        run script download_adni_dicoms.py 
+        download csv of ALL items in collection first
+        select "not downloaded" part of the collection (from left menu bar)
+        select the "All" checkbox
+        click the "Advanced Download" button 
+        for large downloads:
+            divide the download into 5 or 10 zip files 
+            download URL list csv
+        for relatively few downloads: 
+            right click the zip file link and click "copy link address"
+            paste link into csv or directly into .py file 
+
+    When all the download links are collected, 
+        update required variables in download_adni_dicoms.py
+        run script download_adni_dicoms.py to download the dicom files to your personal computer
         run rsync command to copy zip files to cluster
 
