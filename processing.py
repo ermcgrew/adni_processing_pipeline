@@ -100,8 +100,8 @@ class MRI:
         self.t1ashsext_seg_right = f"{self.t1ashsext_dir}/final/{self.id}_right_lfseg_heur.nii.gz"
         self.t1ashsext_seg_prefix = f"{self.t1ashsext_dir}/final/{self.id}"
         self.t1ashsext_seg_suffix = "lfseg_heur.nii.gz"
-        self.t1ashsext_qc_left = f"{self.t1ashsext_dir}/qa/qa_seg_bootstrap_corr_nogray_left_qa.png"
-        self.t1ashsext_qc_right = f"{self.t1ashsext_dir}/qa/qa_seg_bootstrap_corr_nogray_right_qa.png"
+        self.t1ashsext_qc_left = f"{self.t1ashsext_dir}/qa/qa_seg_bootstrap_heur_left_qa.png"
+        self.t1ashsext_qc_right = f"{self.t1ashsext_dir}/qa/qa_seg_bootstrap_heur_right_qa.png"
      
         self.t1mtthk_left = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_left_thickness.csv"
         self.t1mtthk_right = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_right_thickness.csv"   
