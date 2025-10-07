@@ -13,15 +13,15 @@ export ASHS_ROOT=$ashs_root
 module unload matlab/2023a 
 module load ImageMagick
 
-#Make ASHST1/ASHSICV/sfsegnibtend directory in session folder
-if [[ ! -d $output_directory ]] ; then 
-    mkdir -p $output_directory
-fi
+### Make tmpdir to run ashs in
+tmpdir=$( mktemp -d --tmpdir=/scratch )
+echo $tmpdir
 
-#standard options
+## standard options
 options="-a $atlas -g $t1trim -f $(readlink -f $t2link) \
-          -w $output_directory -T -d -I ${id}"
+          -w $tmpdir -T -d -I ${id}"
 
+### for T2 ASHS only
 if [[ $t2link =~ "T2w" ]] ; then 
     ##symlink this run data to SDROOT where all T2 runs are stored
     mridate=$( echo $output_directory | rev | cut -d "/" -f 2 | rev)
@@ -42,12 +42,56 @@ fi
 #run ASHS
 $ASHS_ROOT/bin/ashs_main.sh $options
           
-#Remove intermediate files
-rm -rf $output_directory/*raw.nii.gz
-##keep bootstrap and multiatlas for ADNI T2 $output_directory/multiatlas $output_directory/bootstrap
-if [[ $t2link =~ "T2w" ]] ; then 
-    rm -rf $output_directory/ants_t1_to_temp/reslice_tse_to_template.nii.gz $output_directory/ants_t1_to_temp/reslice_mprage_to_template.nii.gz
+echo Here are the files in the tmpdir: 
+ls -l $tmpdir
+echo More extensive: 
+tree $tmpdir
+
+#Make ASHST1/ASHSICV/sfsegnibtend directory in session folder
+if [[ ! -d $output_directory ]] ; then 
+    mkdir -p $output_directory
 fi
+
+### Copy result files out of the tmp dir
+## always copy log files
+cp -r $tmpdir/dump $output_directory
+
+### if success -- check for segmentation file we use for stats in /final
+if [[ -f $tmpdir/final/${id}_left_lfseg_heur.nii.gz ]] ; then 
+
+    ## symlink inputs 
+    ln -s $t1trim $output_directory/mprage.nii.gz
+    ln -s $t2link $output_directory/tse.nii.gz
+
+    ## for T1 ASHS
+    if [[ $t2link =~ "denoised_SR" ]] ; then 
+        mkdir -p $output_directory/affine_t1_to_template $output_directory/bootstrap/fusion/ $output_directory/final
+        cp $tmpdir/affine_t1_to_template/*.mat $output_directory/affine_t1_to_template
+        cp $tmpdir/bootstrap/fusion/posterior* $output_directory/bootstrap/fusion
+        cp $tmpdir/final/${id}_[lr]* $output_directory/final
+        ### all files in /final except icv.txt
+
+        cp -r $tmpdir/flirt_t2_to_t1 $tmpdir/qa $tmpdir/tse_native_chunk_* $output_directory
+    
+    ## for T2 ASHS 
+    elif [[ $t2link =~ "T2w" ]] ; then
+        mkdir -p $output_directory/affine_t1_to_template $output_directory/final
+        cp $tmpdir/affine_t1_to_template/*.mat $output_directory/affine_t1_to_template
+        cp $tmpdir/final/${id}_[lr]* $output_directory/final
+        ### all files in /final except icv.txt
+
+        cp -r $tmpdir/bootstrap $tmpdir/flirt_t2_to_t1 $tmpdir/multiatlas $tmpdir/qa $output_directory
+    
+    ## for ICV ASHS 
+    elif [[ $t2link == $t1trim ]] ; then 
+        cp -r $tmpdir/final $tmpdir/qa $output_directory
+    
+    fi 
+fi 
+
+### remove tmpdir
+rm -rf $tmpdir
+
 
 # Options:
 # for T1, T2, and ICV:
@@ -71,7 +115,6 @@ fi
 # ************UPDATE 7/4/2023 & 11/6/2023************
 #     - removed -s 1-7 opt: unnecessary, default runs all 7 steps
 #     - removed -d opt: debugging log unnecessary
-#
 #     - Modules must be in order: unload matlab, load ImageMagick to resolve LibTiff version error that prevents
 #          creation of qa pngs. 
 #     - removed -z {long_scripts}/ashs-fast-z.sh (Provide a path to an executable script that 
@@ -80,3 +123,6 @@ fi
 #     - removed -l (Use LSF instead of SGE, SLURM or GNU parallel)
 #           separating jobs prevents transer of module unload/load, leading to LibTiff version error still.
       
+# ************UPDATE 10/7/2025************
+#   -Instead of removing unneeded files, ASHS script outputs to tmp dir
+#    and only necessary files are copied to final dataset directory.
