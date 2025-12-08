@@ -136,20 +136,16 @@ function write_header()
       done
     done
 
-    # thickness
-    for side in L R M; do
-      for type in MeanTHK MedianTHK; do
-        for sub in Hippo ERC BA35 BA36 PHC; do
-          HEADER="$HEADER,${side}_${sub}_${type}_MSTTHKMT_ASHST1_3T"
-        done
+    # thickness from CRASHS
+    for side in L R ; do
+      for sub in AHippo PHippo ERC BA35 BA36 PHC WhiteMatter; do
+        HEADER="$HEADER,${side}_${sub}_CRASHS_thk"
       done
     done
 
-    # thickness quality of fit
+    # CRASHS thickness qc
     for side in L R; do
-      for sub in Hippo ERC BA35 BA36 PHC ALL; do
-        HEADER="$HEADER,${side}_${sub}_MSTFitQuality_ASHST1_3T"
-      done
+      HEADER="$HEADER,${side}_CRASHS_qc"
     done
 
   elif [[ $mode == "ashst2" ]] ; then 
@@ -188,7 +184,7 @@ function collate_new_data ()
       cat $file >> $statfile
     done
   elif [[ $mode == "ashst1" ]] ; then 
-    for file in $(find ${output_dir}/stats/*ashst1.txt); do
+    for file in $(find ${output_dir}/stats/*ashst1_crashs.txt); do
       cat $file >> $statfile
     done
   elif [[ $mode == "ashst2" ]] ; then 
@@ -220,7 +216,7 @@ elif [[ $mode == "petold" ]] ; then
 elif [[ $mode == "structure" ]] ; then 
   statfile="${output_dir}/data/thickness_PMTAU_${date}_TEMP.csv"
 elif [[ $mode == "ashst1" ]] ; then 
-  statfile="${output_dir}/data/T1_ASHSvols_MTTHK_${date}_TEMP.csv"
+  statfile="${output_dir}/data/T1_ASHSvols_CRASHSthick_${date}_TEMP.csv"
 elif [[ $mode == "ashst2" ]] ; then 
   statfile="${output_dir}/data/T2_ASHSvols_${date}_TEMP.csv"
 elif [[ $mode == "wmh" ]] ; then 
