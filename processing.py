@@ -103,6 +103,10 @@ class MRI:
         self.t1ashsext_qc_left = f"{self.t1ashsext_dir}/qa/qa_seg_bootstrap_heur_left_qa.png"
         self.t1ashsext_qc_right = f"{self.t1ashsext_dir}/qa/qa_seg_bootstrap_heur_right_qa.png"
      
+        ### CRASHS outputs
+        self.crashs_roi_sum = f"{self.filepath}/ASHST1_anteriorMTL/crashs_left/thickness/{self.id}_{self.mridate}_left_thickness_roi_summary.csv"
+        self.crashs_qc =  f"{self.filepath}/ASHST1_anteriorMTL/crashs_left/fitting/{self.id}_{self.mridate}_left_fitted_dist_stat.json"
+
         self.t1mtthk_left = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_left_thickness.csv"
         self.t1mtthk_right = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}_right_thickness.csv"   
         self.t1mtthk_prefix = f"{self.filepath}/ASHST1_MTLCORTEX_MSTTHK/{self.id}_{self.mridate}"
@@ -481,9 +485,9 @@ class MRI:
             if dry_run:
                 print(f"ASHS T1 stats running {self.t1ashsext_seg_right}")
             else:
-                os.system(f"bsub {submit_options} ./wrapper_scripts/ashst1_stats.sh \
-                    {self.id} {self.mridate} {stats_output_dir} {self.t1ashsext_seg_prefix} \
-                    {self.t1ashsext_seg_suffix} {self.t1mtthk_prefix} {self.t1mtthk_suffix} \
+                os.system(f"bsub {submit_options} ./wrapper_scripts/ashst1_crashs_stats.sh \
+                    {self.id} {self.mridate} {stats_output_dir} {self.t1ashsext_seg_left} \
+                    {self.crashs_roi_sum} {self.crashs_qc} \
                     {self.icv_volumes_file}") 
             return this_job_name          
         else:
