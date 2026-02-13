@@ -110,6 +110,9 @@ def cleanup_collection_csvs(collection_file,sequence_type):
                                 'NEW':f"NEW.{sequence_type}",
                                 "Description":f"SEQUENCE_NAME.{sequence_type}" })
     
+
+    ### TODO: check selected IMAGEUID against existing processing in cluster
+
     ## record number of new sequences in log
     new_images = len(df_formatted.loc[df_formatted[f'NEW.{sequence_type}'] == 1])
     logging.info(f"{new_images} new {sequence_type} images")
@@ -201,6 +204,10 @@ def create_tau_anchored_uid_list(mris,taus,amys):
 
     outputdf=pd.DataFrame()
     index = 0
+
+    ## TODO: account for missing values in sequence_name columns --dtype incompatible warning
+    # outputdf[''] = outputdf[''].astype()
+    ## alter original dfs so they propagate to outputdf?
 
     for subject in tau_subjects:
         ##find subject rows in tau, use to create a date list

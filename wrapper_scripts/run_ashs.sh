@@ -64,7 +64,7 @@ if [[ -f $tmpdir/final/${id}_left_lfseg_heur.nii.gz ]] ; then
     ln -s $t2link $output_directory/tse.nii.gz
 
     ## for T1 ASHS
-    if [[ $t2link =~ "denoised_SR" ]] ; then 
+    if [[ $t2link =~ "denoised_SR" || $t2link =~ "superres" ]] ; then 
         mkdir -p $output_directory/affine_t1_to_template $output_directory/bootstrap/fusion/ $output_directory/final
         cp $tmpdir/affine_t1_to_template/*.mat $output_directory/affine_t1_to_template
         cp $tmpdir/bootstrap/fusion/posterior* $output_directory/bootstrap/fusion

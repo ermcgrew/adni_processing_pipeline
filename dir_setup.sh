@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+### format YYYYMMDD
 newdate=$1
 
 analysis_input_dir="/project/wolk/ADNI2018/analysis_input"

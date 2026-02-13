@@ -266,7 +266,7 @@ def final_data_sheets(mode,wait):
                 -o {log_output_dir}/{current_date_time}_createstatssheets_{stats_type}_%J.txt \
                 ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {stats_type}')
         else:
-            os.system(f'bsub -J "{current_date}_datasheets" -o {log_output_dir}/{current_date_time}_createstatssheets_{stats_type}_%J.txt \
+            os.system(f'bsub -q bsc_short -J "{current_date}_datasheets" -o {log_output_dir}/{current_date_time}_createstatssheets_{stats_type}_%J.txt \
                 ./create_stats_sheets.sh {wblabel_file} {analysis_output_dir} {stats_type}')
     
 
@@ -489,7 +489,7 @@ subparsers = global_parser.add_subparsers(title="Subcommands", help="Sections of
 
 ###unpack_dicoms
 unpack_dicoms_parser = subparsers.add_parser("unpack_dicoms", help="Unzip dicom files and rsync to /dataset.")
-unpack_dicoms_parser.add_argument("-d", "--date", help="Date in format \{three_letter_abbreviationYYYY\}, \
+unpack_dicoms_parser.add_argument("-d", "--date", help="Date in format 'three_letter_abbreviationYYYY', \
     matching the directory containing the zip files, e.g. Jan2025.")
 unpack_dicoms_parser.set_defaults(func=unpack_dicoms)
 

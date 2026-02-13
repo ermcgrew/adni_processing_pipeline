@@ -570,7 +570,25 @@ class MRI:
             return
 
     def adhoc_mri(self, parent_job_name = [], dry_run = False):
+        this_function = MRI.adhoc_mri.__name__
+        this_job_name=f"{this_function}_{self.date_id_prefix}"             
         return
+
+    ### For getting just icv stats data 12/2025
+        #     if ready_to_process(this_function, self.id, self.mridate, \
+    #                         input_files=[self.icv_volumes_file], \
+    #                         # output_files=[self.t1ashs_stats_txt],\
+    #                         parent_job=parent_job_name):
+    #         submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
+    #         if dry_run:
+    #             print(f"do icv stats")
+    #         else:
+    #             os.system(f"bsub {submit_options} ./wrapper_scripts/tmp_icvstats.sh \
+    #                 {self.id} {self.mridate} {stats_output_dir} \
+    #                 {self.icv_volumes_file}") 
+    #         return this_job_name          
+    #     else:
+
     ### for getting 8mm pvc data for Xueying 2025, also change t1tausuvr variable in app.py
     # def pet_stats(self, parent_job_name = [], dry_run = False, t1tausuvr="null", taudate="null",t1amysuvr="null",amydate="null"):
     #     this_function = MRI.pet_stats.__name__

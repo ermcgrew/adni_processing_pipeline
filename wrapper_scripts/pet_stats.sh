@@ -62,7 +62,12 @@ for pettype in tau amy ; do
 
     if [[ ! -f $t1_to_t2_transform ]] ; then 
         echo First make T1 to T2 transform file
-        mkdir -p $SDROOT/$id/$tp/${SFSEG}/flirt_t2_to_t1
+        # mkdir -p $SDROOT/$id/$tp/${SFSEG}/flirt_t2_to_t1
+        ## if not basedir t1_to_t2_transform, mkdir -p
+        transform_dir="$(dirname "$t1_to_t2_transform")"
+        if [[ ! -d "$transform_dir" ]] ; then
+          mkdir -p "$transform_dir"
+        fi
 		c3d $t2_nifti -resample 100x100x500% -region 20x20x0% 60x60x100% -type short -o $TMPDIR/tse_iso.nii.gz
 		greedy -d 3 -a -dof 6 -m MI -n 100x100x10 -i $TMPDIR/tse_iso.nii.gz $t1trim -ia-identity -o $t1_to_t2_transform
     fi
