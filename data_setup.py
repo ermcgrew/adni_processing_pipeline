@@ -93,7 +93,8 @@ def cleanup_collection_csvs(collection_file,sequence_type):
                     # print('choose between two regular sequences')
                     logging.info(f"Choosing duplicate for session {subject},{date}: {this_sub_date_only['Description'].values},{this_sub_date_only['IMAGEUID'].values}")
                     this_sub_date_only.sort_values(by = ['IMAGEUID'],inplace=True)
-                    idx_to_drop.append(this_sub_date_only.index[0])  
+                    ### Handle rare cases where there are 3 versions of same sequence
+                    idx_to_drop.extend(this_sub_date_only.index[0:-1])
 
         df_nodupes = df_sm.drop(idx_to_drop).reset_index(drop=True)
         df_formatted = df_nodupes
