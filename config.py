@@ -44,6 +44,7 @@ ashs_t1_atlas = "/project/bsc/shared/AshsAtlases/ashsT1_atlas_upennpmc_07202018"
 ashs_t2_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_20170810"
 ashs_t1ext_atlas = "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_t1ext_20240617/final/" 
 ashs_mopt_mat_file = f"{utilities_dir}/identity.mat"
+ashs_t1extatlas_config = f"{utilities_dir}/ashs_config.sh"
 
 
 ## Static lists of scans from ADNI phases 1,2,GO,3

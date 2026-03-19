@@ -371,14 +371,13 @@ class MRI:
         this_job_name=f"{self.date_id_prefix}_{this_function}"
         if ready_to_process(this_function, self.id, self.mridate, input_files=[self.t1trim, self.superres_nifti], 
                             output_files=[self.t1ashsext_seg_left, self.t1ashsext_seg_right], parent_job = parent_job_name):
-           
             submit_options = set_submit_options(this_job_name, self.log_output_dir, parent_job_name)
             if dry_run: 
                 print("T1 ashs with ext atlas running")
             else:
                 os.system(f"bsub {submit_options} \
                         ./wrapper_scripts/run_ashs.sh {ashs_root} {ashs_t1ext_atlas} {self.t1trim} {self.superres_nifti}\
-                        {self.t1ashsext_dir} {self.id} {ashs_mopt_mat_file}")
+                        {self.t1ashsext_dir} {self.id} {ashs_mopt_mat_file} {ashs_t1extatlas_config}")
             return this_job_name
         else:
             return
