@@ -7,6 +7,7 @@ t2link=$4
 output_directory=$5
 id=$6
 m_opt=$7
+t1sliceconfig=$8
 
 export ASHS_ROOT=$ashs_root
 ##Modules must unload/load in this order to prevent LIBTIFF version error
@@ -37,6 +38,11 @@ fi
 #For ICV ASHS only
 if [[ $t2link == $t1trim ]] ; then 
     options="$options -B"
+fi
+
+# For ASHST1 extended atlas only--more slices in QC screenshots
+if [[ -n $t1sliceconfig && $atlas == "/project/bsc/shared/AshsAtlases/ashs_atlas_upennpmc_t1ext_20240617/final/" ]] ; then 
+  options="$options -C $t1sliceconfig"
 fi
 
 #run ASHS
@@ -111,6 +117,8 @@ rm -rf $tmpdir
 # -B (Do not perform the bootstrapping step, and use the output of the initial joint
 #                     label fusion (in multiatlas directory) as the final output.)
 
+# T1 only: 
+# -C ashs_config.sh  (variable for more slices in QC screenshots to cover ASHST1 extended atlas)
 
 # ************UPDATE 7/4/2023 & 11/6/2023************
 #     - removed -s 1-7 opt: unnecessary, default runs all 7 steps
@@ -126,3 +134,7 @@ rm -rf $tmpdir
 # ************UPDATE 10/7/2025************
 #   -Instead of removing unneeded files, ASHS script outputs to tmp dir
 #    and only necessary files are copied to final dataset directory.
+
+# ************UPDATE 3/17/2026************
+    # - added clause to use different ashs_config.sh file if using ASHST1 extended atlas for more slices and 
+    # coverage in the QC png screenshots. 
