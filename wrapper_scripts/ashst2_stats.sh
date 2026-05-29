@@ -27,6 +27,18 @@ for side in left right; do
     
     ###ASHST2 volumes, number of slices
     c3d $t2 $cleanup_seg -lstat > $TMPDIR/stattau.txt
+    
+    ### for fixing "not in same physical space" error -- -lstat output blank if error prints to stdout
+    test=$( cat $TMPDIR/stattau.txt )
+    if [[ -z $test ]] ; then 
+        echo reslice segmentation
+        cleanup_resliced=$( echo $cleanup_seg | sed "s/.nii.gz/_resliced.nii.gz/" )
+        c3d $t2 $cleanup_seg -reslice-identity -o $cleanup_resliced
+        cleanup_seg=$cleanup_resliced
+        echo using resliced cleanup segmentation $cleanup_seg
+        c3d $t2 $cleanup_seg -lstat > $TMPDIR/stattau.txt
+    fi 
+
     ## list is label numbers in stattau.txt file: CA1 CA2 CA3 DG MISC SUB ERC BA35 BA36 PHC sulcus     
     list=$(echo 1 2 4 3 7 8 10 11 12 13 14)
     for i in $list; do
@@ -75,5 +87,7 @@ for side in left right; do
         statline="$statline,$THISVOL,$THISNSLICE"
     done
 done
+
+rm -rf $TMPDIR
 
 echo -e $statline | tee ${stats_output_dir}/stats_mri_${mridate}_${id}_ashst2.txt
