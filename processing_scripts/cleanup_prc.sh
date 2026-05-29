@@ -1,6 +1,9 @@
 #!/usr/bin/bash
 # This code removes straggling PRC/ERC voxels
 # formerly a fucntion in cleanup_prc_taupet_adni_....sh
+set -x 
+
+module load c3d 
 
 ashst2_left=$1
 cleanup_left=$2
@@ -24,6 +27,8 @@ for side in left right ; do
     NS=$(echo $INFO | sed -e "s/.*dim = .//g" -e "s/.;.*bb.*//g" | awk -F ',' '{print $3}')
     slicecmd=$(for((i=1;i<$NS;i++)); do echo "-push X -slice z $i -voxel-sum "; done)
     c3d $TMPDIR/temp.nii.gz -popas X $slicecmd | grep Voxel | awk '{print $3}' > $TMPDIR/counts.txt
+    
+    which c3d
 
     NNZ=$(cat $TMPDIR/counts.txt | grep -v '^0$' | wc -l)
     MEDIAN=$(cat $TMPDIR/counts.txt | grep -v '^0$' | sort -n | tail -n $((NNZ/2)) | head -n 1)
